@@ -5,7 +5,7 @@ public class ViewFacade {
     public ViewFacade() {
     }
     
-    public update() {
+    public Testupdate() {
     	
     }
 }

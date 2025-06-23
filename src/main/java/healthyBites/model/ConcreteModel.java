@@ -231,7 +231,36 @@ public class ConcreteModel implements Model {
 
     @Override
     public Meal getSwappedMeal(Meal originalMeal, Goal goal) {
+        for (FoodItem ingredient : originalMeal.getFoodItems()) {
+            String category = getFoodCateogry(ingredient.getName());
+            List<FoodItem> foods = getFoodItemsByCategory(category);
+            for (FoodItem food: foods) {
+                List<FoodItem> swappedIngredients = new ArrayList<>(originalMeal.getFoodItems());
+
+                for (int i = 0; i < swappedIngredients.size(); i++) {
+                    if (swappedIngredients.get(i).equals(ingredient)) {
+                        swappedIngredients.set(i, food);
+                    }
+                }
+                Meal swappedMeal = new Meal(originalMeal.getDate(), swappedIngredients, originalMeal.getType());
+                if (isGoalMet(originalMeal, swappedMeal, goal))
+                    return swappedMeal;
+            }
+        }
         
+        throw new IllegalArgumentException();
+    }
+
+    private boolean isGoalMet(Meal originalMeal, Meal swappedMeal, Goal goal) {
+        return true;
+        // see if the goal is met and all other macro nutrients are within 10%
+    }
+
+    public List<FoodItem> getFoodItemsByCategory(String category) {
+        return null;
+    }
+
+    public String getFoodCateogry(String name) {
         return null;
     }
 

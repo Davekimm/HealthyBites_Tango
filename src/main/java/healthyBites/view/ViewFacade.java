@@ -4,5 +4,8 @@ public class ViewFacade {
 
     public ViewFacade() {
     }
-
+    
+    public update() {
+    	
+    }
 }

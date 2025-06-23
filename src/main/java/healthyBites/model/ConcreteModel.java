@@ -1,14 +1,64 @@
 package healthyBites.model;
 
-public class ConcreteDatabse implements Database {
-    @Override
-    public void createProfile (User user) throws Exception {
-        // throw new IllegalArgumentException();
+import java.util.List;
+
+public class ConcreteModel implements Model {
+    private static ConcreteModel instance;
+
+    public static ConcreteModel getInstance() {
+        if (instance == null)
+            instance = new ConcreteModel();
+        return instance;
     }
+
+    private ConcreteModel() {}
+
+   
     // Thuyanhm12#
 
+
+
     @Override
-    public User authenticateUser (String email, String password){
+    public void setProfile(UserProfile profile) {
+        System.out.println("Setting profile");
+    }
+
+    @Override
+    public UserProfile getProfile(String email) {
+        // throw new UnsupportedOperationException("Not supported yet.");
+        return null;
+    }
+
+    @Override
+    public void updateProfile(UserProfile profile) {
+        // throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public void deleteProfile(String email) {
+        // throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public void addMeal(Meal meal, String email) {
+        // throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public List<Meal> getMeals(String email) {
+        // throw new UnsupportedOperationException("Not supported yet.");
+        return null;
+    }
+
+    @Override
+    public Meal getSwappedMeal(Meal originalMeal, Goal goal) {
+        // throw new UnsupportedOperationException("Not supported yet.");
+        return null;
+    }
+
+    @Override
+    public List<Meal> getSwappedMeals(List<Meal> originalMeals, Goal goal) {
+        // throw new UnsupportedOperationException("Not supported yet.");
         return null;
     }
 }

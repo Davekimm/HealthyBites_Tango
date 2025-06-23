@@ -1,7 +1,8 @@
 package healthyBites.model;
+
 import java.util.Date;
 
-public class User {
+public class UserProfile {
     //name.dob. height. weight, unit of measurement, sex, email, pw
     private String name, sex,email, pw, unitOfMeasurement;
     private Date dob;
@@ -71,7 +72,7 @@ public class User {
         this.weight = weight;
     }
 
-    public User(String name, String sex, String email, String pw, String unitOfMeasurement, Date dob, double height,
+    public UserProfile(String name, String sex, String email, String pw, String unitOfMeasurement, Date dob, double height,
             double weight) {
         this.name = name;
         this.sex = sex;

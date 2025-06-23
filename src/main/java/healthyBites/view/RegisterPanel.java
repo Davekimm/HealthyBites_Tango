@@ -1,9 +1,14 @@
-package healthyBites;
+package healthyBites.view;
 
-import javax.swing.*;
-import org.jfree.chart.*;
-import org.jfree.data.general.*;
-import java.awt.*;
+import java.awt.CardLayout;
+import java.awt.GridLayout;
+
+import javax.swing.JPanel;
+
+import org.jfree.chart.ChartFactory;
+import org.jfree.chart.ChartPanel;
+import org.jfree.chart.JFreeChart;
+import org.jfree.data.general.DefaultPieDataset;
 
 public class RegisterPanel extends JPanel {
 	public RegisterPanel (JPanel mainPanel, CardLayout cardLayout) {

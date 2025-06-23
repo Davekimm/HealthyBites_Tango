@@ -1,5 +1,8 @@
 package healthyBites.model;
 
+/**
+ * Food item represents a class to store a food and its quantity
+ */
 public class FoodItem {
     public final String name;
     public final double quantity;

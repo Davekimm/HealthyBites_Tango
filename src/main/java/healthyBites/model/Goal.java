@@ -1,5 +1,9 @@
 package healthyBites.model;
 
+
+/**
+ * Goal represents a class to store a user's goal 
+ */
 public class Goal {
     private final String nutrient;
     private final boolean increase;

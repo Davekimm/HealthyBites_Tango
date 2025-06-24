@@ -1,4 +1,4 @@
-package healthybites.view;
+package healthyBites.view;
 
 import javax.swing.*;
 import java.awt.*;

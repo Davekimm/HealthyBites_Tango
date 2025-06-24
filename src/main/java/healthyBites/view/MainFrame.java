@@ -1,4 +1,4 @@
-package healthybites.view;
+package healthybites.view.panels;
 
 import java.awt.*;
 import javax.swing.*;
@@ -7,7 +7,7 @@ public class MainFrame extends JFrame {
 
     private RegisterPanel registerPanel;
     private MealPanel mealPanel;
-
+    private ChartVisualizationPanel chartPanel;
     // main JFrame contains all the Jpanels
     public MainFrame() {
         setTitle("Healthy Bites");
@@ -20,25 +20,27 @@ public class MainFrame extends JFrame {
         cardPanel.setLayout(new CardLayout());
 
         add(cardPanel);
-
+       
         // individual panels van be tested by commenting out all other panels
-
-        // Create and add the RegisterPanel to the card panel
         registerPanel = new RegisterPanel();
         cardPanel.add(registerPanel, "RegisterPanel");
         // for test only
         registerPanel.addRegisterButtonListener(e -> {
             System.out.println("Register button clicked");
         });
-
+        
         // Create and add the MealPanel to the card panel
         mealPanel = new MealPanel();
         cardPanel.add(mealPanel, "MealPanel");
         // for test only
         mealPanel.addToMealButtonListener(e -> {
-            System.out.println("Add to Meal button clicked");
+            System.out.println("Register button clicked");
         });
-
+        
+        // Create and add chart visual to the card panel
+        chartPanel = new ChartVisualizationPanel();
+        cardPanel.add(chartPanel, "ChartPanel");
+     
         setVisible(true);
     }
 }

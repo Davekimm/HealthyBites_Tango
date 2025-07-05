@@ -1,37 +1,29 @@
 package healthyBites.model;
+
 import java.util.List;
 
-
-
 public interface Model {
-    public void setProfile(UserProfile profile);
-    public UserProfile getProfile(String email);
-    public void updateProfile(UserProfile profile);
-    public void deleteProfile(String email);
-    public void addMeal(Meal meal, String email);
-    public List<Meal> getMeals(String email);
-    public Meal getSwappedMeal(Meal originalMeal, Goal goal);
-    public List<Meal> getSwappedMeals(List<Meal> originalMeals, Goal goal);
+    // UC 1
+    void setProfile(UserProfile profile);
+    UserProfile getProfile(String email);
+    void updateProfile(UserProfile profile);
+    void deleteProfile(String email);
+
+    // UC 2
+    void addMeal(Meal meal, String email);
+    List<Meal> getMeals(String email);
+    List<String> getAvailableUnits(String foodName);
+    List<String> getFoodNames(); // + getFoodItemsList(): List <String>
+    Nutrition getFoodItemNutrtionalValue(FoodItem foodItem); // + getNutritionalValue(foodItem: FoodItem): Nutrition
+    Nutrition getMealNutrtionalValue(Meal originalMeal); // new
+
+    // UC 3
+    // List<Meal> getMealsByDate(String email, Date date);
+    // List<Meal> getMealsByTimeFrame(String email, Date begin, Date end);
+    // List<FoodItem> getSwappedFoodOptions(Meal originalMeal, FoodItem foodItem, Goal... goals); // new based on prof's new request
+    // List<String> getNutrientNames();
+    // String getFoodCategory(String foodName); // + getCategory(foodItem: String): String
+    // List<String> getFoodNamesWithSameFoodCategoryAs(String foodName); // + getAlternativeFoodItemsByCategory(category: String): List<String>
+    // String getNutrientUnit(String nutrient);
+    // Map<String, Double> getDailyRecommendationsFromCFG();
 }
-
-
-
-
-
-// + getMealsByDate(email: String, date: Date): List<Meal>
-// + getFoodItemsList(): List <String>
-
-// + getNutritionalValue(foodItem: FoodItem): Nutrition
-
-// + getCategory(foodItem: String): String
-// + getAlternativeFoodItemsByCategory(category: String): List<String>
-
-
-// + getMealsByTimeFrame(email: String, start: Date, end: Date): List<Meal>
-
-// + getDailyRecommendationsFromCFG(): Map<String, Double>
-
-
-
-
-// 5.	At least one calculation (e.g., after one swap) happening in the background and confirmed with the right test case.

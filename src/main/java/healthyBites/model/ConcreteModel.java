@@ -20,10 +20,12 @@ import io.github.cdimascio.dotenv.Dotenv;
  * Main model class.
  * Uses singleton patten.
  */
-public class ConcreteModel implements Model {
+public class ConcreteModel implements Model, MealSubject {
     // follows singleton pattern
     private static ConcreteModel instance;
     private Connection conn;
+    private ArrayList<MealObserver> mealObservers = new ArrayList<>();
+
 
     public static ConcreteModel getInstance() {
         if (instance == null)
@@ -173,6 +175,8 @@ public class ConcreteModel implements Model {
                 ex.printStackTrace();
             }
         }
+
+        notifyObservers(meal, getMealNutrtionalValue(meal));
 
     }
     
@@ -360,4 +364,22 @@ public class ConcreteModel implements Model {
         }
         return totalNutrition;
     }
+
+    @Override
+    public void addObserver(MealObserver o) {
+        mealObservers.add(o);
+    }
+
+    @Override
+    public void removeObserver(MealObserver o) {
+        mealObservers.remove(o);
+    }
+
+    @Override
+    public void notifyObservers(Meal m, Nutrition n) {
+        for (MealObserver o: mealObservers) {
+            o.update(m, n);
+        }
+    }
+
 }

@@ -205,7 +205,7 @@ public class ConcreteModel implements Model, MealSubject {
             SELECT * 
             FROM meals 
             INNER JOIN food_items 
-            ON meals.meal_id = meals.id 
+            ON meals.id = food_items.meal_id
             WHERE meals.email = ?
             AND meals.date >= ? AND meals.date <= ?
         """; 

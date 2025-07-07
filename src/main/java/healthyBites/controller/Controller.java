@@ -1,31 +1,25 @@
 package healthyBites.controller;
 
-import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-
 import javax.swing.JOptionPane;
 
-import healthyBites.model.Model;
-import healthyBites.model.ConcreteModel;
 import healthyBites.view.ViewFacade;
+import healthyBites.model.ConcreteModel;
 import healthyBites.model.FoodItem;
-import healthyBites.model.Goal;
 import healthyBites.model.Meal;
 import healthyBites.model.Model;
+import healthyBites.model.Nutrition;
 import healthyBites.model.UserProfile;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
 public class Controller {
 	private ViewFacade view;
     private Model model;
     private String currentPage;
     private UserProfile currentUser;
-    private Meal swappedMeal;
-    private Goal currentGoal;
+    private Meal recentMeal;
 
     public Controller(ViewFacade view) {
     	model = ConcreteModel.getInstance();
@@ -36,183 +30,319 @@ public class Controller {
     }
     
     private void registerActionListeners() {
-		view.addLoginPageLoginButtonListener(e -> loginHandler());
+		view.setLoginButtonListener(e -> loginHandler());
 		
-		view.addLoginPageCreateProfileButtonListener(e -> view.showRegisterPage()); 
+		view.setCreateProfileButtonListener(e -> {
+			view.showRegisterPanel(); 
+			this.currentPage = "RegisterPage";
+		});
+				
+		view.setRegisterButtonListener(e -> registerProfile());
 		
-		view.addRegisterPageRegisterButtonListener(e -> registerHandler());
+		view.setRegisterCancelButtonListener(e -> {
+			view.showLoginPanel();
+			this.currentPage = "LoginPage";
+		});
 		
-		view.addRegisterPageCancelButtonListener(e -> view.showLoginPage());
+		view.setEditMetricListener(e ->	convertUnitInEditPanel());
 		
-		view.addHomePageEditProfileButtonListener(e -> view.showEditPage());
+		view.setEditImperialListener(e -> convertUnitInEditPanel());
 		
-		view.addHomePageLogMealButtonListener(e -> view.showMealPage());
+		view.setEditProfileButtonListener(e -> { 
+			view.showEditPanel(); 
+			updateUserInfoInEditPage();
+			this.currentPage = "EditPage";
+		});
 		
-		view.addHomePageGoalSwapButtonListener(e -> view.showGoalSwapPage());
+		view.setLogMealButtonListener(e -> {
+			view.showMealPanel();
+			getAvailableIngredients();
+			this.currentPage = "MealPage";
+		});
 		
-		view.addHomePageIntakeButtonListener(e -> view.showIntakePage());
+		/*
+		view.setFoodSwapButtonListener(e -> {
+			view.showGoalSwapPanel();
+			this.currentPage = "GoalSwapPage";
+		});
 		
-		view.addHomePageAvgPlateButtonListener(e -> view.showAvgPlatePage());
+		view.setNutrientTrendButtonListener(e -> {
+			view.showIntakeTrendPanel();
+			this.currentPage = "IntakeTrendPage";
+		});
 		
-		view.addHomePageEffectOfSwapButtonListener(e -> view.showEffectOfSwapPage());
+		view.setAveragePlateButtonListener(e -> {
+			view.showAveragPlatePanel();
+			this.currentPage = "AveragePlatePage";
+		});
+		*/
 		
-		view.addHomePageLogOutButtonListener(e -> view.showLoginPage());
+		view.setLogoutButtonListener(e -> {
+			view.showLoginPanel();
+			view.clearLoginFields();
+			this.currentPage = "LoginPage";
+			JOptionPane.showMessageDialog(null, "Logged out successfully", "Success", JOptionPane.INFORMATION_MESSAGE);
+		});
 		
-		view.addMealPageConfirmButtonListener(e -> logMealHandler());
+		view.setDeleteButtonListener(e -> deleteProfile());
 		
-		view.addMealPageCancelButtonListener(e -> view.showHomePage());
+		view.setSaveButtonListener(e -> saveEditProfile());
 		
-		view.addGoalSwapPageApplyGoalButtonListener(e -> getFoodToSwap());
+		view.setCancelButtonListener(e -> {
+			view.showHomePanel();
+			this.currentPage = "HomePage";
+		});
 		
-		view.addGoalSwapPageApplyAcrossTimeButtonListener(e -> applyAcrossTime());
+		addMealPanelIngredientComboBoxListeners();
 		
-		view.addGoalSwapPageCancelButtonListener(e -> view.showHomePage());
+		view.setAddToMealButtonListener(e -> logMealHandler());
 		
-		view.addIntakeTrendPageShowButtonListener(e -> showIntakeTrend());
+		view.setMealBackButtonListener(e -> {
+			view.showHomePanel();
+			view.clearMealFields();
+			this.currentPage = "HomePage";
+		});
 		
-		view.addIntakeTrendPageCancelButtonListener(e -> view.showHomePage());
+		
+		
+//		view.addGoalSwapPageApplyGoalButtonListener(e -> getFoodToSwap());
+		
+//		view.addGoalSwapPageApplyAcrossTimeButtonListener(e -> applyAcrossTime());
+		
+//		view.addGoalSwapPageCancelButtonListener(e -> view.showHomePage());
+		
+//		view.addIntakeTrendPageShowButtonListener(e -> showIntakeTrend());
+		
+//		view.addIntakeTrendPageCancelButtonListener(e -> view.showHomePage());
 	}
     
-    // Check if user can log in. Email is the unique identification between profiles.
+    // Check if user can log in.
+    // Exception
+    //    - If DB cannot return profile for some reason.
     private void loginHandler() {
-    	String email = view.getLoginPageEmail();
+
+    	String email = view.getLoginEmail();
 
         if (model.getProfile(email) != null) {
-            view.showHomePage();
-            // Dialog to indicate a successful login.
+        	
+        	this.currentUser = model.getProfile(email);
+        	
+        	JOptionPane.showMessageDialog(null, "Login successful!", "Success", JOptionPane.INFORMATION_MESSAGE);
+        	        	
+            view.showHomePanel();
             this.currentPage = "HomePage";
+            
         } else {
-        	// Dialog to indicate a failure to log in.
+        	JOptionPane.showMessageDialog(null, "Invalid info. Please try again.", "Login Failed", JOptionPane.ERROR_MESSAGE);
         }
     }
     
     // Get user's input from Register page and create a new profile in Userinfo DB.
-    private void registerHandler() {
-    	String email = view.getRegisterPageEmail();
-    	String name = view.getRegisterPageName();
-    	String gender = view.getRegisterPageGender();
-    	Date DOB = view.getRegisterPageDOB();
-    	double height = view.getRegisterPageHeight();
-    	double weight = view.getRegisterPageWeight();
-    	String unit = view.getRegisterPageUnit();
+    // Exception
+    //    - If all entries are in the right format and range.
+    //    - If DB cannot save the profile for some reason.
+    private void registerProfile() {
     	
-    	// Check if all of the inputs are not null.
+    	// Check if any of the entries is null
+    	String email = view.getRegisterEmail();
+    	String name = view.getRegisterName();
+    	String gender = view.getRegisterSex();
+    	Date DOB = view.getRegisterDOB();
+    	double height = view.getRegisterHeight();
+    	double weight = view.getRegisterWeight();
+    	String unit = view.getRegisterUnit();
+    	
+    	if(model.getProfile(email) != null) {
+    		JOptionPane.showMessageDialog(null, "This email already exists!", "invalid email", JOptionPane.ERROR_MESSAGE);
+    		return;
+    	}
+    	
+    	if(name.length() == 0) {
+    		JOptionPane.showMessageDialog(null, "Name is required.", "invalid name", JOptionPane.ERROR_MESSAGE);
+    		return;
+    	}
+    	
+    	if(height < 1) {
+    		JOptionPane.showMessageDialog(null, "Proper height is required.", "invalid height", JOptionPane.ERROR_MESSAGE);
+    		return;
+    	}
+    	
+    	if(weight < 1) {
+    		JOptionPane.showMessageDialog(null, "Proper weight is required.", "invalid weight", JOptionPane.ERROR_MESSAGE);
+    		return;
+    	}
 		
-		currentUser = new UserProfile(name, gender, email, unit, DOB, height, weight);
+		this.currentUser = new UserProfile(name, gender, email, unit, DOB, height, weight);
 		
-		model.setProfile(currentUser);
+		model.setProfile(this.currentUser);
 		
-		// Message to indicate that a profile is created successfully.
+		JOptionPane.showMessageDialog(null, "Successfully created your profile!", "Success", JOptionPane.INFORMATION_MESSAGE);
 		
-		view.showHomePage();
+		view.showHomePanel();
 	    this.currentPage = "HomePage";
+    }
+    
+    // Delete profile from UserInfo DB.
+    // Exception
+    //    - If DB cannot update the profile for some reason.
+    private void deleteProfile() {
+    	model.deleteProfile(this.currentUser.getEmail());
+    	
+    	JOptionPane.showMessageDialog(null, "Successfully deleted your profile!", "Success", JOptionPane.INFORMATION_MESSAGE);
+		
+    	view.showLoginPanel();
+    	this.currentPage = "HomePage";
+    }
+    
+    // Show user info in Edit page.
+    private void updateUserInfoInEditPage() {
+    	
+    	// Update user info in Edit page.
+    	view.populateEditPanel(
+    			this.currentUser.getName(), this.currentUser.getSex(), this.currentUser.getUnitOfMeasurement(), 
+    			this.currentUser.getWeight(), this.currentUser.getHeight(), this.currentUser.getDob(), this.currentUser.getEmail());
+    }
+    
+    // Edit profile based what user info has been changed, and update it in UserInfo DB.
+    // Exception
+    //    - If all entries are in the right format and range.
+    //    - If DB cannot update the profile for some reason.
+    private void saveEditProfile() {
+    	this.currentUser.setName(view.getEditName());
+    	this.currentUser.setSex(view.getEditSex());
+    	this.currentUser.setDob(view.getEditDOB());
+    	this.currentUser.setHeight(view.getEditHeight());
+    	this.currentUser.setWeight(view.getEditWeight());
+    	this.currentUser.setUnitOfMeasurement(view.getEditUnit());
+    	    	
+    	model.updateProfile(this.currentUser);
+    	
+    	JOptionPane.showMessageDialog(null, "Successfully edited your profile!", "Success", JOptionPane.INFORMATION_MESSAGE);
+    	
+    	updateUserInfoInEditPage();
+    	
+    	view.showHomePanel();
+    	this.currentPage = "HomePage";
+    }
+    
+    private void convertUnitInEditPanel() {
+    	double convertedHeight = 0;
+    	double convertedWeight = 0;
+    	
+    	if(this.currentUser.getUnitOfMeasurement().equals("metric")) {
+    		// Imperial btn is clicked, show value in Imperial
+    		if(view.getEditUnit().equals("imperial")) {
+    			convertedHeight = view.getEditHeight() * 0.0328;
+    			convertedWeight = view.getEditWeight() * 2.204;
+        		
+    		}else {
+    			convertedHeight = this.currentUser.getHeight();
+    			convertedWeight = this.currentUser.getWeight();
+    		}
+    	}else {
+    		// Metric btn is clicked, show value in Metric
+        	if(view.getEditUnit().equals("metric")) {
+        		convertedHeight = view.getEditHeight() * 30.48;
+        		convertedWeight = view.getEditWeight() * 0.453;
+        	}else {
+        		convertedHeight = this.currentUser.getHeight();
+    			convertedWeight = this.currentUser.getWeight();
+        	}
+    	}
+    	
+    	view.populateEditPanel(this.currentUser.getName(), this.currentUser.getSex(), view.getEditUnit(),
+    			convertedWeight, convertedHeight, this.currentUser.getDob(), this.currentUser.getEmail());
     }
 	
     // Gets user's input from Meal Log page and store it in UserInfo DB.
-    // Also, show the breakdown of the meal which the user just entered.
-    public void logMealHandler() {
+    // Exception
+    //    - If all entries are in the right format and range.
+    //	       => JOptionPane.showMessageDialog(null, "Need at least one ingredient", "invalid ingredient input", JOptionPane.ERROR_MESSAGE);
+    //    - If DB cannot store meal log for some reason.
+    private void logMealHandler() {
     	
-		List<FoodItem> foodList = new LinkedList<>();
-		FoodItem food1 = new FoodItem(view.getMealPageFood1(), view.getMealPageQuantity1());
-		FoodItem food2 = new FoodItem(view.getMealPageFood2(), view.getMealPageQuantity2());
-		FoodItem food3 = new FoodItem(view.getMealPageFood3(), view.getMealPageQuantity3());
-		FoodItem food4 = new FoodItem(view.getMealPageFood4(), view.getMealPageQuantity4());
-		foodList.add(food1);
-		foodList.add(food2);
-		foodList.add(food3);
-		foodList.add(food4);
-    		
-		Meal meal = new Meal(new Date(), foodList, view.getMealPageMealType());
-		model.addMeal(meal, currentUser.getEmail());
-
-		model.getNutrientBreakdown(meal);
-
-        // Message to indicate a successful meal log
+		List<String> foodNames = view.getMealIngredients();
+		List<String> foodQuantities = view.getMealQuantities();
+		List<String> foodUnits = view.getMealUnits();
+		List<FoodItem> foodList = new ArrayList<>();
+		
+		for(int i = 0; i < foodNames.size(); i++) {
+			FoodItem foodItem = new FoodItem(foodNames.get(i), Double.parseDouble(foodQuantities.get(i)), foodUnits.get(i));
+			foodList.add(foodItem);
+		}
+		
+		Meal meal = new Meal(new Date(), foodList, view.getMealType());
+//		model.addMeal(meal, currentUser.getEmail());
+		
+		this.recentMeal = meal;
+		
+		getNutrientBreakdown(this.recentMeal);
+				
+		JOptionPane.showMessageDialog(null, "Logged meal data successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+		
+		view.clearMealFields();
+		
     }
     
-    // Show user the nutrient breakdown of the meal provided by the user after getting nutrition data of the meal from Nutrient DB.
+    /**
+     * Get nutrition breakdown of the meal that the user has logged.
+     * It is used for visualization part.
+     * @param meal The meal that the user has just logged in.
+     */
     private void getNutrientBreakdown(Meal meal) {
-
-        HashMap<String, String> nutritionList = new HashMap<>();
-    	for(FoodItem foodItem : meal.getFoodItems()) {
-    		
-    		Nutrition nutrition = model.getNutritionalValue(foodItem);
-            nutritionList.put(nutrition.getName(), nutrition.getQuantity());    		
+    	
+    	// ----- Get nutrition breakdown by model.getMealNutrtionalValue(meal);
+    	Nutrition nutrition = model.getMealNutrtionalValue(meal);
+    	
+    	
+    	List<Meal> meals = new ArrayList<Meal>();
+    	meals = model.getMeals(this.currentUser.getEmail());
+    	for(Meal m : meals) {
+    		System.out.println(m.getFoodItems());
     	}
+    			
+    }    
+    
+    /**
+     * Show all the available ingredients that user can select in  
+     * Ingredient Combo box of the Meal Panel.
+     */
+    private void getAvailableIngredients() {
     	
-    	view.showNutrientBreakdown(nutritionList);
-    }
- 
-    // Get a meal after the swap and present both the original meal and the swapped meal to the user.
-    // If the user does not like the swap option, the user can press the button again and will get other swapped meal.
-    public void getFoodToSwap() {
-    	
-    	this.currentGoal = new Goal(view.getGoalSwapPageNutrient(), view.getGoalSwapPageAction(), view.getGoalSwapPageIntensity());
-    	Meal originalMeal = model.getMeals(currentUser.getEmail()).get(0);
-    	
-    	this.swappedMeal = model.getSwappedMeal(originalMeal, this.currentGoal);
-    	
-    	List<String> originalMealFoodItems = new ArrayList<>();
-    	List<String> swappedMealFoodItems  = new ArrayList<>();
-    	
-    	for(FoodItem foodItem : originalMeal.getFoodItems()) {
-    		originalMealFoodItems.add(foodItem.getName());
+    	// Get available ingredients from Nutrient DB
+    	List<String> availableIngredients = model.getFoodNames();
+    	    	
+    	String[] foodNameAry = new String[availableIngredients.size()];
+    	for(int i = 0; i < availableIngredients.size(); i++) {
+    		foodNameAry[i] = availableIngredients.get(i);
     	}
+    	    	
+    	view.setMealIngredients(foodNameAry);
     	
-    	for(FoodItem foodItem : this.swappedMeal.getFoodItems()) {
-    		swappedMealFoodItems.add(foodItem.getName());
-    	}
-
-    	// Display(Update) an option of a meal after swap.
-    	view.showSwapMealOption(originalMealFoodItems, swappedMealFoodItems);
     }
     
-    // UC-5
-    // Apply substitutions across different meals.
-    // Given a time period, a list of meal is obtained and the goal is applied to the list.
-    // Then show the result to the user.
-    public void applyAcrossTime() {
-    	Date startDate = view.getGoalSwapPageStartDate();
-    	Date endDate = view.getGoalSwapPageStartDate();
+    /**
+     * Listens to an action of each food name combo box and query available 
+     * units from Nutrient DB based on the food name selected by users.
+     */
+    private void addMealPanelIngredientComboBoxListeners() {
     	
-    	List<Meal> mealList = model.getMealsByTimeFrame(this.currentUser.getEmail(), startDate, endDate);
-    	List<Meal> swappedMealList = model.getSwappedMeals(mealList, this.currentGoal);
-    	
-    	List<String> originalMealFoodItems = new ArrayList<>();
-    	List<String> swappedMealFoodItems  = new ArrayList<>();
-    	
-    	for(Meal meal : mealList) {
-    		for(FoodItem foodItem : meal.getFoodItems()) {
-        		originalMealFoodItems.add(foodItem.getName());
-        	}
-    	}
-    	
-    	for(Meal meal : swappedMealList) {
-    		for(FoodItem foodItem : meal.getFoodItems()) {
-    			swappedMealFoodItems.add(foodItem.getName());
-        	}
-    	}
-    	
-    	view.showSwapMealOption(originalMealFoodItems, swappedMealFoodItems);
+        view.setIngredientSelectionListener((rowIndex, foodName) -> {
+        	
+            List<String> unitList = model.getAvailableUnits(foodName);
+            String[] unitArray = unitList.toArray(new String[0]);
+            
+            // 'units' options for food item without any available units.
+            if(unitArray.length < 1) {
+            	unitArray = new String[1];
+            	unitArray[0] = "units";
+            }
+            
+//            System.out.println("unitArray's size is " + unitList.size());
+            
+            view.setUnitsForRow(rowIndex, unitArray);
+        });
     }
     
-    // UC-4 Compare nutrient intake before and after the swap.
-    // Show visualized data of both the original meal and the meal after swap with respect to their items.
-    public void showIntakeTrend() {
-    	Date startDate = view.getIntakeTrendPageStartDate();
-    	Date endDate = view.getIntakeTrendPageEndDate();
-    	String nutrient = view.getIntakeTrendPageNutrient();
-    	Map<String, Double> recommendation = model.getDailyRecommendationsFromCFG();
-    	
-    	List<Meal> mealList = model.getMealsByTimeFrame(this.currentUser.getEmail(), startDate, endDate);
-    	
-    	List<Nutrition> nutritionList = new ArrayList<>();
-    	for(Meal meal : mealList) {
-    		for(FoodItem foodItem : meal.getFoodItems()) {
-    			nutritionList.add(model.getNutritionalValue(meal));
-    		}
-    	}
-    	view.visualizeIntakeTrend(nutritionList);
-    }
-	
+    
 }

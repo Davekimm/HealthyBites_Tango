@@ -1,28 +1,35 @@
 package healthyBites;
 
 import javax.swing.SwingUtilities;
-
 import healthyBites.controller.Controller;
-import healthyBites.view.ViewFacade;
 import healthyBites.model.ConcreteModel;
+import healthyBites.observers.InitialLoadObserver;
+import healthyBites.observers.MealPanelObserver;
+import healthyBites.view.ViewFacade;
+import java.util.ArrayList;
+import java.util.List;
 
-/**
- * Main application entry point with Controller as observer
- */
 public class App {
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
-            // Create the UI facade
+            // 1. Create Model and View
             ViewFacade viewFacade = new ViewFacade();
-
-            // Create the controller
-            Controller controller = new Controller(viewFacade);
-            
-            // Register Controller as observer with the Model
             ConcreteModel model = ConcreteModel.getInstance();
-            model.addObserver(controller);
+            
+            // 2. Create all dedicated observers
+            MealPanelObserver mealPanelObserver = new MealPanelObserver(viewFacade, model);
+            
+            // 3. Group observers that need an initial load of history
+            List<InitialLoadObserver> initialLoadObservers = new ArrayList<>();
+            initialLoadObservers.add(mealPanelObserver);
+
+            // 4. Create the Controller, passing it the observers it needs to trigger
+            Controller controller = new Controller(viewFacade, model, initialLoadObservers);
+            
+            // 5. Register observers with the Model to receive live updates
+            model.addObserver(mealPanelObserver);
                                  
-            // Show the application
+            // 6. Show the application
             viewFacade.showFrame();
         });
     }

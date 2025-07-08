@@ -10,7 +10,9 @@ import healthyBites.model.Model;
 import healthyBites.model.Nutrition;
 import healthyBites.model.UserProfile;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
@@ -116,9 +118,9 @@ public class Controller {
 //		view.addIntakeTrendPageCancelButtonListener(e -> view.showHomePage());
 	}
     
-    // Check if user can log in.
-    // Exception
-    //    - If DB cannot return profile for some reason.
+    /**
+     * Check if user's profile exists in UserInfo DB.
+     */
     private void loginHandler() {
 
     	String email = view.getLoginEmail();
@@ -137,10 +139,9 @@ public class Controller {
         }
     }
     
-    // Get user's input from Register page and create a new profile in Userinfo DB.
-    // Exception
-    //    - If all entries are in the right format and range.
-    //    - If DB cannot save the profile for some reason.
+    /**
+     * Register a new profile and save it in UserInfo DB.
+     */
     private void registerProfile() {
     	
     	// Check if any of the entries is null
@@ -151,6 +152,16 @@ public class Controller {
     	double height = view.getRegisterHeight();
     	double weight = view.getRegisterWeight();
     	String unit = view.getRegisterUnit();
+    	
+    	if(email.length() == 0) {
+    		JOptionPane.showMessageDialog(null, "Email is required", "invalid email", JOptionPane.ERROR_MESSAGE);
+    		return;
+    	}
+    	
+//    	if(!email.contains("@")) {
+//    		JOptionPane.showMessageDialog(null, "Inappropriate email format", "invalid email", JOptionPane.ERROR_MESSAGE);
+//    		return;
+//    	}
     	
     	if(model.getProfile(email) != null) {
     		JOptionPane.showMessageDialog(null, "This email already exists!", "invalid email", JOptionPane.ERROR_MESSAGE);
@@ -182,9 +193,9 @@ public class Controller {
 	    this.currentPage = "HomePage";
     }
     
-    // Delete profile from UserInfo DB.
-    // Exception
-    //    - If DB cannot update the profile for some reason.
+    /**
+     * Delete user's profile from UserInfo DB.
+     */
     private void deleteProfile() {
     	model.deleteProfile(this.currentUser.getEmail());
     	
@@ -194,7 +205,9 @@ public class Controller {
     	this.currentPage = "HomePage";
     }
     
-    // Show user info in Edit page.
+    /**
+     * Show user's info in Edit Panel.
+     */
     private void updateUserInfoInEditPage() {
     	
     	// Update user info in Edit page.
@@ -203,10 +216,9 @@ public class Controller {
     			this.currentUser.getWeight(), this.currentUser.getHeight(), this.currentUser.getDob(), this.currentUser.getEmail());
     }
     
-    // Edit profile based what user info has been changed, and update it in UserInfo DB.
-    // Exception
-    //    - If all entries are in the right format and range.
-    //    - If DB cannot update the profile for some reason.
+    /**
+     * Save the profile that the user has changed.
+     */
     private void saveEditProfile() {
     	this.currentUser.setName(view.getEditName());
     	this.currentUser.setSex(view.getEditSex());
@@ -225,6 +237,9 @@ public class Controller {
     	this.currentPage = "HomePage";
     }
     
+    /**
+     * Convert units interchangeably between Metric and Imperial.
+     */
     private void convertUnitInEditPanel() {
     	double convertedHeight = 0;
     	double convertedWeight = 0;
@@ -254,54 +269,76 @@ public class Controller {
     			convertedWeight, convertedHeight, this.currentUser.getDob(), this.currentUser.getEmail());
     }
 	
-    // Gets user's input from Meal Log page and store it in UserInfo DB.
-    // Exception
-    //    - If all entries are in the right format and range.
-    //	       => JOptionPane.showMessageDialog(null, "Need at least one ingredient", "invalid ingredient input", JOptionPane.ERROR_MESSAGE);
-    //    - If DB cannot store meal log for some reason.
+    /***
+     * Log the user's meal.
+     */
     private void logMealHandler() {
     	
-		List<String> foodNames = view.getMealIngredients();
+    	List<String> foodNames = view.getMealIngredients();
 		List<String> foodQuantities = view.getMealQuantities();
 		List<String> foodUnits = view.getMealUnits();
-		List<FoodItem> foodList = new ArrayList<>();
 		
+		if (foodNames.isEmpty()) {
+            JOptionPane.showMessageDialog(null, "Need to select at least one valid ingredient.", "Input Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+		
+		Date mealDate = view.getMealDate();
+		String mealType = view.getMealType();
+		
+    	if(!mealType.equals("Snack") && mealTypeExist(mealDate, mealType) == true) {
+			JOptionPane.showMessageDialog(null, mealType + " already exists!", "invalid meal type input", JOptionPane.ERROR_MESSAGE);
+			return;
+		}
+		
+		List<FoodItem> foodList = new ArrayList<>();
 		for(int i = 0; i < foodNames.size(); i++) {
 			FoodItem foodItem = new FoodItem(foodNames.get(i), Double.parseDouble(foodQuantities.get(i)), foodUnits.get(i));
 			foodList.add(foodItem);
 		}
 		
-		Meal meal = new Meal(new Date(), foodList, view.getMealType());
-//		model.addMeal(meal, currentUser.getEmail());
-		
-		this.recentMeal = meal;
-		
-		getNutrientBreakdown(this.recentMeal);
-				
+    	Meal meal = new Meal(mealDate, foodList, mealType);
+    	this.recentMeal = meal;
+		model.addMeal(meal, currentUser.getEmail());
+			
 		JOptionPane.showMessageDialog(null, "Logged meal data successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
 		
 		view.clearMealFields();
-		
     }
     
-    /**
-     * Get nutrition breakdown of the meal that the user has logged.
-     * It is used for visualization part.
-     * @param meal The meal that the user has just logged in.
+    /***
+     * Check if the meal type already exists on the date the user has selected.
+     * Only multiple snacks are allowed.
+     * @param date Meal's date
+     * @param type Meal's type
+     * @return Returns a boolean value.
      */
-    private void getNutrientBreakdown(Meal meal) {
+    private boolean mealTypeExist(Date date, String type) {
     	
-    	// ----- Get nutrition breakdown by model.getMealNutrtionalValue(meal);
-    	Nutrition nutrition = model.getMealNutrtionalValue(meal);
-    	
-    	
-    	List<Meal> meals = new ArrayList<Meal>();
-    	meals = model.getMeals(this.currentUser.getEmail());
+        List<Meal> meals = model.getMeals(this.currentUser.getEmail());
+        
+        Calendar targetDate = Calendar.getInstance();
+        targetDate.setTime(date);
+        int year = targetDate.get(Calendar.YEAR);
+        int month = targetDate.get(Calendar.MONTH) + 1;
+        int day = targetDate.get(Calendar.DAY_OF_MONTH);
+                        		
     	for(Meal m : meals) {
-    		System.out.println(m.getFoodItems());
+    		
+    		Calendar mealDate = Calendar.getInstance();
+    		mealDate.setTime(m.getDate());
+    		    		
+    		if(mealDate.get(Calendar.YEAR) == year &&
+    			mealDate.get(Calendar.MONTH) + 1 == month &&
+    			mealDate.get(Calendar.DAY_OF_MONTH) == day &&
+    			m.getType().equals(type)) 
+    		{
+    			return true;
+    		}
     	}
-    			
-    }    
+    	
+    	return false;
+    }
     
     /**
      * Show all the available ingredients that user can select in  

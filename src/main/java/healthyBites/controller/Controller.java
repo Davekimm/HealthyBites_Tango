@@ -66,6 +66,9 @@ public class Controller {
 		view.setLogMealButtonListener(e -> {
 			view.showMealPanel();
 			getAvailableIngredients();
+
+			// prevent user from entering future dated meals
+			view.limitMealDateToToday();
 			this.currentPage = "MealPage";
 		});
 		

@@ -183,6 +183,17 @@ public class MealPanel extends JPanel {
         updateButtonStates();
     }
 
+    /**
+     * Restricts the date spinner to only allow selection of past or present dates.
+     */
+    public void limitMealDateToToday() {
+        if (todaysDate.getModel() instanceof SpinnerDateModel) {
+            SpinnerDateModel model = (SpinnerDateModel) todaysDate.getModel();
+            // Setting the 'end' date of the model prevents selection of future dates.
+            model.setEnd(new Date());
+        }
+    }
+
     public void onIngredientSelected(BiConsumer<Integer, String> action) {
         this.ingredientSelectionAction = action;
         for (int i = 0; i < ingredientCombos.size(); i++) {

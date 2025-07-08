@@ -97,6 +97,13 @@ public class ViewFacade {
     // ===========================================
     // MEAL PANEL METHODS
     // ===========================================
+
+    /**
+     * Restricts the meal panel's date picker to today or earlier dates.
+     */
+    public void limitMealDateToToday() {
+        mealPanel.limitMealDateToToday();
+    }
   
     /**
      * Sets the available ingredients list in the meal panel

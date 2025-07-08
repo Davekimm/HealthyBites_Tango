@@ -88,6 +88,7 @@ public class Controller {
 			view.clearLoginFields();
 			view.clearMealHistory();
 			this.currentPage = "LoginPage";
+			this.currentUser = null;
 			JOptionPane.showMessageDialog(null, "Logged out successfully", "Success", JOptionPane.INFORMATION_MESSAGE);
 		});
 		
@@ -129,10 +130,11 @@ public class Controller {
     private void loginHandler() {
 
     	String email = view.getLoginEmail();
+    	UserProfile profile = model.getProfile(email);
 
-        if (model.getProfile(email) != null) {
+        if (profile != null) {
         	
-        	this.currentUser = model.getProfile(email);
+        	this.currentUser = profile;
         	
         	JOptionPane.showMessageDialog(null, "Login successful!", "Success", JOptionPane.INFORMATION_MESSAGE);
         	
@@ -212,8 +214,11 @@ public class Controller {
     	
     	JOptionPane.showMessageDialog(null, "Successfully deleted your profile!", "Success", JOptionPane.INFORMATION_MESSAGE);
 		
+    	view.clearMealHistory();
+    	this.currentUser = null;
+    	
     	view.showLoginPanel();
-    	this.currentPage = "HomePage";
+    	this.currentPage = "LoginPage";
     }
     
     /**
@@ -297,7 +302,7 @@ public class Controller {
 		Date mealDate = view.getMealDate();
 		String mealType = view.getMealType();
 		
-    	if(!mealType.equals("Snack") && mealTypeExist(mealDate, mealType) == true) {
+    	if(!mealType.equals("Snack") && mealTypeExist(mealDate, mealType)) {
 			JOptionPane.showMessageDialog(null, mealType + " already exists!", "invalid meal type input", JOptionPane.ERROR_MESSAGE);
 			return;
 		}

@@ -66,26 +66,10 @@ public class Controller {
 			this.currentPage = "MealPage";
 		});
 		
-		/*
-		view.setFoodSwapButtonListener(e -> {
-			view.showGoalSwapPanel();
-			this.currentPage = "GoalSwapPage";
-		});
-		
-		view.setNutrientTrendButtonListener(e -> {
-			view.showIntakeTrendPanel();
-			this.currentPage = "IntakeTrendPage";
-		});
-		
-		view.setAveragePlateButtonListener(e -> {
-			view.showAveragPlatePanel();
-			this.currentPage = "AveragePlatePage";
-		});
-		*/
-		
 		view.setLogoutButtonListener(e -> {
 			view.showLoginPanel();
 			view.clearLoginFields();
+			view.clearRegisterFields();
 			view.clearMealHistory();
 			this.currentPage = "LoginPage";
 			this.currentUser = null;
@@ -111,17 +95,6 @@ public class Controller {
 			this.currentPage = "HomePage";
 		});
 		
-		
-		
-//		view.addGoalSwapPageApplyGoalButtonListener(e -> getFoodToSwap());
-		
-//		view.addGoalSwapPageApplyAcrossTimeButtonListener(e -> applyAcrossTime());
-		
-//		view.addGoalSwapPageCancelButtonListener(e -> view.showHomePage());
-		
-//		view.addIntakeTrendPageShowButtonListener(e -> showIntakeTrend());
-		
-//		view.addIntakeTrendPageCancelButtonListener(e -> view.showHomePage());
 	}
     
     /**
@@ -131,6 +104,11 @@ public class Controller {
 
     	String email = view.getLoginEmail();
     	UserProfile profile = model.getProfile(email);
+    	
+    	if(email.length() < 1) {
+    		JOptionPane.showMessageDialog(null, "Invalid info. Please try again.", "Login Failed", JOptionPane.ERROR_MESSAGE);
+    		return;
+    	}
 
         if (profile != null) {
         	
@@ -218,6 +196,7 @@ public class Controller {
     	this.currentUser = null;
     	
     	view.showLoginPanel();
+    	view.clearLoginFields();
     	this.currentPage = "LoginPage";
     }
     

@@ -86,6 +86,7 @@ public class Controller {
 		view.setLogoutButtonListener(e -> {
 			view.showLoginPanel();
 			view.clearLoginFields();
+			view.clearMealHistory();
 			this.currentPage = "LoginPage";
 			JOptionPane.showMessageDialog(null, "Logged out successfully", "Success", JOptionPane.INFORMATION_MESSAGE);
 		});
@@ -137,7 +138,8 @@ public class Controller {
         	
         	// Trigger the initial history load for all registered observers.
             for (InitialLoadObserver observer : initialLoadObservers) {
-                observer.loadInitialHistory(currentUser);
+                observer.loadInitialHistory(this.currentUser);
+                System.out.println("Initial observer sets up in Controller");
             }
             
             view.showHomePanel();

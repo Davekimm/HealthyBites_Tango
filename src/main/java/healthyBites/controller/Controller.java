@@ -9,6 +9,7 @@ import healthyBites.model.Meal;
 import healthyBites.model.Model;
 import healthyBites.model.Nutrition;
 import healthyBites.model.UserProfile;
+import healthyBites.observers.InitialLoadObserver;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -22,11 +23,14 @@ public class Controller {
     private String currentPage;
     private UserProfile currentUser;
     private Meal recentMeal;
+    
+    private List<InitialLoadObserver> initialLoadObservers;
 
-    public Controller(ViewFacade view) {
-    	model = ConcreteModel.getInstance();
+    public Controller(ViewFacade view, Model model, List<InitialLoadObserver> initialLoadObservers) {
+    	this.model = model;
     	this.view = view;
     	this.currentPage = "LoginPage";
+    	this.initialLoadObservers = initialLoadObservers;
     	
     	registerActionListeners();
     }
@@ -130,7 +134,12 @@ public class Controller {
         	this.currentUser = model.getProfile(email);
         	
         	JOptionPane.showMessageDialog(null, "Login successful!", "Success", JOptionPane.INFORMATION_MESSAGE);
-        	        	
+        	
+        	// Trigger the initial history load for all registered observers.
+            for (InitialLoadObserver observer : initialLoadObservers) {
+                observer.loadInitialHistory(currentUser);
+            }
+            
             view.showHomePanel();
             this.currentPage = "HomePage";
             

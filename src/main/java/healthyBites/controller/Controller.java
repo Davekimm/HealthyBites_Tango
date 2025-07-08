@@ -31,6 +31,9 @@ public class Controller {
     	this.view = view;
     	this.currentPage = "LoginPage";
     	this.initialLoadObservers = initialLoadObservers;
+
+	// ensure meal history is clear on startup
+    	view.clearMealHistory();
     	
     	registerActionListeners();
     }
@@ -179,6 +182,9 @@ public class Controller {
 		model.setProfile(this.currentUser);
 		
 		JOptionPane.showMessageDialog(null, "Successfully created your profile!", "Success", JOptionPane.INFORMATION_MESSAGE);
+
+	    	// new user doesn't have any history but this clears the history panel just to be defensive
+   		view.clearMealHistory();
 		
 		view.showHomePanel();
 	    this.currentPage = "HomePage";

@@ -26,6 +26,8 @@ public class ViewFacade {
     private EditPanel editPanel;
     private MealPanel mealPanel;
     private MealHistoryPanel mealHistoryPanel;
+    private MealHistoryPanel mealHistoryPanelForGoal;
+    private GoalPanel goalPanel;
     
     // Panel name constants for card layout navigation
     public static final String LOGIN_PANEL = "LoginPanel";
@@ -33,6 +35,7 @@ public class ViewFacade {
     public static final String HOME_PANEL = "Home Panel";
     public static final String EDIT_PANEL = "Edit Panel";
     public static final String MEAL_PANEL = "MealPanel";
+    public static final String GOAL_PANEL = "GoalPanel";
     
     /**
      * Constructor - Initializes the main frame and all panels
@@ -49,6 +52,7 @@ public class ViewFacade {
      */
     public void addMealToHistory(Meal meal, Nutrition nutrition) {
         mealHistoryPanel.addMealToHistory(meal, nutrition);
+        mealHistoryPanelForGoal.addMealToHistory(meal, nutrition);
     }
     
     /**
@@ -56,6 +60,7 @@ public class ViewFacade {
      */
     public void clearMealHistory() {
         mealHistoryPanel.clearHistory();
+        mealHistoryPanelForGoal.clearHistory();
     }
     
     /**
@@ -82,9 +87,11 @@ public class ViewFacade {
         homePanel = new HomePanel();
         editPanel = new EditPanel();
 
-        // Create the history panel first, then inject it into the meal panel
-        mealHistoryPanel = new MealHistoryPanel();
+        // Create the history panel first, then inject it into the meal panel, goal panel
+        mealHistoryPanel = new MealHistoryPanel(BoxLayout.Y_AXIS);
+        mealHistoryPanelForGoal = new MealHistoryPanel(BoxLayout.X_AXIS);
         mealPanel = new MealPanel(mealHistoryPanel);
+        goalPanel = new GoalPanel(mealHistoryPanelForGoal);
         
         // Add panels to card layout with their respective names
         cardPanel.add(loginPanel, LOGIN_PANEL);
@@ -92,6 +99,7 @@ public class ViewFacade {
         cardPanel.add(homePanel, HOME_PANEL);
         cardPanel.add(editPanel, EDIT_PANEL);
         cardPanel.add(mealPanel, MEAL_PANEL);
+        cardPanel.add(goalPanel, GOAL_PANEL);
     }
     
     // ===========================================
@@ -221,6 +229,10 @@ public class ViewFacade {
     
     public void showMealPanel() {
         showPanel(MEAL_PANEL);
+    }
+    
+    public void showGoalPanel() {
+    	showPanel(GOAL_PANEL);
     }
         
     public void showFrame() {
@@ -384,6 +396,7 @@ public class ViewFacade {
     
     public void setCancelButtonListener(ActionListener listener) {
         editPanel.cancelButtonListener(listener);
+        goalPanel.cancelButtonListener(listener); //if this confuses we might move it to Goal Method list below.
     }
     
     public void setDeleteButtonListener(ActionListener listener) {
@@ -397,4 +410,14 @@ public class ViewFacade {
     public void setEditImperialListener(ActionListener listener) {
         editPanel.imperialActionListener(listener);
     }
+    
+    
+    // ===========================================
+    // Goal PANEL METHODS
+    // ===========================================
+    
+	public void setReplaceButtonListener(ActionListener listener) {
+        goalPanel.getReplaceButtonListener(listener);
+    }
+	
 }

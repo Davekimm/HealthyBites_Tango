@@ -18,8 +18,9 @@ public class MealHistoryPanel extends JPanel {
 
     private final JPanel mealCardsContainer;
     private final List<Map.Entry<Meal, Nutrition>> mealEntries = new ArrayList<>();
+    private final int layoutAxis;
 
-    public MealHistoryPanel() {
+    public MealHistoryPanel(int layoutAxis) {
         setLayout(new BorderLayout());
         setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 0));
 
@@ -29,12 +30,20 @@ public class MealHistoryPanel extends JPanel {
         add(historyTitle, BorderLayout.NORTH);
 
         mealCardsContainer = new JPanel();
-        mealCardsContainer.setLayout(new BoxLayout(mealCardsContainer, BoxLayout.Y_AXIS));
+        this.layoutAxis = layoutAxis;
+        mealCardsContainer.setLayout(new BoxLayout(mealCardsContainer, this.layoutAxis));
         mealCardsContainer.setBackground(Color.WHITE);
 
         JScrollPane mealHistoryScrollPane = new JScrollPane(mealCardsContainer);
-        mealHistoryScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-        mealHistoryScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        if(this.layoutAxis == BoxLayout.Y_AXIS) {
+	        mealHistoryScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+	        mealHistoryScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        }
+        else if(this.layoutAxis == BoxLayout.X_AXIS) {
+        	mealHistoryScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_NEVER);
+	        mealHistoryScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        }
+        
         mealHistoryScrollPane.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY));
 
         add(mealHistoryScrollPane, BorderLayout.CENTER);
@@ -62,7 +71,10 @@ public class MealHistoryPanel extends JPanel {
             JPanel mealCard = createMealCard(entry.getKey(), entry.getValue());
             mealCardsContainer.add(mealCard);
             if (iterator.hasNext()) {
-                mealCardsContainer.add(Box.createVerticalStrut(10));
+            	if(this.layoutAxis == BoxLayout.Y_AXIS)
+            		mealCardsContainer.add(Box.createVerticalStrut(10));
+            	else if(this.layoutAxis == BoxLayout.X_AXIS)
+            		mealCardsContainer.add(Box.createHorizontalStrut(10));
             }
         }
         mealCardsContainer.revalidate();

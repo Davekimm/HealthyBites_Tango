@@ -3,59 +3,49 @@ package healthyBites.view;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class GoalPanel extends JPanel {
    
-    private JButton cancelButton, getReplaceButton;
-    private JComboBox<String> nutrientComboBox, actionComboBox, intensityComboBox;
+    private JButton cancelButton, getReplaceButton, addGoalButton, removeGoalButton;
+        
+    private JPanel goalContainerPanel;
+    private List<JPanel> goalRowPanel;
+    private List<JComboBox<String>> nutrientComboBox, actionComboBox, intensityComboBox;   
     private final int MAX_OPTIONS = 2;
     private final int MIN_OPTIONS = 1;
-    private JPanel goalContainerPanel;
-    private int goalCount = 1; //initial #of goal
-    
-    
+   
     public GoalPanel(MealHistoryPanel mealHistoryPanel) {
-                    
+      //initialize
+    	this.goalRowPanel = new ArrayList<>();
+    	this.nutrientComboBox = new ArrayList<>();
+    	this.actionComboBox = new ArrayList<>();
+    	this.intensityComboBox = new ArrayList<>();
+    	
       // set BorderLayout to split area
         setLayout(new BorderLayout());
         
       //top area with 
         JPanel topPanel = new JPanel();
-        topPanel.setPreferredSize(new Dimension(0,100));
+        topPanel.setBorder(BorderFactory.createTitledBorder("Select a Meal to Swap from:"));
+        topPanel.setPreferredSize(new Dimension(0,150));
         topPanel.add(mealHistoryPanel, BorderLayout.CENTER);
         
       //middle
-        JPanel middlePanel = new JPanel();
-        middlePanel.setLayout(new BoxLayout(middlePanel, BoxLayout.Y_AXIS));
+        JPanel middlePanel = new JPanel(new BorderLayout());
         middlePanel.setBorder(BorderFactory.createTitledBorder("Set Your Goal:"));
         
-        JPanel nutrientRow = new JPanel(new FlowLayout(FlowLayout.CENTER));
-        JLabel nutrientLabel = new JLabel("Nutrient:");
-        String[] nutrientOptions = {"Protein", "Others"};
-        nutrientComboBox = new JComboBox<>(nutrientOptions);
-        nutrientRow.add(nutrientLabel);
-        nutrientRow.add(nutrientComboBox);
+        goalContainerPanel = new JPanel();
+        goalContainerPanel.setLayout(new BoxLayout(goalContainerPanel, BoxLayout.Y_AXIS));
+        middlePanel.add(goalContainerPanel, BorderLayout.CENTER);
         
-        JPanel actionRow = new JPanel(new FlowLayout(FlowLayout.CENTER));
-        JLabel actionLabel = new JLabel("Action:");
-        String[] actionOptions = {"Increase", "Decrease"};
-        actionComboBox = new JComboBox<>(actionOptions);
-        actionRow.add(actionLabel);
-        actionRow.add(actionComboBox);
-
-
-        JPanel intensityRow = new JPanel(new FlowLayout(FlowLayout.CENTER));
-        JLabel intensityLabel = new JLabel("Intensity:");
-        String[] intensityOptions = {"Slightly (5%)", "Significantly (10%)"};
-        intensityComboBox = new JComboBox<>(intensityOptions);
-        intensityRow.add(intensityLabel);
-        intensityRow.add(intensityComboBox);
-        
-        
-        middlePanel.add(nutrientRow);
-        middlePanel.add(actionRow);
-        middlePanel.add(intensityRow);
-       
+        JPanel goalButtonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        addGoalButton = new JButton("+");
+        removeGoalButton = new JButton("-");
+        goalButtonPanel.add(addGoalButton);
+        goalButtonPanel.add(removeGoalButton);
+        middlePanel.add(goalButtonPanel, BorderLayout.NORTH);         
         
       //bottom
         JPanel bottomPanel = new JPanel();
@@ -71,57 +61,106 @@ public class GoalPanel extends JPanel {
         add(middlePanel, BorderLayout.CENTER);
         add(bottomPanel, BorderLayout.SOUTH);
         
+        setupGoalButton();
+        addGoalRow();
         
-       // add(new JLabel("test"));// empty cell for "Journal"
-       // add(new JLabel("test2"));// empty cell for "Journal"
-        
-        
-        
-        /* add buttons
-        logoutButton = new JButton("Logout");
-        add(logoutButton);*/                   
-  }
-   /* 
-    	private void addGoalRow() {
-    		if(goalCount < MAX_OPTIONS) {
-    			goalContainerPanel.add(createGoal());
-    			goalCount++;
- //   			updateButtonState();    			
-    		}
-    	}
+    }
+    
+ // internal methods for setting goal(s)
+    private JPanel createNewGoal() {
+    	JPanel rowPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 5));
     	
-    	private void removeGoalRow() {
-    		if(goalCount > MIN_OPTIONS) {
-    			goalContainerPanel.add(createGoal());
-    			goalCount--;
-   // 			updateButtonState();    			
-    		}
+    	JComboBox<String> nutrientList = new JComboBox<>(new String[]{"Protein", "Others"});
+    	JComboBox<String> actionList = new JComboBox<>(new String[]{"Increase", "Decrease"});
+    	JComboBox<String> intensityList = new JComboBox<>(new String[]{"Slightly (5%)", "Significantly (10%)"});
+        
+    	rowPanel.add(new JLabel("Nutrient"));
+    	rowPanel.add(nutrientList);
+    	rowPanel.add(new JLabel("Action:"));
+    	rowPanel.add(actionList);
+    	rowPanel.add(new JLabel("Intensity:"));
+    	rowPanel.add(intensityList);
+        
+        nutrientComboBox.add(nutrientList);
+        actionComboBox.add(actionList);
+        intensityComboBox.add(intensityList);
+        
+        return rowPanel;
+    }
+    
+    
+    
+    
+    
+    private void addGoalRow() {
+    	if(nutrientComboBox.size() < MAX_OPTIONS) {
+    		JPanel newRow = createNewGoal();
+    		goalRowPanel.add(newRow);
+    		goalContainerPanel.add(newRow);
+    		
+    		updateButtonState();
+    		revalidate();
+    		repaint();
     	}
+    }
+    
+    private void removeGoalRow() {
+    	if(nutrientComboBox.size() > MIN_OPTIONS) {
+    		int lastIndex = nutrientComboBox.size() - 1;
+    		
+    		goalContainerPanel.remove(goalRowPanel.remove(lastIndex));
+    		
+    		nutrientComboBox.remove(lastIndex);
+    		actionComboBox.remove(lastIndex);
+    		intensityComboBox.remove(lastIndex);
+    		
+    		updateButtonState();
+    		revalidate();
+    		repaint();
+    		
+    	}
+    }
+    
+    
+ // getter methods to be utilized by a facade
+       	
+    public List<String> getSelectedNutrient() {
+    	List<String> nutrient = new ArrayList<>();
+    	for(JComboBox<String> list : nutrientComboBox)
+    		nutrient.add((String) list.getSelectedItem());
     	
-    	private JPanel createGoal() {
-    		JPanel row = new JPanel(new FlowLayout(FlowLayout.LEFT));
-    		row.add(new JLabel(""));
-    		re
-    	}*/
- // getter methods to be utilized by a facade - currently not implemented
-       
+    	return nutrient;
+    }
+    public List<String> getSelectedAction() {
+    	List<String> action = new ArrayList<>();
+    	for(JComboBox<String> list : actionComboBox)
+    		action.add((String) list.getSelectedItem());
     	
-    	public void cancelButtonListener(ActionListener listener) {
-    		cancelButton.addActionListener(listener);
-    	}
-    	public void getReplaceButtonListener(ActionListener listener) {
-            getReplaceButton.addActionListener(listener);
-        }
-    	/*public void avgPlateButtonListener(ActionListener listener) {
-    		avgPlateButton.addActionListener(listener);
-    	}
-    	public void logoutButtonListener(ActionListener listener) {
-            logoutButton.addActionListener(listener);
-        }
-    	    	
-        public void clearFields() {
-        	
-        }*/
-
-
+    	return action;
+    }    	
+    public List<String> getSelectedIntensity() {
+    	List<String> intensity = new ArrayList<>();
+    	for(JComboBox<String> list : intensityComboBox)
+    		intensity.add((String) list.getSelectedItem());
+    	
+    	return intensity;
+    }
+    
+  // Action Listeners
+    public void cancelButtonListener(ActionListener listener) {
+    	cancelButton.addActionListener(listener);
+    }
+    public void getReplaceButtonListener(ActionListener listener) {
+        getReplaceButton.addActionListener(listener);
+    }
+    
+    private void setupGoalButton() {
+    	addGoalButton.addActionListener(e -> addGoalRow());
+    	removeGoalButton.addActionListener(e -> removeGoalRow());
+    }
+    
+    private void updateButtonState() {
+    	addGoalButton.setEnabled(nutrientComboBox.size() < MAX_OPTIONS);
+    	removeGoalButton.setEnabled(nutrientComboBox.size() > MIN_OPTIONS);
+    }
 }

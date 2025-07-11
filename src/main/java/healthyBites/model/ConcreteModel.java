@@ -21,11 +21,20 @@ import io.github.cdimascio.dotenv.Dotenv;
  * Uses singleton patten.
  */
 public class ConcreteModel implements Model, MealSubject {
+
+    public static final double marginOfError = 10; // how far off is acceptable
+    public static final String[] importantNutrients = { 
+            "ENERGY (KILOCALORIES)", 
+            "PROTEIN", 
+            "CARBOHYDRATE, TOTAL (BY DIFFERENCE)", 
+            "FAT (TOTAL LIPIDS)",
+            "FIBRE, TOTAL DIETARY"
+        };
+
     // follows singleton pattern
     private static ConcreteModel instance;
     private Connection conn;
     private ArrayList<MealObserver> mealObservers = new ArrayList<>();
-
 
     public static ConcreteModel getInstance() {
         if (instance == null)
@@ -192,12 +201,12 @@ public class ConcreteModel implements Model, MealSubject {
         return getMealsByTimeFrame(email, minDate, maxDate);
     }
 
-    
+    @Override
     public List<Meal> getMealsByDate(String email, Date date) {
         return getMealsByTimeFrame(email, date, date);
     }
 
-    
+    @Override
     public List<Meal> getMealsByTimeFrame(String email, Date begin, Date end) {
         // join meals and food items tables to produce meal objects
         String query = 
@@ -279,6 +288,25 @@ public class ConcreteModel implements Model, MealSubject {
         }
 
         return result;
+    }
+
+    @Override
+    public List<String> getNutrientNames() {
+        String query = 
+        """        
+        SELECT nutrient_name 
+        FROM nutrient_names;
+        """;
+        List<String> nutrientNames = new ArrayList<>();
+        try (Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(query)) {
+            while (rs.next()) {
+                nutrientNames.add(rs.getString("nutrient_name"));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return nutrientNames;
     }
 
     @Override
@@ -366,19 +394,143 @@ public class ConcreteModel implements Model, MealSubject {
     }
 
     @Override
-    public void addObserver(MealObserver o) {
-        mealObservers.add(o);
+    public List<FoodItem> getAlternativeFoodOptions(Meal originalMeal, FoodItem selectedFoodItem, List<Goal> goals) {
+        // nutrition of original meal without the food item that user wants to replace
+        Nutrition unselectedFoodItemsNutrition = new Nutrition(); 
+        for (FoodItem foodItem:  originalMeal.getFoodItems()) {
+            if (foodItem.equals(selectedFoodItem)) // skip the food item we want to replace
+                continue;
+
+            unselectedFoodItemsNutrition = unselectedFoodItemsNutrition.add(getFoodItemNutrtionalValue(foodItem));
+        }
+
+        Nutrition selectedFoodItemNutrition = getFoodItemNutrtionalValue(selectedFoodItem);
+        Nutrition originalMealNutrition = unselectedFoodItemsNutrition.add(selectedFoodItemNutrition);
+
+        List<FoodItem> altFoodItemsList = new ArrayList<>();
+        
+        List<String> alternativeFoodNames = getFoodNamesWithSameFoodCategoryAs(selectedFoodItem.getName());
+        for (String altFoodName: alternativeFoodNames) {
+            boolean isValidAlternative = true;
+            double high = Double.MAX_VALUE, low = 0; // initial range of valid quantities
+
+            List<String> units = getAvailableUnits(altFoodName); // get available units for the food item
+            //calculate nutrition of food item with first unit and quantity 1
+            FoodItem altFoodItem = new FoodItem(altFoodName, 1, units.isEmpty()? null: units.getFirst());
+            Nutrition altFoodItemNutrition = getFoodItemNutrtionalValue(altFoodItem);
+
+            for (Goal goal: goals) {
+                double intensity = goal.getIntensity();
+                double unselectedFoodItemsNutrient = unselectedFoodItemsNutrition.getNutrient(goal.getNutrient());
+                double altFoodItemNutrient = altFoodItemNutrition.getNutrient(goal.getNutrient());
+                if (altFoodItemNutrient == 0) {
+                    isValidAlternative = false;
+                    break; 
+                }
+                double criticalValue = (intensity - unselectedFoodItemsNutrient) / altFoodItemNutrient;
+                
+                double lowerPoint = goal.isIncrease() ? criticalValue : 0;
+                double upperPoint = goal.isIncrease() ? Double.MAX_VALUE : criticalValue;
+
+                // update low and high if necessary
+                low = Math.max(low, lowerPoint);
+                high = Math.min(high, upperPoint);
+
+                if (high < low) { 
+                    isValidAlternative = false;
+                    break; 
+                }
+            }
+
+            if (!isValidAlternative)
+                continue;
+
+            // check the nutrients 
+            for (String nutrient: importantNutrients) {
+                boolean nutrientIsUsedAsGoal = false;
+                for (Goal goal : goals) {
+                    if (goal.getNutrient().equals(nutrient)) {
+                        nutrientIsUsedAsGoal = true;
+                        break;
+                    }
+                }
+
+                if (nutrientIsUsedAsGoal) {
+                    continue;
+                }
+
+                double nutrientInOriginalMeal = originalMealNutrition.getNutrient(nutrient);
+                double nutrientInUnselectedFoodItems = unselectedFoodItemsNutrition.getNutrient(nutrient);
+                double nutrientInAltFoodItem = altFoodItemNutrition.getNutrient(nutrient);
+                if (nutrientInAltFoodItem == 0) {
+                    isValidAlternative = false;
+                    break; 
+                }
+                double upperPoint = (nutrientInOriginalMeal * (1 + marginOfError / 100) - nutrientInUnselectedFoodItems)/nutrientInAltFoodItem;
+                double lowerPoint = (nutrientInOriginalMeal * (1 - marginOfError / 100) - nutrientInUnselectedFoodItems)/nutrientInAltFoodItem;
+
+                low = Math.max(low, lowerPoint);
+                high = Math.min(high, upperPoint);
+
+                if (high <= low) {
+                    isValidAlternative = false;
+                    break; 
+                }
+            }
+
+            if (!isValidAlternative) 
+                continue;
+            
+            FoodItem validAltFoodItem = new FoodItem(altFoodItem.getName(), (low + high) / 2, altFoodItem.getUnit());
+            altFoodItemsList.add(validAltFoodItem);
+            
+            if (altFoodItemsList.size() > 10) 
+                break;
+        }
+
+
+        return altFoodItemsList;
     }
 
     @Override
-    public void removeObserver(MealObserver o) {
-        mealObservers.remove(o);
+    public List<String> getFoodNamesWithSameFoodCategoryAs(String foodName) {
+        List<String> foodNames = new ArrayList<>();
+        String query =
+        """
+        SELECT food_description 
+        FROM food_names 
+        WHERE food_group_id = 
+            (SELECT food_group_id 
+            FROM food_names 
+            WHERE food_description = ?);
+        """;
+
+        try (PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setString(1, foodName);
+            ResultSet rs = stmt.executeQuery();
+            while(rs.next()) {
+                foodNames.add(rs.getString(1));
+            }
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+        return foodNames;
     }
 
     @Override
-    public void notifyObservers(Meal m, Nutrition n) {
-        for (MealObserver o: mealObservers) {
-            o.update(m, n);
+    public void addObserver(MealObserver observer) {
+        mealObservers.add(observer);
+    }
+
+    @Override
+    public void removeObserver(MealObserver observer) {
+        mealObservers.remove(observer);
+    }
+
+    @Override
+    public void notifyObservers(Meal meal, Nutrition nutrition) {
+        for (MealObserver observer: mealObservers) {
+            observer.update(meal, nutrition);
         }
     }
 

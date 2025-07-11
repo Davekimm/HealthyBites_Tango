@@ -1,5 +1,6 @@
 package healthyBites.model;
 
+import java.util.Date;
 import java.util.List;
 
 public interface Model {
@@ -18,12 +19,14 @@ public interface Model {
     Nutrition getMealNutrtionalValue(Meal originalMeal); // new
 
     // UC 3
-    // List<Meal> getMealsByDate(String email, Date date);
-    // List<Meal> getMealsByTimeFrame(String email, Date begin, Date end);
-    // List<FoodItem> getSwappedFoodOptions(Meal originalMeal, FoodItem foodItem, Goal... goals); // new based on prof's new request
-    // List<String> getNutrientNames();
+    List<String> getNutrientNames();
+    List<FoodItem> getAlternativeFoodOptions(Meal originalMeal, FoodItem selectedFoodItem, List<Goal> goals);
+    List<Meal> getMealsByDate(String email, Date date);
+    List<Meal> getMealsByTimeFrame(String email, Date begin, Date end);
+    List<String> getFoodNamesWithSameFoodCategoryAs(String foodName);
+
+
     // String getFoodCategory(String foodName); // + getCategory(foodItem: String): String
-    // List<String> getFoodNamesWithSameFoodCategoryAs(String foodName); // + getAlternativeFoodItemsByCategory(category: String): List<String>
     // String getNutrientUnit(String nutrient);
     // Map<String, Double> getDailyRecommendationsFromCFG();
 }

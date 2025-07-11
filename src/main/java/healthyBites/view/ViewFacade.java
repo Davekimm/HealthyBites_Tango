@@ -416,8 +416,17 @@ public class ViewFacade {
     // Goal PANEL METHODS
     // ===========================================
     
+    
+    
+    
 	public void setReplaceButtonListener(ActionListener listener) {
         goalPanel.getReplaceButtonListener(listener);
     }
+	
+	public void setNutrientList(String[] nutrient) {
+	    goalPanel.setNutrientList(nutrient);
+	}
+	    
+	
 	
 }

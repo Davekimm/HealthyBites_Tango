@@ -27,7 +27,7 @@ public class MealHistoryPanel extends JPanel {
     private Consumer<Meal> mealSelectionCallback;
     private JPanel selectedMeal = null;
 
-    public MealHistoryPanel() {
+    public MealHistoryPanel(int layoutAxis) {
         setLayout(new BorderLayout());
         setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 0));
 
@@ -88,8 +88,11 @@ public class MealHistoryPanel extends JPanel {
         mealCardsContainer.revalidate();
         mealCardsContainer.repaint();
     }
-
-
+    
+    public void setOnMealSelectedListener(Consumer<Meal> callback) {
+        this.mealSelectionCallback = callback;
+    }
+    
     private JPanel createMealCard(Meal meal, Nutrition nutrition) {
         JPanel card = new JPanel();
         card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));

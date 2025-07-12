@@ -13,12 +13,19 @@ import java.util.Iterator;
 import java.util.Date;
 import java.util.Calendar;
 import java.util.Comparator;
+import java.util.function.Consumer;	// for selection of meal to swap
+import java.awt.event.MouseAdapter;	// for selection of meal to swap
+import java.awt.event.MouseEvent;	// for selection of meal to swap
 
 public class MealHistoryPanel extends JPanel {
 
     private final JPanel mealCardsContainer;
     private final List<Map.Entry<Meal, Nutrition>> mealEntries = new ArrayList<>();
     private final int layoutAxis;
+    
+    //for selection of meal to swap
+    private Consumer<Meal> mealSelectionCallback;
+    private JPanel selectedMeal;
 
     public MealHistoryPanel(int layoutAxis) {
         setLayout(new BorderLayout());
@@ -91,6 +98,25 @@ public class MealHistoryPanel extends JPanel {
         ));
         card.setBackground(new Color(255, 255, 255));
         card.setMaximumSize(new Dimension(Integer.MAX_VALUE, 80));
+        
+        card.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)); //for selection of meal to swap
+        
+        //for selection of meal to swap
+        	//show selection with border box when card is clicked
+        card.addMouseListener(new MouseAdapter() {
+        	@Override
+        	public void mouseClicked(MouseEvent e) {
+        		selectedMeal = card;
+        		selectedMeal.setBorder(BorderFactory.createCompoundBorder(
+        				BorderFactory.createLineBorder(Color.RED, 2),
+        				BorderFactory.createEmptyBorder(1,1,1,1)
+        				));
+        	}
+        });
+        
+        if(mealSelectionCallback != null) {
+        	mealSelectionCallback.accept(meal);
+        }
 
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
         String date = sdf.format(meal.getDate());
@@ -139,4 +165,11 @@ public class MealHistoryPanel extends JPanel {
             protein, carbs, fat, calcium, iron
         );
     }
+    
+    
+    //for selection of meal to swap
+    public void setOnMealSelectListener(Consumer<Meal> callback) {
+    	this.mealSelectionCallback = callback;
+    }
+    
 }

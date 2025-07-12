@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.function.BiConsumer;
 import healthyBites.model.Meal;
 import healthyBites.model.Nutrition;
+import java.util.function.Consumer;	//for selection of meal to swap
 
 /**
  * ViewFacade - Provides a clean interface between the controller and GUI panels.
@@ -27,6 +28,7 @@ public class ViewFacade {
     private MealPanel mealPanel;
     private MealHistoryPanel mealHistoryPanel;
     private MealHistoryPanel mealHistoryPanelForGoal;
+    private MealHistoryPanel mealHistoryPanelForHome;
     private GoalPanel goalPanel;
     
     // Panel name constants for card layout navigation
@@ -53,6 +55,7 @@ public class ViewFacade {
     public void addMealToHistory(Meal meal, Nutrition nutrition) {
         mealHistoryPanel.addMealToHistory(meal, nutrition);
         mealHistoryPanelForGoal.addMealToHistory(meal, nutrition);
+        mealHistoryPanelForHome.addMealToHistory(meal, nutrition);
     }
     
     /**
@@ -61,6 +64,7 @@ public class ViewFacade {
     public void clearMealHistory() {
         mealHistoryPanel.clearHistory();
         mealHistoryPanelForGoal.clearHistory();
+        mealHistoryPanelForHome.clearHistory();
     }
     
     /**
@@ -84,14 +88,15 @@ public class ViewFacade {
         // Initialize all panels
         loginPanel = new LoginPanel();
         registerPanel = new RegisterPanel();
-        homePanel = new HomePanel();
         editPanel = new EditPanel();
 
         // Create the history panel first, then inject it into the meal panel, goal panel
         mealHistoryPanel = new MealHistoryPanel(BoxLayout.Y_AXIS);
         mealHistoryPanelForGoal = new MealHistoryPanel(BoxLayout.X_AXIS);
+        mealHistoryPanelForHome = new MealHistoryPanel(BoxLayout.X_AXIS);
         mealPanel = new MealPanel(mealHistoryPanel);
         goalPanel = new GoalPanel(mealHistoryPanelForGoal);
+        homePanel = new HomePanel(mealHistoryPanelForHome);
         
         // Add panels to card layout with their respective names
         cardPanel.add(loginPanel, LOGIN_PANEL);
@@ -435,6 +440,10 @@ public class ViewFacade {
 	
 	public List<String> getSelectedIntensityPrecise() {
 		return goalPanel.getSelectedIntensityPrecise();
+	}
+	
+	public void setMealSelectionListener(Consumer<Meal> listener) {
+		goalPanel.getMealHistorySelection().setOnMealSelectListener(listener);	
 	}
 	    
 	

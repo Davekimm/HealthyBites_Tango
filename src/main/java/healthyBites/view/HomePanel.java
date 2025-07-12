@@ -8,7 +8,7 @@ public class HomePanel extends JPanel {
    
     private JButton editButton, mealButton, goalSwapButton, dailyIntakeButton, avgPlateButton, logoutButton;
     
-    public HomePanel() {
+    public HomePanel(MealHistoryPanel mealHistoryPanel) {
                     
       // top panel for input - rows, column, horizontal gap, vertical gap
         setLayout(new GridLayout(8, 1, 8, 8));

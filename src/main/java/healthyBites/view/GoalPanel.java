@@ -23,6 +23,8 @@ public class GoalPanel extends JPanel {
     private final int MIN_OPTIONS = 1;
     
     private String[] nutrientList = {}, actionList = {"increase" , "decrease"}, intensityPreciseList = {"5%", "10%", "15%"}, intensityArbiList = {"by little bit higher", "more than normal", "by significantly higher"};
+    
+    private MealHistoryPanel forMealSelection;
    
     public GoalPanel(MealHistoryPanel mealHistoryPanel) {
       //initialize
@@ -31,6 +33,7 @@ public class GoalPanel extends JPanel {
     	this.actionComboBox = new ArrayList<>();
     	this.intensityArbiComboBox = new ArrayList<>();
     	this.intensityPreciseComboBox = new ArrayList<>();
+    	this.forMealSelection = mealHistoryPanel;
     	
       // set BorderLayout to split area
         setLayout(new BorderLayout());
@@ -189,6 +192,10 @@ public class GoalPanel extends JPanel {
     		intensity.add((String) list.getSelectedItem());
     	
     	return intensity;
+    }
+    
+    public MealHistoryPanel getMealHistorySelection() {
+    	return this.forMealSelection;
     }
     
   // Action Listeners

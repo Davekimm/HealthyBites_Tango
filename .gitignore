@@ -52,3 +52,4 @@ out/
 
 # Database files
 *.db
+.env

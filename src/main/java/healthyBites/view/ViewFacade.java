@@ -445,6 +445,8 @@ public class ViewFacade {
 	public void setMealSelectionListener(Consumer<Meal> listener) {
 		goalPanel.getMealHistorySelection().setOnMealSelectListener(listener);	
 	}
+	
+	//for testing
 	    
 	
 	

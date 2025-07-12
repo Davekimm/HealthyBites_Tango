@@ -98,7 +98,6 @@ public class GoalPanel extends JPanel {
     			intensityArbiList.setSelectedIndex(selected);
     	});
     	
-    	
     	rowPanel.add(new JLabel("Nutrient"));
     	rowPanel.add(nutrientList);
     	rowPanel.add(new JLabel("Action:"));

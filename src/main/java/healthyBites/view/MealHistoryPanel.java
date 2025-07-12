@@ -25,7 +25,7 @@ public class MealHistoryPanel extends JPanel {
     
     //for selection of meal to swap
     private Consumer<Meal> mealSelectionCallback;
-    private JPanel selectedMeal;
+    private JPanel selectedMeal = null;
 
     public MealHistoryPanel(int layoutAxis) {
         setLayout(new BorderLayout());
@@ -67,6 +67,7 @@ public class MealHistoryPanel extends JPanel {
 
     public void clearHistory() {
         mealEntries.clear();
+        selectedMeal = null;
         rebuildMealCards();
     }
 
@@ -105,7 +106,15 @@ public class MealHistoryPanel extends JPanel {
         	//show selection with border box when card is clicked
         card.addMouseListener(new MouseAdapter() {
         	@Override
+        	//clear the previous selected border (so user has one selection only)
         	public void mouseClicked(MouseEvent e) {
+        		if(selectedMeal != null) {
+        			selectedMeal.setBorder(BorderFactory.createCompoundBorder(
+        					BorderFactory.createLineBorder(Color.GRAY, 1),
+        		            BorderFactory.createEmptyBorder(10, 10, 10, 10)
+        		        ));
+        		}
+        		
         		selectedMeal = card;
         		selectedMeal.setBorder(BorderFactory.createCompoundBorder(
         				BorderFactory.createLineBorder(Color.RED, 2),

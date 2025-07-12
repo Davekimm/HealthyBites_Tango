@@ -53,3 +53,7 @@ out/
 # Database files
 *.db
 src/main/java/healthyBites/view/SimplePanelTester.java
+
+# env file
+.env
+healthyBites/info.env

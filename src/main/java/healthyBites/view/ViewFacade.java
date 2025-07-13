@@ -104,7 +104,7 @@ public class ViewFacade {
         cardPanel.add(homePanel, HOME_PANEL);
         cardPanel.add(editPanel, EDIT_PANEL);
         cardPanel.add(mealPanel, MEAL_PANEL);
-        cardPanel.add(mealPanel, GOAL_PANEL);
+        cardPanel.add(goalPanel, GOAL_PANEL);
     }
     
     // ===========================================

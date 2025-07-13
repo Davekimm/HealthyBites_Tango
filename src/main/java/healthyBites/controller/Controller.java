@@ -101,6 +101,11 @@ public class Controller {
 			this.currentPage = "HomePage";
 		});
 		
+		view.setFoodSwapButtonListener(e -> {
+			view.showGoalPanel();
+			this.currentPage = "GoalPage";
+		});
+		
 	}
     
     /**

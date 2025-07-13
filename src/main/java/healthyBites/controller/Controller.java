@@ -101,6 +101,7 @@ public class Controller {
 			this.currentPage = "HomePage";
 		});
 		
+		//from Danny: i just added this line to make goalpanel to be available
 		view.setFoodSwapButtonListener(e -> {
 			view.showGoalPanel();
 			this.currentPage = "GoalPage";

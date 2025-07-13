@@ -250,6 +250,7 @@ public class ConcreteModel implements Model, MealSubject {
 
     // can be empty set
     public List<String> getAvailableUnits(String foodName) {
+        //get all the measurement units of the food name
         List<String> result = new ArrayList<>();
         String query = 
         """

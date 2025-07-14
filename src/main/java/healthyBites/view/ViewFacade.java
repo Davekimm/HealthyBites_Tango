@@ -73,7 +73,7 @@ public class ViewFacade {
     private void initializeMainFrame() {
         mainFrame = new JFrame("Healthy Bites");
         mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        mainFrame.setSize(800, 500);
+        mainFrame.setSize(1280, 800);
         mainFrame.setLocationRelativeTo(null);
         
         cardLayout = new CardLayout();

@@ -44,12 +44,12 @@ public class EditPanel extends JPanel {
         hUnit = new JLabel("Height (cm)"); //default is metric
         add(hUnit);
         height = new JSpinner(new SpinnerNumberModel(0.0, 0.0, 300.0, 0.1));	 // To double
-	add(height);	                                                         // To double
+        add(height);	                                                         // To double
         
         wUnit = new JLabel("Weight (Kg)"); //default is metric
         add(wUnit);
         weight = new JSpinner(new SpinnerNumberModel(0.0, 0.0, 300.0, 0.1));	 // To double
-	add(weight);	                                                         // To double	
+        add(weight);	                                                         // To double	
 
         // units selection
         add(new JLabel("Units:"));

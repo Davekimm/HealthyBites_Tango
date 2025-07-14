@@ -18,13 +18,15 @@ public class GoalPanel extends JPanel {
         
     private JPanel goalContainerPanel;
     private List<JPanel> goalRowPanel;
-    private List<JComboBox<String>> nutrientComboBox, actionComboBox, intensityPreciseComboBox, intensityArbiComboBox;   
+    private List<JComboBox<String>> nutrientComboBox, actionComboBox, intensityPreciseComboBox, intensityArbiComboBox, unitCombo;   
     private final int MAX_OPTIONS = 2;
     private final int MIN_OPTIONS = 1;
     
-    private String[] nutrientList = {}, actionList = {"increase" , "decrease"}, intensityPreciseList = {"5%", "10%", "15%"}, intensityArbiList = {"by little bit higher", "more than normal", "by significantly higher"};
+    private String[] nutrientList = {}, actionList = {"increase" , "decrease"}, intensityPreciseList = {"5", "10", "15"},
+    				intensityArbiList = {"by a little bit", "more than normal", "significantly"}, unitList = {"%", "g", "mg"};
     
     private MealHistoryPanel forMealSelection;
+    private JTextField precise;
    
     public GoalPanel(MealHistoryPanel mealHistoryPanel) {
       //initialize
@@ -34,6 +36,7 @@ public class GoalPanel extends JPanel {
     	this.intensityArbiComboBox = new ArrayList<>();
     	this.intensityPreciseComboBox = new ArrayList<>();
     	this.forMealSelection = mealHistoryPanel;
+    	this.unitCombo = new ArrayList<>();
     	
       // set BorderLayout to split area
         setLayout(new BorderLayout());
@@ -52,7 +55,7 @@ public class GoalPanel extends JPanel {
         goalContainerPanel.setLayout(new BoxLayout(goalContainerPanel, BoxLayout.Y_AXIS));
         middlePanel.add(goalContainerPanel, BorderLayout.CENTER);
         
-        JPanel goalButtonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        JPanel goalButtonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
         addGoalButton = new JButton("+");
         removeGoalButton = new JButton("-");
         goalButtonPanel.add(addGoalButton);
@@ -85,17 +88,13 @@ public class GoalPanel extends JPanel {
     	JComboBox<String> nutrientList = new JComboBox<>(this.nutrientList);
     	JComboBox<String> actionList = new JComboBox<>(this.actionList);
     	JComboBox<String> intensityArbiList = new JComboBox<>(this.intensityArbiList);
-    	JComboBox<String> intensityPreciseList = new JComboBox<>(this.intensityPreciseList);
-        
+    	JComboBox<String> unitList = new JComboBox<>(this.unitList);
+    	this.precise = new JTextField(5);
+    	
     	intensityArbiList.addActionListener(e -> {
     		int selected =  intensityArbiList.getSelectedIndex();
-    		if(intensityPreciseList.getSelectedIndex() != selected)
-    			intensityPreciseList.setSelectedIndex(selected);
-    	});
-    	intensityPreciseList.addActionListener(e -> {
-    		int selected =  intensityPreciseList.getSelectedIndex();
-    		if(intensityArbiList.getSelectedIndex() != selected)
-    			intensityArbiList.setSelectedIndex(selected);
+    		precise.setText(intensityPreciseList[selected].toString());
+    		unitList.setSelectedIndex(0);
     	});
     	
     	rowPanel.add(new JLabel("Nutrient"));
@@ -104,13 +103,14 @@ public class GoalPanel extends JPanel {
     	rowPanel.add(actionList);
     	rowPanel.add(new JLabel("Intensity (Arbi):"));
     	rowPanel.add(intensityArbiList);
+       	rowPanel.add(new JLabel(" OR "));
     	rowPanel.add(new JLabel("Intensity (Precise):"));
-    	rowPanel.add(intensityPreciseList);
+    	rowPanel.add(precise);
+    	rowPanel.add(unitList);
         
         nutrientComboBox.add(nutrientList);
         actionComboBox.add(actionList);
         intensityArbiComboBox.add(intensityArbiList);
-        intensityPreciseComboBox.add(intensityPreciseList);
         
         return rowPanel;
     }
@@ -137,7 +137,6 @@ public class GoalPanel extends JPanel {
     		nutrientComboBox.remove(lastIndex);
     		actionComboBox.remove(lastIndex);
     		intensityArbiComboBox.remove(lastIndex);
-    		intensityPreciseComboBox.remove(lastIndex);
     		
     		updateButtonState();
     		revalidate();
@@ -169,6 +168,7 @@ public class GoalPanel extends JPanel {
     	}
     }
  */
+    
  // getter methods to be utilized by a facade
        	
     public List<String> getSelectedNutrient() {

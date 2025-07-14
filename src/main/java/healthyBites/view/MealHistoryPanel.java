@@ -123,12 +123,14 @@ public class MealHistoryPanel extends JPanel {
         				BorderFactory.createLineBorder(Color.RED, 2),
         				BorderFactory.createEmptyBorder(1,1,1,1)
         				));
+        		
+
+                if(mealSelectionCallback != null) {
+                	mealSelectionCallback.accept(meal);
+                }
         	}
         });
         
-        if(mealSelectionCallback != null) {
-        	mealSelectionCallback.accept(meal);
-        }
         /////////////////////////////////////////////////////////////////////
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
         String date = sdf.format(meal.getDate());

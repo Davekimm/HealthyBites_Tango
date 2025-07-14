@@ -111,7 +111,7 @@ public class ViewFacade {
     // Goal PANEL METHODS
     // ===========================================
     
-	public void setReplaceButtonListener(ActionListener listener) {
+	public void getReplaceButtonListener(ActionListener listener) {
         goalPanel.getReplaceButtonListener(listener);
     }
 	
@@ -131,9 +131,18 @@ public class ViewFacade {
 		return goalPanel.getSelectedIntensityPrecise();
 	}
 	
+	public List<String> getSelectedUnit() {
+		return goalPanel.getSelectedUnit();
+	}
+	
 	public void setMealSelectionListener(Consumer<Meal> listener) {
 		goalPanel.getMealHistorySelection().setOnMealSelectedListener(listener);	
 	}
+	
+
+    public MealHistoryPanel getMealHistorySelection() {
+    	return goalPanel.getMealHistorySelection();
+    }
 	
 	//for testing
     

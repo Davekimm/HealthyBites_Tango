@@ -18,15 +18,15 @@ public class GoalPanel extends JPanel {
         
     private JPanel goalContainerPanel;
     private List<JPanel> goalRowPanel;
-    private List<JComboBox<String>> nutrientComboBox, actionComboBox, intensityPreciseComboBox, intensityArbiComboBox, unitCombo;   
+    private List<JComboBox<String>> nutrientComboBox, actionComboBox, intensityArbiComboBox, unitCombo;   
     private final int MAX_OPTIONS = 2;
     private final int MIN_OPTIONS = 1;
     
-    private String[] nutrientList = {}, actionList = {"increase" , "decrease"}, intensityPreciseList = {"5", "10", "15"},
+    private String[] nutrientList = {"N","U","T"}, actionList = {"increase" , "decrease"}, intensityPreciseList = {"5", "10", "15"},
     				intensityArbiList = {"by a little bit", "more than normal", "significantly"}, unitList = {"%", "g", "mg"};
     
     private MealHistoryPanel forMealSelection;
-    private JTextField precise;
+    private List<JTextField> preciseField;
    
     public GoalPanel(MealHistoryPanel mealHistoryPanel) {
       //initialize
@@ -34,7 +34,7 @@ public class GoalPanel extends JPanel {
     	this.nutrientComboBox = new ArrayList<>();
     	this.actionComboBox = new ArrayList<>();
     	this.intensityArbiComboBox = new ArrayList<>();
-    	this.intensityPreciseComboBox = new ArrayList<>();
+    	this.preciseField = new ArrayList<>();
     	this.forMealSelection = mealHistoryPanel;
     	this.unitCombo = new ArrayList<>();
     	
@@ -89,11 +89,13 @@ public class GoalPanel extends JPanel {
     	JComboBox<String> actionList = new JComboBox<>(this.actionList);
     	JComboBox<String> intensityArbiList = new JComboBox<>(this.intensityArbiList);
     	JComboBox<String> unitList = new JComboBox<>(this.unitList);
-    	this.precise = new JTextField(5);
+    	JTextField preciseText = new JTextField(5);
     	
+    	preciseText.setText(intensityPreciseList[0]);
+    	    	
     	intensityArbiList.addActionListener(e -> {
     		int selected =  intensityArbiList.getSelectedIndex();
-    		precise.setText(intensityPreciseList[selected].toString());
+    		preciseText.setText(intensityPreciseList[selected].toString());
     		unitList.setSelectedIndex(0);
     	});
     	
@@ -105,12 +107,14 @@ public class GoalPanel extends JPanel {
     	rowPanel.add(intensityArbiList);
        	rowPanel.add(new JLabel(" OR "));
     	rowPanel.add(new JLabel("Intensity (Precise):"));
-    	rowPanel.add(precise);
+    	rowPanel.add(preciseText);
     	rowPanel.add(unitList);
         
         nutrientComboBox.add(nutrientList);
         actionComboBox.add(actionList);
         intensityArbiComboBox.add(intensityArbiList);
+        preciseField.add(preciseText);
+        unitCombo.add(unitList);
         
         return rowPanel;
     }
@@ -137,6 +141,8 @@ public class GoalPanel extends JPanel {
     		nutrientComboBox.remove(lastIndex);
     		actionComboBox.remove(lastIndex);
     		intensityArbiComboBox.remove(lastIndex);
+    		unitCombo.remove(lastIndex);
+    		preciseField.remove(lastIndex);
     		
     		updateButtonState();
     		revalidate();
@@ -145,29 +151,13 @@ public class GoalPanel extends JPanel {
     	}
     }
     
- // setter methods for options (nutrient, action, and intensity) getting from model
+ // setter methods for options (nutrient) getting from model
     public void setNutrientList(String[] nutrientList) {
     	this.nutrientList = nutrientList;
     	for (JComboBox<String> list : nutrientComboBox) {
     		list.setModel(new DefaultComboBoxModel<>(nutrientList));
     	}
     }
- 
- /* created setter just in case
-    public void setActionList(String[] actionList) {
-    	this.actionList = actionList;
-    	for (JComboBox<String> list : actionComboBox) {
-    		list.setModel(new DefaultComboBoxModel<>(actionList));
-    	}
-    }
- 
-    public void setIntensityList(String[] intensityList) {
-    	this.intensityList = intensityList;
-    	for (JComboBox<String> list : intensityComboBox) {
-    		list.setModel(new DefaultComboBoxModel<>(intensityList));
-    	}
-    }
- */
     
  // getter methods to be utilized by a facade
        	
@@ -187,10 +177,18 @@ public class GoalPanel extends JPanel {
     }    	
     public List<String> getSelectedIntensityPrecise() {
     	List<String> intensity = new ArrayList<>();
-    	for(JComboBox<String> list : intensityPreciseComboBox)
-    		intensity.add((String) list.getSelectedItem());
+    	for(JTextField list : preciseField)
+    		intensity.add((String) list.getText());
     	
     	return intensity;
+    }
+    
+    public List<String> getSelectedUnit() {
+    	List<String> unit = new ArrayList<>();
+    	for(JComboBox<String> list : unitCombo)
+    		unit.add((String) list.getSelectedItem());
+    	
+    	return unit;
     }
     
     public MealHistoryPanel getMealHistorySelection() {

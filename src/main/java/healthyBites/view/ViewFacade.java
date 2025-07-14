@@ -30,6 +30,7 @@ public class ViewFacade {
     private MealHistoryPanel mealHistoryPanelForGoal;
     private MealHistoryPanel mealHistoryPanelForHome;
     private GoalPanel goalPanel;
+    private GoalPanel2 goalPanel2;
     
     // Panel name constants for card layout navigation
     public static final String LOGIN_PANEL = "LoginPanel";
@@ -38,6 +39,7 @@ public class ViewFacade {
     public static final String EDIT_PANEL = "Edit Panel";
     public static final String MEAL_PANEL = "MealPanel";
     public static final String GOAL_PANEL = "GoalPanel";
+    public static final String GOAL_PANEL2 = "GoalPanel2";
 
     /**
      * Constructor - Initializes the main frame and all panels
@@ -98,6 +100,8 @@ public class ViewFacade {
         goalPanel = new GoalPanel(mealHistoryPanelForGoal);
         homePanel = new HomePanel(mealHistoryPanelForHome);
         
+        goalPanel2 = new GoalPanel2();
+        
         // Add panels to card layout with their respective names
         cardPanel.add(loginPanel, LOGIN_PANEL);
         cardPanel.add(registerPanel, REGISTER_PANEL);
@@ -105,8 +109,19 @@ public class ViewFacade {
         cardPanel.add(editPanel, EDIT_PANEL);
         cardPanel.add(mealPanel, MEAL_PANEL);
         cardPanel.add(goalPanel, GOAL_PANEL);
+       cardPanel.add(goalPanel2, GOAL_PANEL2);
     }
     
+/*
+    // ===========================================
+    // Goal PANEL 2 METHODS
+    // ===========================================
+    
+	public void getReplaceButtonListener(ActionListener listener) {
+        goalPanel.getReplaceButtonListener(listener);
+    }
+
+*/
     // ===========================================
     // Goal PANEL METHODS
     // ===========================================
@@ -277,6 +292,10 @@ public class ViewFacade {
     
     public void showGoalPanel() {
     	showPanel(GOAL_PANEL);
+    }
+    
+    public void showGoalPanel2() {
+    	showPanel(GOAL_PANEL2);
     }
     
     public void showFrame() {

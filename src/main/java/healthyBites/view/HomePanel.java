@@ -11,33 +11,40 @@ public class HomePanel extends JPanel {
     public HomePanel(MealHistoryPanel mealHistoryPanel) {
                     
       // top panel for input - rows, column, horizontal gap, vertical gap
-        setLayout(new GridLayout(8, 1, 8, 8));
+        setLayout(new BorderLayout());
         
       // a border around the parameter so labels and fields are not stuck to the edges of the panel
         setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         
       // login page labels
-        add(new JLabel(""));// empty cell for "Journal"
-        add(new JLabel(""));// empty cell for "Journal"
+        JPanel topPanel = new JPanel();
+        topPanel.setPreferredSize(new Dimension(0,150));
+        topPanel.add(mealHistoryPanel, BorderLayout.CENTER);
+                
+        JPanel restPanel = new JPanel();
+        restPanel.setLayout(new GridLayout(6, 1, 5, 5));
         
         // add buttons
         editButton = new JButton("Edit profile");
-        add(editButton);
+        restPanel.add(editButton);
         
         mealButton = new JButton("Log Meal");
-        add(mealButton);
+        restPanel.add(mealButton);
         
         goalSwapButton = new JButton("Get Food Swaps");
-        add(goalSwapButton);
+        restPanel.add(goalSwapButton);
         
         dailyIntakeButton = new JButton("Nutrient Intake Trend");
-        add(dailyIntakeButton);
+        restPanel.add(dailyIntakeButton);
         
         avgPlateButton = new JButton("Average Plate");
-        add(avgPlateButton);
+        restPanel.add(avgPlateButton);
         
         logoutButton = new JButton("Logout");
-        add(logoutButton);                   
+        restPanel.add(logoutButton);
+        
+        add(topPanel, BorderLayout.NORTH);
+        add(restPanel);
   }
     
  // getter methods to be utilized by a facade - currently not implemented

@@ -41,11 +41,17 @@ public class GoalPanel extends JPanel {
       // set BorderLayout to split area
         setLayout(new BorderLayout());
         
-      //top area with 
-        JPanel topPanel = new JPanel();
+     // Top area with meal history
+        JPanel topPanel = new JPanel(new BorderLayout());
         topPanel.setBorder(BorderFactory.createTitledBorder("Select a Meal to Swap from:"));
-        topPanel.setPreferredSize(new Dimension(0,150));
-        topPanel.add(mealHistoryPanel, BorderLayout.CENTER);
+        topPanel.setPreferredSize(new Dimension(0, 150));
+
+        // Wrap the history panel in a scroll pane
+        JScrollPane historyScrollPane = new JScrollPane(mealHistoryPanel);
+        historyScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        historyScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_NEVER);
+
+        topPanel.add(historyScrollPane, BorderLayout.CENTER);
         
       //middle
         JPanel middlePanel = new JPanel(new BorderLayout());

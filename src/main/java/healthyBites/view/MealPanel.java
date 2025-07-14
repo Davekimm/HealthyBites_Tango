@@ -13,122 +13,141 @@ public class MealPanel extends JPanel {
     private JSpinner todaysDate;
     private JComboBox<String> mealTypeCombo;
 
-    private java.util.List<JComboBox<String>> ingredientCombos;
-    private java.util.List<JTextField> quantityFields;
-    private java.util.List<JComboBox<String>> unitCombos;
-    private JPanel ingredientsContainer;
+    private List<JComboBox<String>> ingredientCombos;
+    private List<JTextField> quantityFields;
+    private List<JComboBox<String>> unitCombos;
+    private List<JPanel> ingredientRowPanels;
+    private JPanel ingredientContainerPanel;
 
     private JButton addToMeal, backButton, addIngredientButton, removeIngredientButton;
 
     private String[] availableIngredients = {"<pick one>"};
     private String[] availableUnits = {"<pick one>"};
+    
+    private final int MAX_INGREDIENTS = 4;
+    private final int MIN_INGREDIENTS = 1;
 
     // Action to be executed when an ingredient is selected
     private BiConsumer<Integer, String> ingredientSelectionAction;
 
     // The constructor accepts the history panel - History Panel injected
     public MealPanel(MealHistoryPanel mealHistoryPanel) {
-        setLayout(new BorderLayout());
-        setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-
+        // Initialize lists
         ingredientCombos = new ArrayList<>();
         quantityFields = new ArrayList<>();
         unitCombos = new ArrayList<>();
-
-        // Create split pane to show meal input and history side by side
-        JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
-        splitPane.setResizeWeight(0.5);
-
-        // Left side - Meal input panel
-        JPanel mainPanel = createMealInputPanel();
-        splitPane.setLeftComponent(mainPanel);
-
-        // The right side is the passed-in, reusable panel.
-        splitPane.setRightComponent(mealHistoryPanel);
-
-        add(splitPane, BorderLayout.CENTER);
+        ingredientRowPanels = new ArrayList<>();
         
-     // reset the divider location to allow for window resizing
-        addComponentListener(new ComponentAdapter() {
-            @Override
-            public void componentResized(ComponentEvent e) {
-                splitPane.setDividerLocation(0.5);
-                removeComponentListener(this);
-            }
-        });
-    }
+        // Set BorderLayout to split area (like GoalPanel)
+        setLayout(new BorderLayout());
+        
+     // Top area with meal history
+        JPanel topPanel = new JPanel(new BorderLayout());
+        topPanel.setBorder(BorderFactory.createTitledBorder("Meal History"));
+        topPanel.setPreferredSize(new Dimension(0, 150));
 
-     private JPanel createMealInputPanel() {
-        JPanel panel = new JPanel();
-        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-        panel.setBorder(BorderFactory.createTitledBorder("Add New Meal"));
+        // Wrap the history panel in a scroll pane
+        JScrollPane historyScrollPane = new JScrollPane(mealHistoryPanel);
+        historyScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        historyScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_NEVER);
 
-        JPanel topPanel = new JPanel(new GridLayout(2, 2, 5, 5));
-        topPanel.add(new JLabel("Meal Date:"));
-        todaysDate = new JSpinner(new SpinnerDateModel());
-        todaysDate.setEditor(new JSpinner.DateEditor(todaysDate, "yyyy-MM-dd"));
-        topPanel.add(todaysDate);
-        topPanel.add(new JLabel("Meal Type:"));
-        mealTypeCombo = new JComboBox<>(new String[]{"Breakfast", "Lunch", "Dinner", "Snack"});
-        topPanel.add(mealTypeCombo);
-        panel.add(topPanel);
-
-        panel.add(Box.createVerticalStrut(10));
-
-        addIngredientButton = new JButton("+");
-        addIngredientButton.setToolTipText("Add ingredient row");
-        removeIngredientButton = new JButton("-");
-        removeIngredientButton.setToolTipText("Remove ingredient row");
+        topPanel.add(historyScrollPane, BorderLayout.CENTER);
+        
+        // Middle area with meal input form
+        JPanel middlePanel = new JPanel(new BorderLayout());
+        middlePanel.setBorder(BorderFactory.createTitledBorder("Add New Meal"));
+        
+        // Create meal info section
+        JPanel mealInfoPanel = createMealInfoPanel();
+        middlePanel.add(mealInfoPanel, BorderLayout.NORTH);
+        
+        // Create ingredients section
+        JPanel ingredientsSection = createIngredientsSection();
+        middlePanel.add(ingredientsSection, BorderLayout.CENTER);
+        
+        // Bottom area with navigation buttons
+        JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        bottomPanel.setPreferredSize(new Dimension(0, 50));
         backButton = new JButton("Back");
         addToMeal = new JButton("Add Meal");
-
+        bottomPanel.add(backButton);
+        bottomPanel.add(addToMeal);
+        
+        // Add all sections
+        add(topPanel, BorderLayout.NORTH);
+        add(middlePanel, BorderLayout.CENTER);
+        add(bottomPanel, BorderLayout.SOUTH);
+        
+        // Setup buttons and add first ingredient row
         setupIngredientButtons();
+        addIngredientRow();
+    }
 
-        panel.add(createIngredientsPanel());
-
-        JPanel buttonPanel = new JPanel(new FlowLayout());
-        buttonPanel.add(addIngredientButton);
-        buttonPanel.add(removeIngredientButton);
-        buttonPanel.add(Box.createHorizontalStrut(20));
-        buttonPanel.add(backButton);
-        buttonPanel.add(addToMeal);
-        panel.add(buttonPanel);
-
+    private JPanel createMealInfoPanel() {
+        JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 10));
+        
+        panel.add(new JLabel("Meal Date:"));
+        todaysDate = new JSpinner(new SpinnerDateModel());
+        todaysDate.setEditor(new JSpinner.DateEditor(todaysDate, "yyyy-MM-dd"));
+        JComponent dateEditor = todaysDate.getEditor();
+        Dimension dateSize = dateEditor.getPreferredSize();
+        dateSize.width = 120;
+        dateEditor.setPreferredSize(dateSize);
+        panel.add(todaysDate);
+        
+        panel.add(Box.createHorizontalStrut(20));
+        
+        panel.add(new JLabel("Meal Type:"));
+        mealTypeCombo = new JComboBox<>(new String[]{"Breakfast", "Lunch", "Dinner", "Snack"});
+        panel.add(mealTypeCombo);
+        
         return panel;
     }
 
-    private JPanel createIngredientsPanel() {
+    private JPanel createIngredientsSection() {
         JPanel panel = new JPanel(new BorderLayout());
-        panel.setBorder(BorderFactory.createTitledBorder("Ingredients"));
-
-        JPanel headerPanel = new JPanel(new GridLayout(1, 3, 5, 5));
+        
+        // Header for ingredients
+        JPanel headerPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 50, 5));
         headerPanel.add(new JLabel("Ingredient"));
         headerPanel.add(new JLabel("Quantity"));
         headerPanel.add(new JLabel("Unit"));
         panel.add(headerPanel, BorderLayout.NORTH);
-
-        ingredientsContainer = new JPanel();
-        ingredientsContainer.setLayout(new BoxLayout(ingredientsContainer, BoxLayout.Y_AXIS));
-
-        addIngredientRow();
-
-        panel.add(ingredientsContainer, BorderLayout.CENTER);
-
+        
+        // Container for ingredient rows
+        ingredientContainerPanel = new JPanel();
+        ingredientContainerPanel.setLayout(new BoxLayout(ingredientContainerPanel, BoxLayout.Y_AXIS));
+        
+        // Scroll pane for ingredients (in case many are added)
+        JScrollPane scrollPane = new JScrollPane(ingredientContainerPanel);
+        scrollPane.setPreferredSize(new Dimension(0, 150));
+        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        panel.add(scrollPane, BorderLayout.CENTER);
+        
+        // Buttons for adding/removing ingredients
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        addIngredientButton = new JButton("+");
+        addIngredientButton.setToolTipText("Add ingredient row");
+        removeIngredientButton = new JButton("-");
+        removeIngredientButton.setToolTipText("Remove ingredient row");
+        buttonPanel.add(addIngredientButton);
+        buttonPanel.add(removeIngredientButton);
+        panel.add(buttonPanel, BorderLayout.SOUTH);
+        
         return panel;
     }
 
-    private void addIngredientRow() {
-        if (ingredientCombos.size() >= 4) {
-            JOptionPane.showMessageDialog(this, "Maximum 4 ingredients allowed per meal.");
-            return;
-        }
-
-        JPanel rowPanel = new JPanel(new GridLayout(1, 3, 5, 5));
-        rowPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 35));
+    private JPanel createNewIngredientRow() {
+        JPanel rowPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 5));
+        rowPanel.setMaximumSize(new Dimension(600, 40));
         
         JComboBox<String> ingredientCombo = new JComboBox<>(availableIngredients);
-        JTextField quantityField = new JTextField();
+        ingredientCombo.setPreferredSize(new Dimension(150, 25));
+        
+        JTextField quantityField = new JTextField(8);
+        
         JComboBox<String> unitCombo = new JComboBox<>(availableUnits);
+        unitCombo.setPreferredSize(new Dimension(100, 25));
 
         rowPanel.add(ingredientCombo);
         rowPanel.add(quantityField);
@@ -137,50 +156,51 @@ public class MealPanel extends JPanel {
         ingredientCombos.add(ingredientCombo);
         quantityFields.add(quantityField);
         unitCombos.add(unitCombo);
-
+        
         applyListenerToRow(ingredientCombos.size() - 1);
 
-        ingredientsContainer.add(rowPanel);
-        ingredientsContainer.add(Box.createVerticalStrut(5));
-        ingredientsContainer.revalidate();
-        ingredientsContainer.repaint();
+        return rowPanel;
+    }
 
-        updateButtonStates();
+    private void addIngredientRow() {
+        if (ingredientCombos.size() < MAX_INGREDIENTS) {
+            JPanel newRow = createNewIngredientRow();
+            ingredientRowPanels.add(newRow);
+            ingredientContainerPanel.add(newRow);
+            
+            updateButtonStates();
+            ingredientContainerPanel.revalidate();
+            ingredientContainerPanel.repaint();
+        } else {
+            JOptionPane.showMessageDialog(this, "Maximum " + MAX_INGREDIENTS + " ingredients allowed per meal.");
+        }
     }
 
     private void removeIngredientRow() {
-        if (ingredientCombos.size() <= 1) {
+        if (ingredientCombos.size() > MIN_INGREDIENTS) {
+            int lastIndex = ingredientCombos.size() - 1;
+            
+            ingredientContainerPanel.remove(ingredientRowPanels.remove(lastIndex));
+            ingredientCombos.remove(lastIndex);
+            quantityFields.remove(lastIndex);
+            unitCombos.remove(lastIndex);
+
+            updateButtonStates();
+            ingredientContainerPanel.revalidate();
+            ingredientContainerPanel.repaint();
+        } else {
             JOptionPane.showMessageDialog(this, "At least one ingredient row is required.");
-            return;
         }
-
-        int lastIndex = ingredientCombos.size() - 1;
-        ingredientCombos.remove(lastIndex);
-        quantityFields.remove(lastIndex);
-        unitCombos.remove(lastIndex);
-
-        int componentCount = ingredientsContainer.getComponentCount();
-        if (componentCount >= 2) {
-            ingredientsContainer.remove(componentCount - 1);
-            ingredientsContainer.remove(componentCount - 2);
-        }
-
-        ingredientsContainer.revalidate();
-        ingredientsContainer.repaint();
-        updateButtonStates();
     }
 
     private void updateButtonStates() {
-        if (addIngredientButton != null && removeIngredientButton != null) {
-            addIngredientButton.setEnabled(ingredientCombos.size() < 4);
-            removeIngredientButton.setEnabled(ingredientCombos.size() > 1);
-        }
+        addIngredientButton.setEnabled(ingredientCombos.size() < MAX_INGREDIENTS);
+        removeIngredientButton.setEnabled(ingredientCombos.size() > MIN_INGREDIENTS);
     }
 
     private void setupIngredientButtons() {
         addIngredientButton.addActionListener(e -> addIngredientRow());
         removeIngredientButton.addActionListener(e -> removeIngredientRow());
-        updateButtonStates();
     }
 
     /**
@@ -189,7 +209,6 @@ public class MealPanel extends JPanel {
     public void limitMealDateToToday() {
         if (todaysDate.getModel() instanceof SpinnerDateModel) {
             SpinnerDateModel model = (SpinnerDateModel) todaysDate.getModel();
-            // Setting the 'end' date of the model prevents selection of future dates.
             model.setEnd(new Date());
         }
     }
@@ -336,7 +355,7 @@ public class MealPanel extends JPanel {
         todaysDate.setValue(new Date());
         mealTypeCombo.setSelectedIndex(0);
 
-        while (ingredientCombos.size() > 1) {
+        while (ingredientCombos.size() > MIN_INGREDIENTS) {
             removeIngredientRow();
         }
 

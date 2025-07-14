@@ -75,8 +75,6 @@ public class ViewFacade {
     private void initializeMainFrame() {
         mainFrame = new JFrame("Healthy Bites");
         mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        mainFrame.setSize(1280, 800);
-        mainFrame.setLocationRelativeTo(null);
         
         cardLayout = new CardLayout();
         cardPanel = new JPanel(cardLayout);
@@ -93,7 +91,7 @@ public class ViewFacade {
         editPanel = new EditPanel();
 
         // Create the history panel first, then inject it into the meal panel
-        mealHistoryPanel = new MealHistoryPanel(BoxLayout.Y_AXIS);
+        mealHistoryPanel = new MealHistoryPanel(BoxLayout.X_AXIS);
         mealHistoryPanelForGoal = new MealHistoryPanel(BoxLayout.X_AXIS);
         mealHistoryPanelForHome = new MealHistoryPanel(BoxLayout.X_AXIS);
         mealPanel = new MealPanel(mealHistoryPanel);
@@ -268,7 +266,10 @@ public class ViewFacade {
     
     public void showPanel(String panelName) {
         cardLayout.show(cardPanel, panelName);
+        mainFrame.pack();  // Resize frame to fit new panel
+        mainFrame.setLocationRelativeTo(null);  // Re-center the frame
     }
+
     
     public void showLoginPanel() {
         showPanel(LOGIN_PANEL);
@@ -299,6 +300,8 @@ public class ViewFacade {
     }
     
     public void showFrame() {
+        mainFrame.pack();  // Pack before showing
+        mainFrame.setLocationRelativeTo(null);  // Center the frame
         mainFrame.setVisible(true);
     }
     

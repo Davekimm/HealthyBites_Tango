@@ -31,11 +31,6 @@ public class MealHistoryPanel extends JPanel {
         setLayout(new BorderLayout());
         setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 0));
 
-        JLabel historyTitle = new JLabel("Meal History");
-        historyTitle.setFont(new Font("Arial", Font.BOLD, 16));
-        historyTitle.setBorder(BorderFactory.createEmptyBorder(5, 5, 10, 5));
-        add(historyTitle, BorderLayout.NORTH);
-
         mealCardsContainer = new JPanel();
         this.layoutAxis = layoutAxis;
         mealCardsContainer.setLayout(new BoxLayout(mealCardsContainer, this.layoutAxis));

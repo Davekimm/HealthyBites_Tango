@@ -16,10 +16,17 @@ public class HomePanel extends JPanel {
       // a border around the parameter so labels and fields are not stuck to the edges of the panel
         setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         
-      // login page labels
-        JPanel topPanel = new JPanel();
-        topPanel.setPreferredSize(new Dimension(0,150));
-        topPanel.add(mealHistoryPanel, BorderLayout.CENTER);
+     // Top area with meal history
+        JPanel topPanel = new JPanel(new BorderLayout());
+        topPanel.setBorder(BorderFactory.createTitledBorder("Meal History"));
+        topPanel.setPreferredSize(new Dimension(0, 150));
+
+        // Wrap the history panel in a scroll pane
+        JScrollPane historyScrollPane = new JScrollPane(mealHistoryPanel);
+        historyScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        historyScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_NEVER);
+
+        topPanel.add(historyScrollPane, BorderLayout.CENTER);
                 
         JPanel restPanel = new JPanel();
         restPanel.setLayout(new GridLayout(6, 1, 5, 5));

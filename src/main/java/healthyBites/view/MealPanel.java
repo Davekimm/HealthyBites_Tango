@@ -44,7 +44,7 @@ public class MealPanel extends JPanel {
      // Top area with meal history
         JPanel topPanel = new JPanel(new BorderLayout());
         topPanel.setBorder(BorderFactory.createTitledBorder("Meal History"));
-        topPanel.setPreferredSize(new Dimension(0, 150));
+        topPanel.setPreferredSize(new Dimension(0, 200));
 
         // Wrap the history panel in a scroll pane
         JScrollPane historyScrollPane = new JScrollPane(mealHistoryPanel);

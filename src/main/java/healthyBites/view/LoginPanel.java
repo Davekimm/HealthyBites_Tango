@@ -12,7 +12,7 @@ public class LoginPanel extends JPanel {
     
         
     public LoginPanel() {
-        // Set layout that stacks components vertically
+        // stack components vertically
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 
         // App name label
@@ -34,7 +34,7 @@ public class LoginPanel extends JPanel {
         add(Box.createRigidArea(new Dimension(0, 10)));
         add(courseLabel);
 
-        add(Box.createRigidArea(new Dimension(0, 100))); // spacing below labels
+        add(Box.createRigidArea(new Dimension(0, 70))); // spacing below labels
 
         // Inner panel with form elements
         JPanel innerPanel = new JPanel(new GridLayout(2, 2, 8, 8));
@@ -58,7 +58,7 @@ public class LoginPanel extends JPanel {
     }
 
     
- // getter methods to be utilized by a facade - currently not implemented
+ // getter methods to be utilized by facade
        
     	public void loginButtonListener(ActionListener listener) {
     		loginButton.addActionListener(listener);
@@ -70,11 +70,8 @@ public class LoginPanel extends JPanel {
       public String getEmail() {
     		return emailField.getText();
     	}
-    	
-    	
-        public void clearFields() {
-        	emailField.setText("");
-        }
-
-
+    	    	
+      public void clearFields() {
+        emailField.setText("");
+      }
 }

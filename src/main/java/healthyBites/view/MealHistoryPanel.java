@@ -178,14 +178,18 @@ public class MealHistoryPanel extends JPanel {
         double calcium = nutrients != null ? nutrients.getOrDefault("CALCIUM", 0.0) : 0.0;
         double iron = nutrients != null ? nutrients.getOrDefault("IRON", 0.0) : 0.0;
         
-        // Display meal info and nutrition breakdown
+         // Display meal info and nutrition breakdown
         String date = new SimpleDateFormat("yyyy-MM-dd").format(meal.getDate());
         nutritionInfoPanel.add(new JLabel(String.format("<html><b>%s - %s</b></html>", date, meal.getType())));
         nutritionInfoPanel.add(new JLabel("|"));
         nutritionInfoPanel.add(new JLabel(String.format("Protein: %.1fg", protein)));
+        nutritionInfoPanel.add(new JLabel("|"));
         nutritionInfoPanel.add(new JLabel(String.format("Carbs: %.1fg", carbs)));
+        nutritionInfoPanel.add(new JLabel("|"));
         nutritionInfoPanel.add(new JLabel(String.format("Fat: %.1fg", fat)));
+        nutritionInfoPanel.add(new JLabel("|"));
         nutritionInfoPanel.add(new JLabel(String.format("Calcium: %.1fmg", calcium)));
+        nutritionInfoPanel.add(new JLabel("|"));
         nutritionInfoPanel.add(new JLabel(String.format("Iron: %.1fmg", iron)));
         
         nutritionInfoPanel.revalidate();

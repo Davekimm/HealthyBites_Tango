@@ -8,7 +8,7 @@ public class LoginPanel extends JPanel {
    
     private JTextField emailField;
     private JButton loginButton;
-    private JButton	createProfileButton;
+    private JButton createProfileButton;
     
         
     public LoginPanel() {

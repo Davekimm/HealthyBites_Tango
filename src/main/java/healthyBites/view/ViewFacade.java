@@ -5,6 +5,7 @@ import java.awt.*;
 import java.awt.event.ActionListener;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.function.BiConsumer;
 import healthyBites.model.Meal;
 import healthyBites.model.Nutrition;
@@ -31,6 +32,7 @@ public class ViewFacade {
     private MealHistoryPanel mealHistoryPanelForHome;
     private GoalPanel goalPanel;
     private GoalPanel2 goalPanel2;
+    private NutrientAnalysisPanel nutrientAnalysisPanel;
     
     // Panel name constants for card layout navigation
     public static final String LOGIN_PANEL = "LoginPanel";
@@ -40,6 +42,7 @@ public class ViewFacade {
     public static final String MEAL_PANEL = "MealPanel";
     public static final String GOAL_PANEL = "GoalPanel";
     public static final String GOAL_PANEL2 = "GoalPanel2";
+    public static final String NUTRIENT_ANALYSIS_PANEL = "NutrientAnalysisPanel";
 
     /**
      * Constructor - Initializes the main frame and all panels
@@ -97,8 +100,8 @@ public class ViewFacade {
         mealPanel = new MealPanel(mealHistoryPanel);
         goalPanel = new GoalPanel(mealHistoryPanelForGoal);
         homePanel = new HomePanel(mealHistoryPanelForHome);
-        
         goalPanel2 = new GoalPanel2();
+        nutrientAnalysisPanel = new NutrientAnalysisPanel();
         
         // Add panels to card layout with their respective names
         cardPanel.add(loginPanel, LOGIN_PANEL);
@@ -107,8 +110,8 @@ public class ViewFacade {
         cardPanel.add(editPanel, EDIT_PANEL);
         cardPanel.add(mealPanel, MEAL_PANEL);
         cardPanel.add(goalPanel, GOAL_PANEL);
-       cardPanel.add(goalPanel2, GOAL_PANEL2);
-    }
+        cardPanel.add(goalPanel2, GOAL_PANEL2);
+        cardPanel.add(nutrientAnalysisPanel, NUTRIENT_ANALYSIS_PANEL);    }
     
 /*
     // ===========================================
@@ -401,8 +404,8 @@ public class ViewFacade {
         homePanel.dailyIntakeButtonListener(listener);
     }
     
-    public void setAveragePlateButtonListener(ActionListener listener) {
-        homePanel.avgPlateButtonListener(listener);
+    public void setmyPlateButtonListener(ActionListener listener) {
+        homePanel.myPlateButtonListener(listener);
     }
     
     public void setLogoutButtonListener(ActionListener listener) {
@@ -476,4 +479,43 @@ public class ViewFacade {
     public void setEditImperialListener(ActionListener listener) {
         editPanel.imperialActionListener(listener);
     }
+
+//===========================================
+// MY PLATE - NUTRIENT ANALYSIS PANEL METHODS
+//===========================================
+
+public void showNutrientAnalysisPanel() {
+ showPanel(NUTRIENT_ANALYSIS_PANEL);
+}
+
+public Date getNutrientAnalysisStartDate() {
+ return nutrientAnalysisPanel.getStartDate();
+}
+
+public Date getNutrientAnalysisEndDate() {
+ return nutrientAnalysisPanel.getEndDate();
+}
+
+public void setNutrientAnalyzeButtonListener(ActionListener listener) {
+ nutrientAnalysisPanel.addAnalyzeButtonListener(listener);
+}
+
+public void setNutrientAnalysisBackButtonListener(ActionListener listener) {
+ nutrientAnalysisPanel.addBackButtonListener(listener);
+}
+
+public void displayNutrientAnalysis(Map<String, Double> averageDailyNutrients, int numberOfDays, Map<String, String> nutrientUnits) {
+    nutrientAnalysisPanel.displayNutrientAnalysis(averageDailyNutrients, numberOfDays, nutrientUnits);
+}
+
+public void clearNutrientAnalysis() {
+ nutrientAnalysisPanel.clearChart();
+	}
+
+// Retrieve stored cache of meal history data, in order to avoid making database queries
+public List<Map.Entry<Meal, Nutrition>> getCachedMealHistory() {
+    // Read from the Meal History Panel
+    return mealHistoryPanel.getMealHistoryEntries();
+}
+
 }

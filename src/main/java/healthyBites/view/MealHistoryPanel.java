@@ -151,7 +151,7 @@ public class MealHistoryPanel extends JPanel {
                 }
             }
         });
-        
+                        
         // Calories
         int calories = 0;
         if (nutrition != null && nutrition.getNutrients() != null) {
@@ -175,7 +175,7 @@ public class MealHistoryPanel extends JPanel {
         double protein = nutrients != null ? nutrients.getOrDefault("PROTEIN", 0.0) : 0.0;
         double carbs = nutrients != null ? nutrients.getOrDefault("CARBOHYDRATE, TOTAL (BY DIFFERENCE)", 0.0) : 0.0;
         double fat = nutrients != null ? nutrients.getOrDefault("FAT (TOTAL LIPIDS)", 0.0) : 0.0;
-        double calcium = nutrients != null ? nutrients.getOrDefault("CALCIUM", 0.0) : 0.0;
+        double fiber = nutrients != null ? nutrients.getOrDefault("FIBRE, TOTAL DIETARY", 0.0) : 0.0;
         double iron = nutrients != null ? nutrients.getOrDefault("IRON", 0.0) : 0.0;
         
          // Display meal info and nutrition breakdown
@@ -188,11 +188,16 @@ public class MealHistoryPanel extends JPanel {
         nutritionInfoPanel.add(new JLabel("|"));
         nutritionInfoPanel.add(new JLabel(String.format("Fat: %.1fg", fat)));
         nutritionInfoPanel.add(new JLabel("|"));
-        nutritionInfoPanel.add(new JLabel(String.format("Calcium: %.1fmg", calcium)));
+        nutritionInfoPanel.add(new JLabel(String.format("Fiber: %.1fg", fiber)));
         nutritionInfoPanel.add(new JLabel("|"));
         nutritionInfoPanel.add(new JLabel(String.format("Iron: %.1fmg", iron)));
         
         nutritionInfoPanel.revalidate();
         nutritionInfoPanel.repaint();
-    } 
+    }
+    
+    // Store meal history to be used during Nutrition Analysis
+    public List<Map.Entry<Meal, Nutrition>> getMealHistoryEntries() {
+        return mealEntries;
+    }
 }

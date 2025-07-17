@@ -6,7 +6,7 @@ import java.awt.event.*;
 
 public class HomePanel extends JPanel {
    
-    private JButton editButton, mealButton, goalSwapButton, dailyIntakeButton, avgPlateButton, logoutButton;
+    private JButton editButton, mealButton, goalSwapButton, dailyIntakeButton, myPlateButton, logoutButton;
     
     public HomePanel(MealHistoryPanel mealHistoryPanel) {
                     
@@ -44,8 +44,8 @@ public class HomePanel extends JPanel {
         dailyIntakeButton = new JButton("Nutrient Intake Trend");
         restPanel.add(dailyIntakeButton);
         
-        avgPlateButton = new JButton("Average Plate");
-        restPanel.add(avgPlateButton);
+        myPlateButton = new JButton("My Plate");
+        restPanel.add(myPlateButton);
         
         logoutButton = new JButton("Logout");
         restPanel.add(logoutButton);
@@ -54,7 +54,7 @@ public class HomePanel extends JPanel {
         add(restPanel);
   }
     
- // getter methods to be utilized by a facade - currently not implemented
+ // getter methods to be utilized by a facade
        
     	public void editButtonListener(ActionListener listener) {
     		editButton.addActionListener(listener);
@@ -68,8 +68,8 @@ public class HomePanel extends JPanel {
     	public void dailyIntakeButtonListener(ActionListener listener) {
             dailyIntakeButton.addActionListener(listener);
         }
-    	public void avgPlateButtonListener(ActionListener listener) {
-    		avgPlateButton.addActionListener(listener);
+    	public void myPlateButtonListener(ActionListener listener) {
+    		myPlateButton.addActionListener(listener);
     	}
     	public void logoutButtonListener(ActionListener listener) {
             logoutButton.addActionListener(listener);

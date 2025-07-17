@@ -15,7 +15,11 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class Controller {
 	private ViewFacade view;
@@ -105,6 +109,20 @@ public class Controller {
 		view.setFoodSwapButtonListener(e -> {
 			view.showGoalPanel();
 			this.currentPage = "GoalPage";
+		});
+		
+		view.setmyPlateButtonListener(e -> {
+		    view.showNutrientAnalysisPanel();
+		    this.currentPage = "myPlatePage";
+		});
+		
+		// Nutrient Analysis Panel listeners
+		view.setNutrientAnalyzeButtonListener(e -> analyzeNutrientIntake());
+
+		view.setNutrientAnalysisBackButtonListener(e -> {
+		    view.showHomePanel();
+		    view.clearNutrientAnalysis();
+		    this.currentPage = "HomePage";
 		});
 		
 	}
@@ -389,6 +407,110 @@ public class Controller {
             
             view.setUnitsForRow(rowIndex, unitArray);
         });
+    }
+    
+    /**
+     * Analyzes nutrient intake for a selected date range using the pre-loaded meal history cache.
+     * Calculates average daily nutrient values and displays them in charts and summaries.
+     * This method avoids database queries by using cached data for better performance.
+     */
+    private void analyzeNutrientIntake() {
+        // Retrieve the date range selected by the user in the UI
+        Date startDate = view.getNutrientAnalysisStartDate();
+        Date endDate = view.getNutrientAnalysisEndDate();
+
+        // Validate that the date range is logical (start must be before or equal to end)
+        if (startDate.after(endDate)) {
+            JOptionPane.showMessageDialog(null,
+                "Start date must be before end date",
+                "Invalid Date Range",
+                JOptionPane.ERROR_MESSAGE);
+            return; // Exit early if validation fails
+        }
+
+        // Get the pre-loaded history from the view's cache
+        List<Map.Entry<Meal, Nutrition>> cachedHistory = view.getCachedMealHistory();
+
+        // Map to accumulate total nutrients across all meals in the date range
+        Map<String, Double> totalNutrients = new HashMap<>();
+        
+        // Set to track unique days that have meals (for accurate daily average calculation)
+        Set<String> uniqueMealDays = new HashSet<>();
+        
+        // Date formatter to convert dates to strings for unique day tracking
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+
+        // Filter and aggregate the data in-memory.
+        // Loop through all cached meal entries
+        for (Map.Entry<Meal, Nutrition> entry : cachedHistory) {
+            Meal meal = entry.getKey();
+            Date mealDate = meal.getDate();
+
+            // Check if the meal's date is within the selected range (inclusive)
+            // !before(startDate) means >= startDate
+            // !after(endDate) means <= endDate
+            if (!mealDate.before(startDate) && !mealDate.after(endDate)) {
+                // Add formatted date to track unique days (e.g., "2024-01-15")
+                uniqueMealDays.add(sdf.format(mealDate));
+                
+                Nutrition nutrition = entry.getValue();
+
+                // Safely aggregate nutrients if nutrition data exists
+                if (nutrition != null && nutrition.getNutrients() != null) {
+                    // Loop through all nutrients in this meal
+                    for (Map.Entry<String, Double> nutrientEntry : nutrition.getNutrients().entrySet()) {
+                        String nutrientName = nutrientEntry.getKey();
+                        Double value = nutrientEntry.getValue();
+                        
+                        // Add to running total, starting from 0 if nutrient not seen before
+                        totalNutrients.put(nutrientName, totalNutrients.getOrDefault(nutrientName, 0.0) + value);
+                    }
+                }
+            }
+        }
+
+        // Handle case where no meals exist in the selected date range
+        if (totalNutrients.isEmpty()) {
+            JOptionPane.showMessageDialog(null, 
+                "No meals found in the selected time period.", 
+                "No Data", 
+                JOptionPane.INFORMATION_MESSAGE);
+            view.clearNutrientAnalysis(); // Clear any previous analysis display
+            return; // Exit early - nothing to analyze
+        }
+
+        // Get nutrient units by calling the model method in a loop.
+        // database accessed
+        Map<String, String> nutrientUnits = new HashMap<>();
+        for (String nutrientName : totalNutrients.keySet()) {
+            try {
+                // Query database for the unit of measurement (g, mg, µg, etc.)
+                String unit = model.getNutrientUnit(nutrientName);
+                nutrientUnits.put(nutrientName, unit);
+            } catch (IllegalArgumentException e) {
+                // If nutrient not found in database, store null and log error
+                nutrientUnits.put(nutrientName, null);
+                System.err.println(e.getMessage());
+            }
+        }
+
+        // Calculate number of days for averaging
+        // If no days found (edge case), use 1 to avoid division by zero
+        int numberOfDays = uniqueMealDays.isEmpty() ? 1 : uniqueMealDays.size();
+
+        // Calculate the average daily nutrients.
+        // Divide total by number of days to get daily average
+        Map<String, Double> averageDailyNutrients = new HashMap<>();
+        for (Map.Entry<String, Double> entry : totalNutrients.entrySet()) {
+            averageDailyNutrients.put(
+                entry.getKey(), 
+                entry.getValue() / numberOfDays  // Total ÷ Days = Daily Average
+            );
+        }
+
+        // Directly update the UI with the averaged data.
+        // This will be used to create the pie chart and summary panel
+        view.displayNutrientAnalysis(averageDailyNutrients, numberOfDays, nutrientUnits);
     }
     
     

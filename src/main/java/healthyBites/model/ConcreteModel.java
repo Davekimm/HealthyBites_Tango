@@ -535,4 +535,28 @@ public class ConcreteModel implements Model, MealSubject {
         }
     }
 
+
+    @Override
+    public String getNutrientUnit(String nutrientName) {
+        String query = 
+        """
+        SELECT nutrient_unit 
+        FROM nutrient_names
+        WHERE nutrient_name = ?;
+        """;
+        
+        try (PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setString(1, nutrientName);
+            ResultSet rs = stmt.executeQuery();
+            if(rs.next()) {
+                return rs.getString(1);
+            } else {
+                throw new IllegalArgumentException("Nutrient not found: " + nutrientName);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
 }

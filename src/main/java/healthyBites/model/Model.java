@@ -25,8 +25,8 @@ public interface Model {
     List<Meal> getMealsByTimeFrame(String email, Date begin, Date end);
     List<String> getFoodNamesWithSameFoodCategoryAs(String foodName);
 
+    String getNutrientUnit(String nutrientName);
 
     // String getFoodCategory(String foodName); // + getCategory(foodItem: String): String
-    // String getNutrientUnit(String nutrient);
     // Map<String, Double> getDailyRecommendationsFromCFG();
 }

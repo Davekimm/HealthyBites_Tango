@@ -12,6 +12,8 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import io.github.cdimascio.dotenv.Dotenv;
 
@@ -255,10 +257,12 @@ public class ConcreteModel implements Model, MealSubject {
         String query = 
         """
             SELECT measure_description 
-            FROM measure_names 
-            INNER JOIN conversion_factors ON measure_names.measure_id = conversion_factors.measure_id
-            INNER JOIN food_names ON food_names.food_id = conversion_factors.food_id
-            WHERE food_names.food_description = ?;
+            FROM measure_names m 
+            JOIN conversion_factors c ON m.measure_id = c.measure_id
+            JOIN food_names f ON f.food_id = c.food_id
+            WHERE f.food_description = ?
+            AND ((food_group_id IN (1, 9, 11, 12, 16, 20, 5, 7, 10, 13, 15, 17, 4) AND measure_description LIKE "%ml%") 
+            OR (food_group_id IN (18, 8, 5, 7, 10, 13, 15, 17, 4) AND measure_description REGEXP "(\\d+)g")) ;
         """;
         try (PreparedStatement stmt = conn.prepareStatement(query)) {
             stmt.setString(1, foodName);
@@ -275,20 +279,27 @@ public class ConcreteModel implements Model, MealSubject {
 
     @Override
     public List<String> getFoodNames() {
-    	List<String> result = new ArrayList<>();
-    	String query = "SELECT food_description FROM food_names;";
-    	
-    	try (PreparedStatement stmt = conn.prepareStatement(query)) {
-            ResultSet rs = stmt.executeQuery();
-            
-            while (rs.next()) {
-            	result.add(rs.getString("food_description"));
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+    	String sql =
+        """
+        SELECT DISTINCT food_description
+        FROM food_names
+        INNER JOIN conversion_factors ON food_names.food_id = conversion_factors.food_id
+        INNER JOIN measure_names ON measure_names.measure_id = conversion_factors.measure_id
+        WHERE (food_group_id IN (1, 9, 11, 12, 16, 20, 5, 7, 10, 13, 15, 17, 4) AND measure_description LIKE "%ml%") 
+        OR (food_group_id IN (18, 8, 5, 7, 10, 13, 15, 17, 4) AND measure_description REGEXP "(\\d+)g");
+        """;
 
-        return result;
+        List<String> foodNames = new ArrayList<>();
+        try (Statement stmt = conn.createStatement();
+            ResultSet rs = stmt.executeQuery(sql)
+        ) {
+            while(rs.next()) {
+                foodNames.add(rs.getString(1));
+            }
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+        return foodNames;
     }
 
     @Override
@@ -544,7 +555,7 @@ public class ConcreteModel implements Model, MealSubject {
         FROM nutrient_names
         WHERE nutrient_name = ?;
         """;
-        
+
         try (PreparedStatement stmt = conn.prepareStatement(query)) {
             stmt.setString(1, nutrientName);
             ResultSet rs = stmt.executeQuery();
@@ -559,4 +570,106 @@ public class ConcreteModel implements Model, MealSubject {
         return null;
     }
 
+    public CFGFoodGroup getDailyRecommendedServingsFromCFG(UserProfile profile) {
+        if (profile.getSex().equalsIgnoreCase("Male"))
+            return new CFGFoodGroup(9, 8, 2, 3, 45); 
+        else
+            return new CFGFoodGroup(7.5, 6.5, 2, 2, 45);  // measured in ml instead of serving
+    }
+
+    private int getUnitValue(String unit) {
+        String regex = "(\\d+)(ml|g)";
+
+        Pattern pattern = Pattern.compile(regex);
+        Matcher matcher = pattern.matcher(unit);
+
+        if (matcher.find()) {
+            String matched = matcher.group(1);
+            return Integer.parseInt(matched);
+        } else {
+           throw new IllegalArgumentException();
+        }
+    }
+
+    private int getFoodGroupId(String foodName) {
+        String query = 
+        """
+        SELECT food_group_id
+        FROM food_names
+        WHERE food_description = ?;
+        """;
+        try (PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setString(1, foodName);
+            ResultSet rs = stmt.executeQuery();
+            if(rs.next()) {
+                return rs.getInt(1);
+            } else {
+                throw new IllegalArgumentException(foodName);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        throw new IllegalArgumentException(foodName);
+    }
+
+    public CFGFoodGroup getUserMealCFGServings(Meal meal) {
+        CFGFoodGroup total = new CFGFoodGroup(0, 0, 0, 0, 0);
+        for (FoodItem foodItem : meal.getFoodItems()) {
+            CFGFoodGroup foodItemCFGServings = getFoodItemCFGServings(foodItem);
+            total = total.add(foodItemCFGServings);
+        }
+        return total;
+    }
+    
+    public CFGFoodGroup getFoodItemCFGServings(FoodItem foodItem) {
+        int foodGroupId = getFoodGroupId(foodItem.getName());
+        int unitValue = getUnitValue(foodItem.getUnit());
+        double foodItemAmount = foodItem.getQuantity() * unitValue;
+        
+        
+        boolean isMl = foodItem.getUnit().contains("ml"); // check if unit is in grams or ml
+
+
+        switch (foodGroupId) {
+            case 11, 9:
+                return new CFGFoodGroup(foodItemAmount / 125, 0, 0, 0, 0);
+            case 18:
+                return new CFGFoodGroup(0, foodItemAmount / 35, 0, 0, 0);
+            case 8:
+                return new CFGFoodGroup(0, foodItemAmount / (isMl ? 175 : 30), 0, 0, 0);
+            case 20:
+                return new CFGFoodGroup(0, foodItemAmount / 125, 0, 0, 0);
+            case 1:
+                return new CFGFoodGroup(0, 0, foodItemAmount / 250, 0, 0);
+            case 5, 7, 10, 13, 15, 17:
+                return new CFGFoodGroup(0, 0, 0, foodItemAmount/(isMl ? 125 : 75), 0);
+            case 16:
+                return new CFGFoodGroup(0, 0, 0, foodItemAmount/175, 0);
+            case 12:
+                return new CFGFoodGroup(0, 0, 0, foodItemAmount/60, 0);
+            case 4:
+                double fatInGram = getFoodItemNutrtionalValue(foodItem).getNutrientValue("FAT (TOTAL LIPIDS)");
+                double fatInMl = fatInGram * 1.15; // fat gram to ml convertion ratio based on avg fat density
+                return new CFGFoodGroup(0, 0, 0, 0, fatInMl);
+        }
+        throw new IllegalArgumentException();
+    }
+
+   
 }
+
+
+// Fresh, fronze or canned vegetables #11 -> 125 ml / serv 
+        // Fruits and fruit juices # 9 -> 125 ml / serv
+
+        // Baked products #18 -> 35 g / serv
+        // Breakfast cereals # 8 -> 30g or 175ml / serv
+        // Cereals, Grains and Pasta #20 -> 125 ml / ser
+        
+        // Dairy and egg products # 1 -> 250ml / serv
+        
+        // 5, 7, 10, 13, 15, 17  -> 75 g or 125 ml / serv
+        // Legumes and Legume products #16 -> 175 ml /serv
+        // Nuts and seeds #12 -> 60ml / serv
+
+        // Oils and Fats -> Fats and oils #4 -> measured in ml of fat (1 ml of fat is 0.9 g rougly)

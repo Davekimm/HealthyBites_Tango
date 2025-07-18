@@ -21,7 +21,7 @@ public class GoalPanel extends JPanel {
         
     private JPanel goalContainerPanel;
     private List<JPanel> goalRowPanel;
-    private List<JComboBox<String>> nutrientComboBox, actionComboBox, intensityArbiComboBox, unitCombo;   
+    private List<JComboBox<String>> nutrientComboBox, actionComboBox, intensityArbiComboBox, unitCombo, intensityPreciseComboBox;   
     private final int MAX_OPTIONS = 2;
     private final int MIN_OPTIONS = 1;
     
@@ -189,6 +189,13 @@ public class GoalPanel extends JPanel {
     public void setIngredientList(List<FoodItem> list) {
     	this.ingredientList = list;
     	revalidate();
+    }
+    
+    public void setUnit(String[] unitList) {
+    	this.unitList = unitList;
+    	for (JComboBox<String> list : unitCombo) {
+    		list.setModel(new DefaultComboBoxModel<>(unitList));
+    	}
     }
     
  // getter methods to be utilized by a facade

@@ -7,6 +7,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.function.BiConsumer;
+
+import healthyBites.model.FoodItem;
 import healthyBites.model.Meal;
 import healthyBites.model.Nutrition;
 import java.util.function.Consumer;	//for selection of meal to swap
@@ -131,10 +133,6 @@ public class ViewFacade {
         goalPanel.getReplaceButtonListener(listener);
     }
 	
-	public void setNutrientList(String[] nutrient) {
-	    goalPanel.setNutrientList(nutrient);
-	}
-	
 	public List<String> getSelectedNutrient() {
 		return goalPanel.getSelectedNutrient();
 	}
@@ -151,13 +149,24 @@ public class ViewFacade {
 		return goalPanel.getSelectedUnit();
 	}
 	
+	public MealHistoryPanel getMealHistorySelection() {
+    	return goalPanel.getMealHistorySelection();
+    }
+	
 	public void setMealSelectionListener(Consumer<Meal> listener) {
 		goalPanel.getMealHistorySelection().setOnMealSelectedListener(listener);	
 	}
 	
-
-    public MealHistoryPanel getMealHistorySelection() {
-    	return goalPanel.getMealHistorySelection();
+    public void setNutrientList(String[] nutrientList) {
+    	goalPanel.setNutrientList(nutrientList);
+    }
+    
+    public void setUnit(String[] unitList) {
+    	goalPanel.setUnit(unitList);
+    }
+    
+    public void setIngredientList(List<FoodItem> ingredientList) {
+    	goalPanel.setIngredientList(ingredientList);
     }
 	
 	//for testing

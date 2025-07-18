@@ -15,6 +15,13 @@ public class Nutrition {
         this.nutrients = new HashMap<>();
     }
 
+    /**
+     * This method gives access to the value of a specific nutrient. 
+     * If nutrient doesn't exist, returns 0.
+     * 
+     * @param nutrient the name of the nutrient from csv file (e.g. PROTEIN)
+     * @return the amount of the specified nutrient
+     */
     public double getNutrientValue(String nutrient) {
         return nutrients.getOrDefault(nutrient, 0.0);
     }

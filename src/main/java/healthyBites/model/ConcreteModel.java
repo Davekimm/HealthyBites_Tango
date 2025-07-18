@@ -433,8 +433,8 @@ public class ConcreteModel implements Model, MealSubject {
 
             for (Goal goal: goals) {
                 double intensity = goal.getIntensity();
-                double unselectedFoodItemsNutrient = unselectedFoodItemsNutrition.getNutrient(goal.getNutrient());
-                double altFoodItemNutrient = altFoodItemNutrition.getNutrient(goal.getNutrient());
+                double unselectedFoodItemsNutrient = unselectedFoodItemsNutrition.getNutrientValue(goal.getNutrient());
+                double altFoodItemNutrient = altFoodItemNutrition.getNutrientValue(goal.getNutrient());
                 if (altFoodItemNutrient == 0) {
                     isValidAlternative = false;
                     break; 
@@ -471,9 +471,9 @@ public class ConcreteModel implements Model, MealSubject {
                     continue;
                 }
 
-                double nutrientInOriginalMeal = originalMealNutrition.getNutrient(nutrient);
-                double nutrientInUnselectedFoodItems = unselectedFoodItemsNutrition.getNutrient(nutrient);
-                double nutrientInAltFoodItem = altFoodItemNutrition.getNutrient(nutrient);
+                double nutrientInOriginalMeal = originalMealNutrition.getNutrientValue(nutrient);
+                double nutrientInUnselectedFoodItems = unselectedFoodItemsNutrition.getNutrientValue(nutrient);
+                double nutrientInAltFoodItem = altFoodItemNutrition.getNutrientValue(nutrient);
                 if (nutrientInAltFoodItem == 0) {
                     isValidAlternative = false;
                     break; 
@@ -496,8 +496,8 @@ public class ConcreteModel implements Model, MealSubject {
             FoodItem validAltFoodItem = new FoodItem(altFoodItem.getName(), (low + high) / 2, altFoodItem.getUnit());
             altFoodItemsList.add(validAltFoodItem);
             
-            if (altFoodItemsList.size() > 10) 
-                break;
+            // if (altFoodItemsList.size() > 10) 
+            //     break;
         }
 
 

@@ -1,6 +1,9 @@
 package healthyBites.view;
 
 import javax.swing.*;
+
+import healthyBites.model.FoodItem;
+
 import java.awt.*;
 import java.awt.event.*;
 import java.util.ArrayList;
@@ -22,8 +25,11 @@ public class GoalPanel extends JPanel {
     private final int MAX_OPTIONS = 2;
     private final int MIN_OPTIONS = 1;
     
-    private String[] nutrientList = {"N","U","T"}, actionList = {"increase" , "decrease"}, intensityPreciseList = {"5", "10", "15"},
-    				intensityArbiList = {"by a little bit", "more than normal", "significantly"}, unitList = {"%", "g", "mg"};
+    private String[] nutrientList = {"N","U","T"}, actionList = {"increase" , "decrease"},
+    				intensityPreciseList = {"5", "10", "15"}, unitList = {"%", "g", "mg"},
+    				intensityArbiList = {"by a little bit", "more than normal", "significantly"};
+
+	List<FoodItem> ingredientList;
     
     private MealHistoryPanel forMealSelection;
     private List<JTextField> preciseField;
@@ -37,6 +43,7 @@ public class GoalPanel extends JPanel {
     	this.preciseField = new ArrayList<>();
     	this.forMealSelection = mealHistoryPanel;
     	this.unitCombo = new ArrayList<>();
+    	JComboBox<String> ingredientComboBox = new JComboBox<String>();
     	
       // set BorderLayout to split area
         setLayout(new BorderLayout());
@@ -53,7 +60,18 @@ public class GoalPanel extends JPanel {
 
         topPanel.add(historyScrollPane, BorderLayout.CENTER);
         
-      //middle
+        JPanel middle = new JPanel(new BorderLayout());
+        
+      //middle1
+        JPanel middleP = new JPanel(new BorderLayout());
+        middleP.setBorder(BorderFactory.createTitledBorder("Select the food to swap:"));
+        middleP.setPreferredSize(new Dimension(0,50));
+        
+        middleP.add(new JLabel("Food Items:"));
+        middleP.add(ingredientComboBox);
+    
+        
+      //middle2
         JPanel middlePanel = new JPanel(new BorderLayout());
         middlePanel.setBorder(BorderFactory.createTitledBorder("Set Your Goal:"));
         
@@ -68,6 +86,9 @@ public class GoalPanel extends JPanel {
         goalButtonPanel.add(removeGoalButton);
         middlePanel.add(goalButtonPanel, BorderLayout.NORTH);         
         
+        middle.add(middleP, BorderLayout.NORTH);
+        middle.add(middlePanel, BorderLayout.CENTER);
+        
       //bottom
         JPanel bottomPanel = new JPanel();
         bottomPanel.setPreferredSize(new Dimension(0,50));
@@ -79,7 +100,7 @@ public class GoalPanel extends JPanel {
         
         // add above sections
         add(topPanel, BorderLayout.NORTH);       
-        add(middlePanel, BorderLayout.CENTER);
+        add(middle, BorderLayout.CENTER);
         add(bottomPanel, BorderLayout.SOUTH);
         
         setupGoalButton();
@@ -163,6 +184,11 @@ public class GoalPanel extends JPanel {
     	for (JComboBox<String> list : nutrientComboBox) {
     		list.setModel(new DefaultComboBoxModel<>(nutrientList));
     	}
+    }
+    
+    public void setIngredientList(List<FoodItem> list) {
+    	this.ingredientList = list;
+    	revalidate();
     }
     
  // getter methods to be utilized by a facade

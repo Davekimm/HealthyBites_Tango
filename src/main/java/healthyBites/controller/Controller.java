@@ -5,6 +5,7 @@ import javax.swing.JOptionPane;
 import healthyBites.view.ViewFacade;
 import healthyBites.model.ConcreteModel;
 import healthyBites.model.FoodItem;
+import healthyBites.model.Goal;
 import healthyBites.model.Meal;
 import healthyBites.model.Model;
 import healthyBites.model.Nutrition;
@@ -27,6 +28,7 @@ public class Controller {
     private String currentPage;
     private UserProfile currentUser;
     private Meal recentMeal;
+    private Meal selectedMeal;
     
     private List<InitialLoadObserver> initialLoadObservers;
 
@@ -36,13 +38,17 @@ public class Controller {
     	this.currentPage = "LoginPage";
     	this.initialLoadObservers = initialLoadObservers;
 
-	// ensure meal history is clear on startup
     	view.clearMealHistory();
     	
     	registerActionListeners();
     }
     
     private void registerActionListeners() {
+    	
+    	
+    	//===========================================================
+    	// Login page
+    	//===========================================================
 		view.setLoginButtonListener(e -> loginHandler());
 		
 		view.setCreateProfileButtonListener(e -> {
@@ -50,6 +56,10 @@ public class Controller {
 			this.currentPage = "RegisterPage";
 		});
 				
+		
+		//===========================================================
+    	// Register page
+    	//===========================================================
 		view.setRegisterButtonListener(e -> registerProfile());
 		
 		view.setRegisterCancelButtonListener(e -> {
@@ -57,10 +67,10 @@ public class Controller {
 			this.currentPage = "LoginPage";
 		});
 		
-		view.setEditMetricListener(e ->	convertUnitInEditPanel());
 		
-		view.setEditImperialListener(e -> convertUnitInEditPanel());
-		
+		//===========================================================
+    	// Home page
+    	//===========================================================
 		view.setEditProfileButtonListener(e -> { 
 			view.showEditPanel(); 
 			updateUserInfoInEditPage();
@@ -76,6 +86,12 @@ public class Controller {
 			this.currentPage = "MealPage";
 		});
 		
+		view.setFoodSwapButtonListener(e -> {
+			view.showGoalPanel();
+			getAvailableNutrients();
+			this.currentPage = "GoalPage";
+		});
+
 		view.setLogoutButtonListener(e -> {
 			view.showLoginPanel();
 			view.clearLoginFields();
@@ -86,6 +102,14 @@ public class Controller {
 			JOptionPane.showMessageDialog(null, "Logged out successfully", "Success", JOptionPane.INFORMATION_MESSAGE);
 		});
 		
+		
+		//===========================================================
+    	// Edit page
+    	//===========================================================
+		view.setEditMetricListener(e ->	convertUnitInEditPanel());
+		
+		view.setEditImperialListener(e -> convertUnitInEditPanel());
+		
 		view.setDeleteButtonListener(e -> deleteProfile());
 		
 		view.setSaveButtonListener(e -> saveEditProfile());
@@ -95,6 +119,10 @@ public class Controller {
 			this.currentPage = "HomePage";
 		});
 		
+		
+		//===========================================================
+    	// Log Meal page
+    	//===========================================================
 		addMealPanelIngredientComboBoxListeners();
 		
 		view.setAddToMealButtonListener(e -> logMealHandler());
@@ -103,20 +131,32 @@ public class Controller {
 			view.showHomePanel();
 			view.clearMealFields();
 			this.currentPage = "HomePage";
+		});		
+		
+		
+		//===========================================================
+    	// Get Food Swaps page
+    	//===========================================================
+		view.setMealSelectionListener(meal -> {
+			this.selectedMeal = meal;
 		});
 		
-		//from Danny: i just added this line to make goalpanel to be available
-		view.setFoodSwapButtonListener(e -> {
-			view.showGoalPanel();
-			this.currentPage = "GoalPage";
+		view.getReplaceButtonListener(e -> {
+			//view.showGoalPanel2();
+			this.currentPage = "GoalPage2";
+			
+			getAlternativeFoodItems(this.selectedMeal);
+			
 		});
 		
+		//===========================================================
+    	// My Plate page
+    	//===========================================================
 		view.setmyPlateButtonListener(e -> {
 		    view.showNutrientAnalysisPanel();
 		    this.currentPage = "myPlatePage";
 		});
 		
-		// Nutrient Analysis Panel listeners
 		view.setNutrientAnalyzeButtonListener(e -> analyzeNutrientIntake());
 
 		view.setNutrientAnalysisBackButtonListener(e -> {
@@ -408,6 +448,77 @@ public class Controller {
             view.setUnitsForRow(rowIndex, unitArray);
         });
     }
+    
+    private void getAvailableNutrients() {
+    	
+    	List<String> availableNutrients = model.getNutrientNames();
+    	
+    	String[] foodNutrientAry = new String[50];
+    	for(int i = 0; i < 50; i++) {
+    		foodNutrientAry[i] = availableNutrients.get(i);
+    	}
+    	    	
+    	view.setNutrientList(foodNutrientAry);
+    	
+    }
+    
+    private void getAlternativeFoodItems(Meal meal) {
+    	int numOfGoal = view.getSelectedNutrient().size();
+    	
+    	String[] selectedNutrients = new String[numOfGoal];
+    	boolean[] selectedActions = new boolean[numOfGoal];
+    	double[] selectedIntensities = new double[numOfGoal];
+    	String[] selectedUnits = new String[numOfGoal];
+    	
+    	List<Goal> goals = new ArrayList<>();
+    	
+    	for(int i = 0; i < numOfGoal; i++) {
+    		selectedNutrients[i] = view.getSelectedNutrient().get(i);
+    		
+    		selectedActions[i] = true;
+    		if(view.getSelectedAction().get(i).equals("decrease")) {
+    			selectedActions[i] = false;
+        	}
+    		
+    		selectedIntensities[i] = Double.parseDouble(view.getSelectedIntensityPrecise().get(i));
+    		
+    		selectedUnits[i] = view.getSelectedUnit().get(i);
+    		
+    		Goal goal = new Goal(selectedNutrients[i], selectedActions[i], selectedIntensities[i]);
+    		goals.add(goal);
+    	}
+    	
+    	for(int i = 0; i < numOfGoal; i++) {
+    		System.out.println(goals.get(i).getNutrient());
+    		System.out.println(goals.get(i).isIncrease());
+    		System.out.println(goals.get(i).getIntensity());
+    	}
+    	
+    	
+    	
+    	System.out.println("Type:" + meal.getType());
+		System.out.println("FoodItems:" + meal.getFoodItems().get(0));
+		
+		List<FoodItem> replaceableFoodItems = model.getAlternativeFoodOptions(meal, meal.getFoodItems().get(0), goals);
+		
+		System.out.println(replaceableFoodItems.size());
+		
+		for(int i = 0 ; i < replaceableFoodItems.size(); i++) {
+			System.out.println("foodItem to replace with : " + replaceableFoodItems.get(i));
+			
+		}
+		
+		
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
     /**
      * Analyzes nutrient intake for a selected date range using the pre-loaded meal history cache.

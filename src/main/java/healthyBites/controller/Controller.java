@@ -495,18 +495,29 @@ public class Controller {
     	}
     	
     	
-    	
     	System.out.println("Type:" + meal.getType());
 		System.out.println("FoodItems:" + meal.getFoodItems().get(0));
 		
-		List<FoodItem> replaceableFoodItems = model.getAlternativeFoodOptions(meal, meal.getFoodItems().get(0), goals);
+		//=================================================
+		// Mock Meal and Nutrition Data
 		
-		System.out.println(replaceableFoodItems.size());
+		List<String> foodNames = view.getMealIngredients();
+		List<String> foodQuantities = view.getMealQuantities();
+		List<String> foodUnits = view.getMealUnits();
 		
-		for(int i = 0 ; i < replaceableFoodItems.size(); i++) {
-			System.out.println("foodItem to replace with : " + replaceableFoodItems.get(i));
-			
-		}
+		
+//		List<FoodItem> replaceableFoodItems
+		
+		
+		
+//		List<FoodItem> replaceableFoodItems = model.getAlternativeFoodOptions(meal, meal.getFoodItems().get(0), goals);
+//		
+//		System.out.println(replaceableFoodItems.size());
+//		
+//		for(int i = 0 ; i < replaceableFoodItems.size(); i++) {
+//			System.out.println("foodItem to replace with : " + replaceableFoodItems.get(i));
+//			
+//		}
 		
 		
     }

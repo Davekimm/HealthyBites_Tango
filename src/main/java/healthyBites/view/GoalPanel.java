@@ -21,7 +21,9 @@ public class GoalPanel extends JPanel {
         
     private JPanel goalContainerPanel;
     private List<JPanel> goalRowPanel;
-    private List<JComboBox<String>> nutrientComboBox, actionComboBox, intensityArbiComboBox, unitCombo, intensityPreciseComboBox;   
+    private List<JComboBox<String>> nutrientComboBox, actionComboBox, intensityArbiComboBox,
+    								unitCombo;
+    private JComboBox<String> ingredientComboBox;
     private final int MAX_OPTIONS = 2;
     private final int MIN_OPTIONS = 1;
     
@@ -43,7 +45,7 @@ public class GoalPanel extends JPanel {
     	this.preciseField = new ArrayList<>();
     	this.forMealSelection = mealHistoryPanel;
     	this.unitCombo = new ArrayList<>();
-    	JComboBox<String> ingredientComboBox = new JComboBox<String>();
+    	this.ingredientComboBox = new JComboBox<String>();
     	
       // set BorderLayout to split area
         setLayout(new BorderLayout());
@@ -198,6 +200,7 @@ public class GoalPanel extends JPanel {
     	}
     }
     
+    
  // getter methods to be utilized by a facade
        	
     public List<String> getSelectedNutrient() {
@@ -232,6 +235,10 @@ public class GoalPanel extends JPanel {
     
     public MealHistoryPanel getMealHistorySelection() {
     	return this.forMealSelection;
+    }
+    
+    public String getSelectedIngredient() {
+    	return (String) ingredientComboBox.getSelectedItem();
     }
     
   // Action Listeners

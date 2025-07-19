@@ -153,6 +153,10 @@ public class ViewFacade {
     	return goalPanel.getMealHistorySelection();
     }
 	
+	public String getSelectedIngredient() {
+    	return goalPanel.getSelectedIngredient();
+    }
+	
 	public void setMealSelectionListener(Consumer<Meal> listener) {
 		goalPanel.getMealHistorySelection().setOnMealSelectedListener(listener);	
 	}

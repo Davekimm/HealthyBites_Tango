@@ -121,16 +121,31 @@ public class ViewFacade {
         cardPanel.add(cfgAnalysisPanel, CFG_ANALYSIS_PANEL);
     }
     
-    /*
+    
     // ===========================================
     // Goal PANEL 2 METHODS
     // ===========================================
-    
-	public void getReplaceButtonListener(ActionListener listener) {
-        goalPanel.getReplaceButtonListener(listener);
+  
+   	public void setOriginalMeal(String ingredientName, DefaultPieDataset dataset) {
+    	goalPanel2.setOriginalMeal(ingredientName, dataset);
     }
-
-*/
+    
+    public void setSwappableMeal(String ingredientName, DefaultPieDataset dataset) {
+    	goalPanel2.setSwappableMeal(ingredientName, dataset);
+    }
+    
+	public void addBackButtonListener(ActionListener listener) {
+        goalPanel2.addBackButtonListener(listener);
+    }
+	
+	public void addApplyGoalButtonListener(ActionListener listener) {
+        goalPanel2.addApplyGoalButtonListener(listener);
+    }
+	
+	public void addApplyAcrossButtonListener(ActionListener listener) {
+        goalPanel2.addApplyAcrossButtonListener(listener);
+    }
+	
     // ===========================================
     // Goal PANEL METHODS
     // ===========================================

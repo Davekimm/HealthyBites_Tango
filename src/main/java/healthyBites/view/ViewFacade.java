@@ -9,7 +9,7 @@ import java.util.Map;
 import java.util.function.BiConsumer;
 import healthyBites.model.Meal;
 import healthyBites.model.Nutrition;
-import healthyBites.model.CFGFoodGroup;  // ADD THIS IMPORT
+import healthyBites.model.CFGFoodGroup;
 import healthyBites.model.FoodItem;
 
 import java.util.function.Consumer;	//for selection of meal to swap
@@ -36,7 +36,7 @@ public class ViewFacade {
     private GoalPanel goalPanel;
     private GoalPanel2 goalPanel2;
     private NutrientAnalysisPanel nutrientAnalysisPanel;
-    private CFGAnalysisPanel cfgAnalysisPanel; // ADD THIS
+    private CFGAnalysisPanel cfgAnalysisPanel;
     
     // Panel name constants for card layout navigation
     public static final String LOGIN_PANEL = "LoginPanel";

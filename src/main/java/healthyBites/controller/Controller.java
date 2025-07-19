@@ -160,6 +160,7 @@ public class Controller {
     	//===========================================================
 		view.setMealSelectionListener(meal -> {
 			this.selectedMeal = meal;
+			view.setIngredientList(this.selectedMeal.getFoodItems());
 		});
 		
 		view.getReplaceButtonListener(e -> {

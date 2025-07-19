@@ -6,7 +6,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.time.Year;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -86,10 +85,6 @@ public class ConcreteModel implements Model, MealSubject {
     
     @Override
     public void setProfile(UserProfile profile) {
-        Date dob = profile.getDob();
-        int age = calculateAge(dob);
-        if (age <= 18 || age > 50)
-            throw new IllegalArgumentException("Age should be between 19 and 50");
         
         String sql = "INSERT INTO user_profiles (email, name, sex, unit, height, weight, dob) VALUES (?, ?, ?, ?, ?, ?, ?);";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -131,19 +126,8 @@ public class ConcreteModel implements Model, MealSubject {
         return null;
     }
 
-    private int calculateAge(Date dob) {
-        int currentYear = Year.now().getValue();
-        int userAge = dob.getYear() - currentYear;
-        return userAge;
-    }
-
     @Override
     public void updateProfile(UserProfile profile) {
-        Date dob = profile.getDob();
-        int age = calculateAge(dob);
-        if (age <= 18 || age > 50)
-            throw new IllegalArgumentException("Age should be between 19 and 50");
-
         String sql = "UPDATE user_profiles SET name = ?, sex = ?, unit = ?, height = ?, weight = ?, dob = ? WHERE email = ?;";
         // we set every attribute even tho some main remain the same
         // email is primary key

@@ -36,6 +36,9 @@ public class NutrientAnalysisPanel extends JPanel {
     /** Panel containing the nutrient comparison summary */
     private JPanel summaryPanel;
     
+    /** Button to launch CFG analysis panel*/
+    private JButton viewCFGButton;
+    
     /**
      * Map containing recommended daily values for tracked nutrients.
      * Key: Nutrient name
@@ -100,9 +103,14 @@ public class NutrientAnalysisPanel extends JPanel {
         add(mainPanel, BorderLayout.CENTER);
         
         // Bottom button panel
+     // Bottom button panel
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
-        backButton = new JButton("Back");
+        backButton = new JButton("Back to Home");
+        viewCFGButton = new JButton("View Food Guide Analysis");
+        
         buttonPanel.add(backButton);
+        buttonPanel.add(Box.createHorizontalStrut(20));
+        buttonPanel.add(viewCFGButton);
         add(buttonPanel, BorderLayout.SOUTH);
         
         // Add date validation to analyze button
@@ -440,5 +448,25 @@ public class NutrientAnalysisPanel extends JPanel {
         cal.add(Calendar.DAY_OF_MONTH, -7);
         Date weekAgo = cal.getTime();
         startModel.setValue(weekAgo);
+    }
+    
+    /** methods for CFG analysis panel launch
+     * the date range in CFG analysis will be the same as nutrient analysis panel
+     * to utilize stored cache of meal history items during nutrient analysis
+     * this will improve responsiveness by reducing calls to database
+     * 
+     * After initial analysis the user can then select different date range as desired  */
+    public void addViewCFGButtonListener(ActionListener listener) {
+        viewCFGButton.addActionListener(listener);
+    }
+
+    // Set dates programmatically (for navigation from CFG panel)
+    public void setDateRange(Date startDate, Date endDate) {
+        if (startDate != null) {
+            startDateSpinner.setValue(startDate);
+        }
+        if (endDate != null) {
+            endDateSpinner.setValue(endDate);
+        }
     }
 }

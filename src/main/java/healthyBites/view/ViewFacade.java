@@ -7,10 +7,11 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.function.BiConsumer;
-
-import healthyBites.model.FoodItem;
 import healthyBites.model.Meal;
 import healthyBites.model.Nutrition;
+import healthyBites.model.CFGFoodGroup;  // ADD THIS IMPORT
+import healthyBites.model.FoodItem;
+
 import java.util.function.Consumer;	//for selection of meal to swap
 
 /**
@@ -35,16 +36,18 @@ public class ViewFacade {
     private GoalPanel goalPanel;
     private GoalPanel2 goalPanel2;
     private NutrientAnalysisPanel nutrientAnalysisPanel;
+    private CFGAnalysisPanel cfgAnalysisPanel; // ADD THIS
     
     // Panel name constants for card layout navigation
     public static final String LOGIN_PANEL = "LoginPanel";
     public static final String REGISTER_PANEL = "RegisterPanel";
-    public static final String HOME_PANEL = "Home Panel";
-    public static final String EDIT_PANEL = "Edit Panel";
+    public static final String HOME_PANEL = "HomePanel";
+    public static final String EDIT_PANEL = "EditPanel";
     public static final String MEAL_PANEL = "MealPanel";
     public static final String GOAL_PANEL = "GoalPanel";
     public static final String GOAL_PANEL2 = "GoalPanel2";
     public static final String NUTRIENT_ANALYSIS_PANEL = "NutrientAnalysisPanel";
+    public static final String CFG_ANALYSIS_PANEL = "CFGAnalysisPanel";
 
     /**
      * Constructor - Initializes the main frame and all panels
@@ -104,6 +107,7 @@ public class ViewFacade {
         homePanel = new HomePanel(mealHistoryPanelForHome);
         goalPanel2 = new GoalPanel2();
         nutrientAnalysisPanel = new NutrientAnalysisPanel();
+        cfgAnalysisPanel = new CFGAnalysisPanel();
         
         // Add panels to card layout with their respective names
         cardPanel.add(loginPanel, LOGIN_PANEL);
@@ -113,9 +117,11 @@ public class ViewFacade {
         cardPanel.add(mealPanel, MEAL_PANEL);
         cardPanel.add(goalPanel, GOAL_PANEL);
         cardPanel.add(goalPanel2, GOAL_PANEL2);
-        cardPanel.add(nutrientAnalysisPanel, NUTRIENT_ANALYSIS_PANEL);    }
+        cardPanel.add(nutrientAnalysisPanel, NUTRIENT_ANALYSIS_PANEL);
+        cardPanel.add(cfgAnalysisPanel, CFG_ANALYSIS_PANEL);
+    }
     
-/*
+    /*
     // ===========================================
     // Goal PANEL 2 METHODS
     // ===========================================
@@ -493,42 +499,92 @@ public class ViewFacade {
         editPanel.imperialActionListener(listener);
     }
 
-//===========================================
-// MY PLATE - NUTRIENT ANALYSIS PANEL METHODS
-//===========================================
+    //===========================================
+    // NUTRIENT ANALYSIS PANEL METHODS
+    //===========================================
 
-public void showNutrientAnalysisPanel() {
- showPanel(NUTRIENT_ANALYSIS_PANEL);
-}
+    public void showNutrientAnalysisPanel() {
+        showPanel(NUTRIENT_ANALYSIS_PANEL);
+    }
 
-public Date getNutrientAnalysisStartDate() {
- return nutrientAnalysisPanel.getStartDate();
-}
+    public Date getNutrientAnalysisStartDate() {
+        return nutrientAnalysisPanel.getStartDate();
+    }
 
-public Date getNutrientAnalysisEndDate() {
- return nutrientAnalysisPanel.getEndDate();
-}
+    public Date getNutrientAnalysisEndDate() {
+        return nutrientAnalysisPanel.getEndDate();
+    }
 
-public void setNutrientAnalyzeButtonListener(ActionListener listener) {
- nutrientAnalysisPanel.addAnalyzeButtonListener(listener);
-}
+    public void setNutrientAnalyzeButtonListener(ActionListener listener) {
+        nutrientAnalysisPanel.addAnalyzeButtonListener(listener);
+    }
 
-public void setNutrientAnalysisBackButtonListener(ActionListener listener) {
- nutrientAnalysisPanel.addBackButtonListener(listener);
-}
+    public void setNutrientAnalysisBackButtonListener(ActionListener listener) {
+        nutrientAnalysisPanel.addBackButtonListener(listener);
+    }
 
-public void displayNutrientAnalysis(Map<String, Double> averageDailyNutrients, int numberOfDays, Map<String, String> nutrientUnits) {
-    nutrientAnalysisPanel.displayNutrientAnalysis(averageDailyNutrients, numberOfDays, nutrientUnits);
-}
+    public void displayNutrientAnalysis(Map<String, Double> averageDailyNutrients, int numberOfDays, Map<String, String> nutrientUnits) {
+        nutrientAnalysisPanel.displayNutrientAnalysis(averageDailyNutrients, numberOfDays, nutrientUnits);
+    }
 
-public void clearNutrientAnalysis() {
- nutrientAnalysisPanel.clearChart();
-	}
+    public void clearNutrientAnalysis() {
+        nutrientAnalysisPanel.clearChart();
+    }
 
-// Retrieve stored cache of meal history data, in order to avoid making database queries
-public List<Map.Entry<Meal, Nutrition>> getCachedMealHistory() {
-    // Read from the Meal History Panel
-    return mealHistoryPanel.getMealHistoryEntries();
-}
+    // Retrieve stored cache of meal history data, in order to avoid making database queries
+    public List<Map.Entry<Meal, Nutrition>> getCachedMealHistory() {
+        // Read from the Meal History Panel
+        return mealHistoryPanel.getMealHistoryEntries();
+    }
+    
+    // ===========================================
+    // CFG ANALYSIS PANEL METHODS
+    // ===========================================
+
+    public void showCFGAnalysisPanel() {
+        showPanel(CFG_ANALYSIS_PANEL);
+    }
+
+    public Date getCFGAnalysisStartDate() {
+        return cfgAnalysisPanel.getStartDate();
+    }
+
+    public Date getCFGAnalysisEndDate() {
+        return cfgAnalysisPanel.getEndDate();
+    }
+
+    public void setCFGAnalyzeButtonListener(ActionListener listener) {
+        cfgAnalysisPanel.addAnalyzeButtonListener(listener);
+    }
+
+    public void setCFGAnalysisBackButtonListener(ActionListener listener) {
+        cfgAnalysisPanel.addBackButtonListener(listener);
+    }
+
+    public void displayCFGAnalysis(CFGFoodGroup userAverage, CFGFoodGroup recommended, int numberOfDays) {
+        cfgAnalysisPanel.displayCFGAnalysis(userAverage, recommended, numberOfDays);
+    }
+
+    public void clearCFGAnalysis() {
+        cfgAnalysisPanel.clearAnalysis();
+    }
+
+    // Navigation between panels
+    public void setNutrientToCFGNavigationListener(ActionListener listener) {
+        nutrientAnalysisPanel.addViewCFGButtonListener(listener);
+    }
+
+    public void setCFGToNutrientNavigationListener(ActionListener listener) {
+        cfgAnalysisPanel.addViewNutrientsButtonListener(listener);
+    }
+
+    // Date setting methods for navigation
+    public void setCFGAnalysisDates(Date startDate, Date endDate) {
+        cfgAnalysisPanel.setDateRange(startDate, endDate);
+    }
+
+    public void setNutrientAnalysisDates(Date startDate, Date endDate) {
+        nutrientAnalysisPanel.setDateRange(startDate, endDate);
+    }
 
 }

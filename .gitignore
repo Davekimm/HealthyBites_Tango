@@ -57,3 +57,4 @@ src/main/java/healthyBites/view/SimplePanelTester.java
 #env
 .env
 src/main/java/healthyBites/controller/Controller.java
+src/main/java/healthyBites/controller/Controller.java

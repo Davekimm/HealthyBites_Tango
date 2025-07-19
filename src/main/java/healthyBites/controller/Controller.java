@@ -21,12 +21,16 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class Controller {
 	private ViewFacade view;
     private Model model;
     private String currentPage;
     private UserProfile currentUser;
+    private Map<String, String> cachedSelectedUnit = new HashMap<>();
+    private Map<String, Double> cachedSelectedUnitValue = new HashMap<>();
     private Meal recentMeal;
     private Meal selectedMeal;
     
@@ -188,7 +192,7 @@ public class Controller {
         	
         	// Trigger the initial history load for all registered observers.
             for (InitialLoadObserver observer : initialLoadObservers) {
-                observer.loadInitialHistory(this.currentUser);
+//                observer.loadInitialHistory(this.currentUser);
                 System.out.println("Initial observer sets up in Controller");
             }
             
@@ -358,16 +362,44 @@ public class Controller {
 			JOptionPane.showMessageDialog(null, mealType + " already exists!", "invalid meal type input", JOptionPane.ERROR_MESSAGE);
 			return;
 		}
-		
+    	
+    	System.out.println("Received user's inputs ");
+		    	
+    	List<Double> convertedFoodQuantities = new ArrayList<>();
+    	for(int i = 0; i < foodNames.size(); i++) {
+    		System.out.print("Looking for " + foodNames.get(i));
+    		
+    		System.out.println(" / User entered qty of " + foodQuantities.get(i));
+    		
+    		double userInputQuantity = Double.parseDouble(foodQuantities.get(i));
+    		double referenceUnitValue = this.cachedSelectedUnitValue.get(foodNames.get(i));
+    		
+    		convertedFoodQuantities.add(i, userInputQuantity / referenceUnitValue);
+    	}
+    	
+    	for(int i = 0; i < convertedFoodQuantities.size(); i++) {
+    		System.out.println(foodNames.get(i) + " has " + convertedFoodQuantities.get(i) + " x " + this.cachedSelectedUnitValue.get(foodNames.get(i)) + this.cachedSelectedUnit.get(foodNames.get(i)));
+    	}
+    	System.out.println();
+
 		List<FoodItem> foodList = new ArrayList<>();
 		for(int i = 0; i < foodNames.size(); i++) {
-			FoodItem foodItem = new FoodItem(foodNames.get(i), Double.parseDouble(foodQuantities.get(i)), foodUnits.get(i));
+			FoodItem foodItem = new FoodItem(foodNames.get(i), convertedFoodQuantities.get(i), foodUnits.get(i));
 			foodList.add(foodItem);
 		}
-		
+				
     	Meal meal = new Meal(mealDate, foodList, mealType);
     	this.recentMeal = meal;
-		model.addMeal(meal, currentUser.getEmail());
+    	
+    	System.out.println("----------Meal is created with foodItems----------");
+    	for(FoodItem food : meal.getFoodItems()) {
+    		System.out.print("Added food item : ");
+    		System.out.println(food.getName() + " / " + food.getQuantity() + " / " + food.getUnit());
+    	}
+    	
+    	
+    	
+//		model.addMeal(meal, currentUser.getEmail());
 			
 		JOptionPane.showMessageDialog(null, "Logged meal data successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
 		
@@ -429,23 +461,65 @@ public class Controller {
     /**
      * Listens to an action of each food name combo box and query available 
      * units from Nutrient DB based on the food name selected by users.
-     */
+     */    
     private void addMealPanelIngredientComboBoxListeners() {
-    	
         view.setIngredientSelectionListener((rowIndex, foodName) -> {
-        	
+        	        	
             List<String> unitList = model.getAvailableUnits(foodName);
-            String[] unitArray = unitList.toArray(new String[0]);
-            
-            // 'units' options for food item without any available units.
-            if(unitArray.length < 1) {
-            	unitArray = new String[1];
-            	unitArray[0] = "units";
+
+            // Filter units that include numeric value + ml or g
+            List<String> filteredUnits = new ArrayList<>();
+            Pattern unitPattern = Pattern.compile("\\b(\\d+)(ml|g)\\b", Pattern.CASE_INSENSITIVE);
+
+            for (String unit : unitList) {
+                String cleaned = unit.toLowerCase().replace(",", "").trim(); // e.g., "250ml diced" → "250ml diced"
+                Matcher matcher = unitPattern.matcher(cleaned);
+                if (matcher.find()) {
+                    String cleanUnit = matcher.group(1) + matcher.group(2); // e.g., "250ml"
+                    filteredUnits.add(cleanUnit);
+                }
             }
+
+            // Handle no valid units
+            if (filteredUnits.isEmpty()) {
+                view.setUnitsForRow(rowIndex, new String[]{"units"});
+                this.cachedSelectedUnit.put(foodName, "units");
+                return;
+            }
+
+            // Find the smallest numeric unit
+            String smallestUnit = null;
+            int smallestValue = Integer.MAX_VALUE;
+
+            for (String unit : filteredUnits) {
+                try {
+                    int value = Integer.parseInt(unit.replaceAll("[^0-9]", ""));
+                    if (value < smallestValue) {
+                        smallestValue = value;
+                        smallestUnit = unit;
+                    }
+                } catch (NumberFormatException e) {
+                    // Do nothing
+                }
+            }
+
+            if (smallestUnit == null) {
+                view.setUnitsForRow(rowIndex, new String[]{"units"});
+                this.cachedSelectedUnit.put(foodName, "units");
+                return;
+            }
+
+            // Step 4: Extract and store numeric and unit separately
+            String numericStr = smallestUnit.replaceAll("[^0-9]", "");
+            String unitOnly = smallestUnit.replaceAll("[0-9]", "");
+
+            this.cachedSelectedUnit.put(foodName, unitOnly);
+            this.cachedSelectedUnitValue.put(foodName, Double.parseDouble(numericStr));
             
-//            System.out.println("unitArray's size is " + unitList.size());
-            
-            view.setUnitsForRow(rowIndex, unitArray);
+            System.out.println("smallest Unit for " + foodName + " is " + smallestUnit);
+            System.out.println();
+            view.setUnitsForRow(rowIndex, new String[]{unitOnly});
+
         });
     }
     

@@ -26,9 +26,38 @@ public class MealPanel extends JPanel {
     
     private final int MAX_INGREDIENTS = 4;
     private final int MIN_INGREDIENTS = 1;
+    private final int MAX_INGREDIENT_DISPLAY_LENGTH = 20; // Characters to show before truncating
 
     // Action to be executed when an ingredient is selected
     private BiConsumer<Integer, String> ingredientSelectionAction;
+
+    // Inner class for custom ingredient combo box renderer with tooltips
+    private class IngredientComboBoxRenderer extends DefaultListCellRenderer {
+        @Override
+        public Component getListCellRendererComponent(JList<?> list, Object value, 
+                int index, boolean isSelected, boolean cellHasFocus) {
+            
+            super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+            
+            if (value != null) {
+                String fullText = value.toString();
+                String displayText = truncateText(fullText, MAX_INGREDIENT_DISPLAY_LENGTH);
+                
+                setText(displayText);
+                // Only show tooltip if text was truncated
+                setToolTipText(fullText.equals(displayText) ? null : fullText);
+            }
+            
+            return this;
+        }
+        
+        private String truncateText(String text, int maxLength) {
+            if (text.length() <= maxLength) {
+                return text;
+            }
+            return text.substring(0, maxLength - 3) + "...";
+        }
+    }
 
     // The constructor accepts the history panel - History Panel injected
     public MealPanel(MealHistoryPanel mealHistoryPanel) {
@@ -143,6 +172,9 @@ public class MealPanel extends JPanel {
         
         JComboBox<String> ingredientCombo = new JComboBox<>(availableIngredients);
         ingredientCombo.setPreferredSize(new Dimension(150, 25));
+        
+        // Apply custom renderer with tooltips for long ingredient names
+        ingredientCombo.setRenderer(new IngredientComboBoxRenderer());
         
         JTextField quantityField = new JTextField(8);
         
@@ -270,6 +302,9 @@ public class MealPanel extends JPanel {
                 combo.addItem(ingredient);
             }
             combo.setSelectedItem(currentSelection);
+            
+            // Apply the custom renderer to existing combo boxes
+            combo.setRenderer(new IngredientComboBoxRenderer());
         }
     }
 

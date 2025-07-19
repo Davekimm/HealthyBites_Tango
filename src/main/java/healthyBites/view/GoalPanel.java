@@ -190,6 +190,17 @@ public class GoalPanel extends JPanel {
     
     public void setIngredientList(List<FoodItem> list) {
     	this.ingredientList = list;
+    	
+    	// add each item of this.ingredientList to ingredientComboBox...
+    	
+    	// Clear existing items
+        ingredientComboBox.removeAllItems();
+
+        // Add each food name to the combo box
+        for (FoodItem item : this.ingredientList) {
+            ingredientComboBox.addItem(item.getName());
+        }
+        
     	revalidate();
     }
     

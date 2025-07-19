@@ -1,7 +1,6 @@
 package healthyBites.controller;
 
 import javax.swing.JOptionPane;
-
 import healthyBites.view.ViewFacade;
 import healthyBites.model.ConcreteModel;
 import healthyBites.model.FoodItem;
@@ -10,6 +9,7 @@ import healthyBites.model.Meal;
 import healthyBites.model.Model;
 import healthyBites.model.Nutrition;
 import healthyBites.model.UserProfile;
+import healthyBites.model.CFGFoodGroup;
 import healthyBites.observers.InitialLoadObserver;
 
 import java.text.SimpleDateFormat;
@@ -29,11 +29,22 @@ public class Controller {
     private Model model;
     private String currentPage;
     private UserProfile currentUser;
+    
     private Map<String, String> cachedSelectedOriginalUnit = new HashMap<>();
     private Map<String, String> cachedSelectedUnit = new HashMap<>();
     private Map<String, Double> cachedSelectedUnitValue = new HashMap<>();
+    
     private Meal recentMeal;
     private Meal selectedMeal;
+    
+    // Cache for meal data - used by both nutrient and CFG analysis
+    private List<Meal> cachedMeals = null;
+    private Date cachedStartDate = null;
+    private Date cachedEndDate = null;
+    private Map<String, Double> cachedTotalNutrients = null;
+    private Map<String, String> cachedNutrientUnits = null;
+    private CFGFoodGroup cachedTotalCFGServings = null;
+    private int cachedNumberOfDays = 0;
     
     private List<InitialLoadObserver> initialLoadObservers;
 
@@ -98,6 +109,9 @@ public class Controller {
 		});
 
 		view.setLogoutButtonListener(e -> {
+			// Clear cache when logging out
+			clearAnalysisCache();
+			
 			view.showLoginPanel();
 			view.clearLoginFields();
 			view.clearRegisterFields();
@@ -135,6 +149,8 @@ public class Controller {
 		view.setMealBackButtonListener(e -> {
 			view.showHomePanel();
 			view.clearMealFields();
+			// Clear cache when going back to home from meal panel
+			clearAnalysisCache();
 			this.currentPage = "HomePage";
 		});		
 		
@@ -155,19 +171,68 @@ public class Controller {
 		});
 		
 		//===========================================================
-    	// My Plate page
+    	// My Plate page - Nutrient and CFG Analysis
     	//===========================================================
+		
+		// My Plate button now opens CFG Analysis panel
 		view.setmyPlateButtonListener(e -> {
-		    view.showNutrientAnalysisPanel();
-		    this.currentPage = "myPlatePage";
+		    view.showCFGAnalysisPanel();
+		    this.currentPage = "CFGAnalysisPage";
 		});
 		
+		// Nutrient Analysis listeners
 		view.setNutrientAnalyzeButtonListener(e -> analyzeNutrientIntake());
 
 		view.setNutrientAnalysisBackButtonListener(e -> {
 		    view.showHomePanel();
 		    view.clearNutrientAnalysis();
+		    // Clear cache when going back to home from nutrient analysis
+		    clearAnalysisCache();
 		    this.currentPage = "HomePage";
+		});
+		
+		// CFG Analysis listeners
+		view.setCFGAnalyzeButtonListener(e -> analyzeCFGAlignment());
+
+		view.setCFGAnalysisBackButtonListener(e -> {
+		    view.showHomePanel();
+		    view.clearCFGAnalysis();
+		    // Clear cache when going back to home from CFG analysis
+		    clearAnalysisCache();
+		    this.currentPage = "HomePage";
+		});
+
+		// Navigation between nutrient and CFG panels
+		view.setNutrientToCFGNavigationListener(e -> {
+		    // Get current date range from nutrient panel
+		    Date startDate = view.getNutrientAnalysisStartDate();
+		    Date endDate = view.getNutrientAnalysisEndDate();
+		    
+		    // Switch to CFG panel and set the same date range
+		    view.showCFGAnalysisPanel();
+		    view.setCFGAnalysisDates(startDate, endDate);
+		    this.currentPage = "CFGAnalysisPage";
+		    
+		    // Auto-analyze if we have valid dates (will use cached data if available)
+		    if (startDate != null && endDate != null && !startDate.after(endDate)) {
+		        analyzeCFGAlignment();
+		    }
+		});
+
+		view.setCFGToNutrientNavigationListener(e -> {
+		    // Get current date range from CFG panel
+		    Date startDate = view.getCFGAnalysisStartDate();
+		    Date endDate = view.getCFGAnalysisEndDate();
+		    
+		    // Switch to nutrient panel and set the same date range
+		    view.showNutrientAnalysisPanel();
+		    view.setNutrientAnalysisDates(startDate, endDate);
+		    this.currentPage = "NutrientAnalysisPage";
+		    
+		    // Auto-analyze if we have valid dates (will use cached data if available)
+		    if (startDate != null && endDate != null && !startDate.after(endDate)) {
+		        analyzeNutrientIntake();
+		    }
 		});
 		
 	}
@@ -194,6 +259,7 @@ public class Controller {
         	// Trigger the initial history load for all registered observers.
             for (InitialLoadObserver observer : initialLoadObservers) {
                 observer.loadInitialHistory(this.currentUser);
+               // System.out.println("Initial observer sets up in Controller");
             }
             
             view.showHomePanel();
@@ -400,6 +466,14 @@ public class Controller {
     	
     	
 		model.addMeal(meal, currentUser.getEmail());
+		
+		// Check if the new meal date falls within cached date range and clear cache if needed
+		if (cachedStartDate != null && cachedEndDate != null) {
+		    if (!mealDate.before(cachedStartDate) && !mealDate.after(cachedEndDate)) {
+		        // New meal is within cached range, invalidate cache
+		        clearAnalysisCache();
+		    }
+		}
 			
 		JOptionPane.showMessageDialog(null, "Logged meal data successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
 		
@@ -604,112 +678,216 @@ public class Controller {
     
     
     
-    
-    
+    /**
+     * Helper method to clear all analysis-related cache data.
+     * Called when returning to home or after adding a meal within cached date range.
+     */
+    private void clearAnalysisCache() {
+        cachedMeals = null;
+        cachedStartDate = null;
+        cachedEndDate = null;
+        cachedTotalNutrients = null;
+        cachedNutrientUnits = null;
+        cachedTotalCFGServings = null;
+        cachedNumberOfDays = 0;
+    }
     
     /**
-     * Analyzes nutrient intake for a selected date range using the pre-loaded meal history cache.
+     * Caching method used by both nutrient and CFG analysis.
+     * This method checks if we already have the meals for the requested date range cached.
+     * If yes, returns the cached meals. If no, fetches from database and caches them.
+     * 
+     * @param startDate The start date of the analysis period
+     * @param endDate The end date of the analysis period
+     * @return List of meals within the date range
+     */
+    private List<Meal> getCachedMealsForDateRange(Date startDate, Date endDate) {
+        // Check if we have valid cached data for this date range
+        if (cachedMeals != null && 
+            cachedStartDate != null && 
+            cachedEndDate != null &&
+            cachedStartDate.equals(startDate) && 
+            cachedEndDate.equals(endDate)) {
+            return cachedMeals;
+        }
+        
+        // Otherwise, fetch fresh data and cache it
+        cachedMeals = model.getMealsByTimeFrame(this.currentUser.getEmail(), startDate, endDate);
+        cachedStartDate = startDate;
+        cachedEndDate = endDate;
+        
+        // Clear derived cache data since we have new meals
+        cachedTotalNutrients = null;
+        cachedNutrientUnits = null;
+        cachedTotalCFGServings = null;
+        cachedNumberOfDays = 0;
+        
+        return cachedMeals;
+    }
+    
+    /**
+     * Analyzes nutrient intake for a selected date range.
+     * Uses caching to avoid repeated database queries when switching between analyses.
      * Calculates average daily nutrient values and displays them in charts and summaries.
-     * This method avoids database queries by using cached data for better performance.
      */
     private void analyzeNutrientIntake() {
-        // Retrieve the date range selected by the user in the UI
         Date startDate = view.getNutrientAnalysisStartDate();
         Date endDate = view.getNutrientAnalysisEndDate();
-
-        // Validate that the date range is logical (start must be before or equal to end)
+        
+        if (startDate == null || endDate == null) {
+            JOptionPane.showMessageDialog(null,
+                "Please select both start and end dates",
+                "Missing Dates",
+                JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        
         if (startDate.after(endDate)) {
             JOptionPane.showMessageDialog(null,
                 "Start date must be before end date",
                 "Invalid Date Range",
                 JOptionPane.ERROR_MESSAGE);
-            return; // Exit early if validation fails
+            return;
         }
-
-        // Get the pre-loaded history from the view's cache
-        List<Map.Entry<Meal, Nutrition>> cachedHistory = view.getCachedMealHistory();
-
-        // Map to accumulate total nutrients across all meals in the date range
-        Map<String, Double> totalNutrients = new HashMap<>();
         
-        // Set to track unique days that have meals (for accurate daily average calculation)
-        Set<String> uniqueMealDays = new HashSet<>();
+        // Use cached meals if available
+        List<Meal> mealsInRange = getCachedMealsForDateRange(startDate, endDate);
         
-        // Date formatter to convert dates to strings for unique day tracking
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-
-        // Filter and aggregate the data in-memory.
-        // Loop through all cached meal entries
-        for (Map.Entry<Meal, Nutrition> entry : cachedHistory) {
-            Meal meal = entry.getKey();
-            Date mealDate = meal.getDate();
-
-            // Check if the meal's date is within the selected range (inclusive)
-            // !before(startDate) means >= startDate
-            // !after(endDate) means <= endDate
-            if (!mealDate.before(startDate) && !mealDate.after(endDate)) {
-                // Add formatted date to track unique days (e.g., "2024-01-15")
-                uniqueMealDays.add(sdf.format(mealDate));
+        if (mealsInRange.isEmpty()) {
+            JOptionPane.showMessageDialog(null,
+                "No meals found in the selected time period.",
+                "No Data",
+                JOptionPane.INFORMATION_MESSAGE);
+            view.clearNutrientAnalysis();
+            return;
+        }
+        
+        // Check if we have cached calculations for this date range
+        if (cachedTotalNutrients == null || cachedNumberOfDays == 0) {
+            // Calculate total nutrients
+            cachedTotalNutrients = new HashMap<>();
+            Set<String> uniqueMealDays = new HashSet<>();
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+            
+            for (Meal meal : mealsInRange) {
+                uniqueMealDays.add(sdf.format(meal.getDate()));
+                Nutrition nutrition = model.getMealNutrtionalValue(meal);
                 
-                Nutrition nutrition = entry.getValue();
-
-                // Safely aggregate nutrients if nutrition data exists
                 if (nutrition != null && nutrition.getNutrients() != null) {
-                    // Loop through all nutrients in this meal
                     for (Map.Entry<String, Double> nutrientEntry : nutrition.getNutrients().entrySet()) {
                         String nutrientName = nutrientEntry.getKey();
                         Double value = nutrientEntry.getValue();
-                        
-                        // Add to running total, starting from 0 if nutrient not seen before
-                        totalNutrients.put(nutrientName, totalNutrients.getOrDefault(nutrientName, 0.0) + value);
+                        cachedTotalNutrients.put(nutrientName, 
+                            cachedTotalNutrients.getOrDefault(nutrientName, 0.0) + value);
+                    }
+                }
+            }
+            
+            cachedNumberOfDays = uniqueMealDays.isEmpty() ? 1 : uniqueMealDays.size();
+            
+            // Get nutrient units (only if not cached)
+            if (cachedNutrientUnits == null) {
+                cachedNutrientUnits = new HashMap<>();
+                for (String nutrientName : cachedTotalNutrients.keySet()) {
+                    try {
+                        String unit = model.getNutrientUnit(nutrientName);
+                        cachedNutrientUnits.put(nutrientName, unit);
+                    } catch (IllegalArgumentException e) {
+                        cachedNutrientUnits.put(nutrientName, null);
+                        System.err.println(e.getMessage());
                     }
                 }
             }
         }
-
-        // Handle case where no meals exist in the selected date range
-        if (totalNutrients.isEmpty()) {
-            JOptionPane.showMessageDialog(null, 
-                "No meals found in the selected time period.", 
-                "No Data", 
-                JOptionPane.INFORMATION_MESSAGE);
-            view.clearNutrientAnalysis(); // Clear any previous analysis display
-            return; // Exit early - nothing to analyze
-        }
-
-        // Get nutrient units by calling the model method in a loop.
-        // database accessed
-        Map<String, String> nutrientUnits = new HashMap<>();
-        for (String nutrientName : totalNutrients.keySet()) {
-            try {
-                // Query database for the unit of measurement (g, mg, µg, etc.)
-                String unit = model.getNutrientUnit(nutrientName);
-                nutrientUnits.put(nutrientName, unit);
-            } catch (IllegalArgumentException e) {
-                // If nutrient not found in database, store null and log error
-                nutrientUnits.put(nutrientName, null);
-                System.err.println(e.getMessage());
-            }
-        }
-
-        // Calculate number of days for averaging
-        // If no days found (edge case), use 1 to avoid division by zero
-        int numberOfDays = uniqueMealDays.isEmpty() ? 1 : uniqueMealDays.size();
-
-        // Calculate the average daily nutrients.
-        // Divide total by number of days to get daily average
+        
+        // Calculate average daily nutrients
         Map<String, Double> averageDailyNutrients = new HashMap<>();
-        for (Map.Entry<String, Double> entry : totalNutrients.entrySet()) {
-            averageDailyNutrients.put(
-                entry.getKey(), 
-                entry.getValue() / numberOfDays  // Total ÷ Days = Daily Average
-            );
+        for (Map.Entry<String, Double> entry : cachedTotalNutrients.entrySet()) {
+            averageDailyNutrients.put(entry.getKey(), entry.getValue() / cachedNumberOfDays);
         }
-
-        // Directly update the UI with the averaged data.
-        // This will be used to create the pie chart and summary panel
-        view.displayNutrientAnalysis(averageDailyNutrients, numberOfDays, nutrientUnits);
+        
+        // Display the analysis
+        view.displayNutrientAnalysis(averageDailyNutrients, cachedNumberOfDays, cachedNutrientUnits);
     }
     
+    /**
+     * Analyzes how well the user's diet aligns with Canada Food Guide recommendations.
+     * Uses caching to avoid repeated database queries when switching between analyses.
+     * Calculates average daily food group servings and compares them to CFG recommendations.
+     * 
+     * The analysis shows:
+     * 1. Two pie charts comparing user's average plate vs CFG recommended plate
+     * 2. Detailed table showing actual vs recommended servings for each food group
+     * 3. Status indicators showing if user is meeting recommendations
+     */
+    private void analyzeCFGAlignment() {
+        // Get the date range from the CFG panel
+        Date startDate = view.getCFGAnalysisStartDate();
+        Date endDate = view.getCFGAnalysisEndDate();
+        
+        // Validate date inputs
+        if (startDate == null || endDate == null) {
+            JOptionPane.showMessageDialog(null,
+                "Please select both start and end dates",
+                "Missing Dates",
+                JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        
+        if (startDate.after(endDate)) {
+            JOptionPane.showMessageDialog(null,
+                "Start date must be before end date",
+                "Invalid Date Range",
+                JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        
+        // Use cached meals if available for the same date range
+        List<Meal> mealsInRange = getCachedMealsForDateRange(startDate, endDate);
+        
+        if (mealsInRange.isEmpty()) {
+            JOptionPane.showMessageDialog(null,
+                "No meals found in the selected time period.",
+                "No Data",
+                JOptionPane.INFORMATION_MESSAGE);
+            view.clearCFGAnalysis();
+            return;
+        }
+        
+        // Check if we have cached CFG calculations for this date range
+        if (cachedTotalCFGServings == null || cachedNumberOfDays == 0) {
+            // Calculate total CFG servings across all meals
+            cachedTotalCFGServings = new CFGFoodGroup(0, 0, 0, 0, 0);
+            Set<String> uniqueDays = new HashSet<>();
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+            
+            // Aggregate servings from each meal
+            for (Meal meal : mealsInRange) {
+                uniqueDays.add(sdf.format(meal.getDate()));
+                // Get CFG servings for this meal using the model's method
+                CFGFoodGroup mealServings = ((ConcreteModel) model).getUserMealCFGServings(meal);
+                cachedTotalCFGServings = cachedTotalCFGServings.add(mealServings);
+            }
+            
+            cachedNumberOfDays = uniqueDays.isEmpty() ? 1 : uniqueDays.size();
+        }
+        
+        // Calculate average daily servings by dividing total by number of days
+        CFGFoodGroup averageDailyServings = new CFGFoodGroup(
+            cachedTotalCFGServings.getVegtablesAndFruits() / cachedNumberOfDays,
+            cachedTotalCFGServings.getGrainProducts() / cachedNumberOfDays,
+            cachedTotalCFGServings.getMilkAndAlternatives() / cachedNumberOfDays,
+            cachedTotalCFGServings.getMeatAndAlternatives() / cachedNumberOfDays,
+            cachedTotalCFGServings.getOilsAndFat() / cachedNumberOfDays
+        );
+        
+        // Get recommended servings based on user's profile (currently only considers sex)
+        // TODO: Should be updated to consider age as well for proper CFG 2007 compliance
+        CFGFoodGroup recommendedServings = ((ConcreteModel) model)
+            .getDailyRecommendedServingsFromCFG(this.currentUser);
+        
+        // Display the analysis with visual comparison
+        view.displayCFGAnalysis(averageDailyServings, recommendedServings, cachedNumberOfDays);
+    }
     
 }

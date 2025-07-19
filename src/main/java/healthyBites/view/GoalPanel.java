@@ -64,12 +64,13 @@ public class GoalPanel extends JPanel {
         
         JPanel middle = new JPanel(new BorderLayout());
         
-      //middle1
-        JPanel middleP = new JPanel(new BorderLayout());
+      //middle1: Using FlowLayout instead of BorderLayout
+        JPanel middleP = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 5));
         middleP.setBorder(BorderFactory.createTitledBorder("Select the food to swap:"));
-        middleP.setPreferredSize(new Dimension(0,50));
+        middleP.setPreferredSize(new Dimension(0, 60));
         
         middleP.add(new JLabel("Food Items:"));
+        ingredientComboBox.setPreferredSize(new Dimension(200, 25));
         middleP.add(ingredientComboBox);
     
         
@@ -77,23 +78,33 @@ public class GoalPanel extends JPanel {
         JPanel middlePanel = new JPanel(new BorderLayout());
         middlePanel.setBorder(BorderFactory.createTitledBorder("Set Your Goal:"));
         
-        goalContainerPanel = new JPanel();
-        goalContainerPanel.setLayout(new BoxLayout(goalContainerPanel, BoxLayout.Y_AXIS));
-        middlePanel.add(goalContainerPanel, BorderLayout.CENTER);
+        // header panel for goal section
+        JPanel goalHeaderPanel = new JPanel(new BorderLayout());
         
         JPanel goalButtonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
         addGoalButton = new JButton("+");
         removeGoalButton = new JButton("-");
         goalButtonPanel.add(addGoalButton);
         goalButtonPanel.add(removeGoalButton);
-        middlePanel.add(goalButtonPanel, BorderLayout.NORTH);         
+        goalHeaderPanel.add(goalButtonPanel, BorderLayout.CENTER);
+        
+        middlePanel.add(goalHeaderPanel, BorderLayout.NORTH);
+        
+        // wrap goalContainerPanel in a scroll pane with fixed size
+        goalContainerPanel = new JPanel();
+        goalContainerPanel.setLayout(new BoxLayout(goalContainerPanel, BoxLayout.Y_AXIS));
+        
+        JScrollPane goalScrollPane = new JScrollPane(goalContainerPanel);
+        goalScrollPane.setPreferredSize(new Dimension(0, 150));
+        goalScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        middlePanel.add(goalScrollPane, BorderLayout.CENTER);
         
         middle.add(middleP, BorderLayout.NORTH);
         middle.add(middlePanel, BorderLayout.CENTER);
         
       //bottom
-        JPanel bottomPanel = new JPanel();
-        bottomPanel.setPreferredSize(new Dimension(0,50));
+        JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        bottomPanel.setPreferredSize(new Dimension(0, 50));
         cancelButton = new JButton("Cancel");
         bottomPanel.add(cancelButton);
         getReplaceButton = new JButton("Get Replaceable Food");
@@ -113,11 +124,22 @@ public class GoalPanel extends JPanel {
  // internal methods for setting goal(s)
     private JPanel createNewGoal() {
     	JPanel rowPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 5));
+    	// size constraints to prevent unbounded growth
+    	rowPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 80));
+    	rowPanel.setPreferredSize(new Dimension(800, 40));
     	
     	JComboBox<String> nutrientList = new JComboBox<>(this.nutrientList);
+    	nutrientList.setPreferredSize(new Dimension(100, 25));
+    	
     	JComboBox<String> actionList = new JComboBox<>(this.actionList);
+    	actionList.setPreferredSize(new Dimension(100, 25));
+    	
     	JComboBox<String> intensityArbiList = new JComboBox<>(this.intensityArbiList);
+    	intensityArbiList.setPreferredSize(new Dimension(150, 25));
+    	
     	JComboBox<String> unitList = new JComboBox<>(this.unitList);
+    	unitList.setPreferredSize(new Dimension(60, 25));
+    	
     	JTextField preciseText = new JTextField(5);
     	
     	preciseText.setText(intensityPreciseList[0]);
@@ -156,8 +178,8 @@ public class GoalPanel extends JPanel {
     		goalContainerPanel.add(newRow);
     		
     		updateButtonState();
-    		revalidate();
-    		repaint();
+    		goalContainerPanel.revalidate();
+    		goalContainerPanel.repaint();
     	}
     }
     
@@ -174,8 +196,8 @@ public class GoalPanel extends JPanel {
     		preciseField.remove(lastIndex);
     		
     		updateButtonState();
-    		revalidate();
-    		repaint();
+    		goalContainerPanel.revalidate();
+    		goalContainerPanel.repaint();
     		
     	}
     }

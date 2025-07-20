@@ -622,7 +622,10 @@ public class Controller {
     	    	
     	view.setNutrientList(foodNutrientAry);
     	
-    	System.out.println("nutrient unit : " + model.getNutrientUnit("PROTEIN"));
+    	String[] unitList = new String[1];
+    	unitList[0] = model.getNutrientUnit("PROTEIN");
+    	
+    	view.setGoalSwapUnitsForRow(0, unitList);
     }
     
     private void getAlternativeFoodItems(Meal meal) {

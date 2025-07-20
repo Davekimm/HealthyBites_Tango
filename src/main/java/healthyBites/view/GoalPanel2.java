@@ -41,9 +41,6 @@ public class GoalPanel2 extends JPanel {
         JPanel topPanel = new JPanel();
         topPanel.setPreferredSize(new Dimension(0,150));
         
-        Panel topPanel = new JPanel();
-        topPanel.setPreferredSize(new Dimension(0,150));
-        
         ingredientContainerPanel = new JPanel();
         ingredientContainerPanel.setLayout(new FlowLayout(FlowLayout.LEFT, 10, 5));
         listModel = new DefaultListModel<>();

@@ -158,8 +158,11 @@ public class Controller {
 		//===========================================================
     	// Get Food Swaps page
     	//===========================================================
+		addGoalSwapPanelNutrientComboBoxListeners();
+		
 		view.setMealSelectionListener(meal -> {
 			this.selectedMeal = meal;
+			
 			view.setIngredientList(this.selectedMeal.getFoodItems());
 		});
 		
@@ -593,10 +596,18 @@ public class Controller {
             this.cachedSelectedUnit.put(foodName, unitOnly);
             this.cachedSelectedUnitValue.put(foodName, Double.parseDouble(numericStr));
             
-            System.out.println("smallest Unit for " + foodName + " is " + smallestUnit);
-            System.out.println();
             view.setUnitsForRow(rowIndex, new String[]{unitOnly});
 
+        });
+    }
+    
+    private void addGoalSwapPanelNutrientComboBoxListeners() {
+        view.setNutrientSelectionListener((rowIndex, foodName) -> {
+        	        	
+        	String[] unitList = new String[1];
+        	unitList[0] = model.getNutrientUnit(foodName);
+            
+        	view.setGoalSwapUnitsForRow(rowIndex, unitList);
         });
     }
     
@@ -611,6 +622,7 @@ public class Controller {
     	    	
     	view.setNutrientList(foodNutrientAry);
     	
+    	System.out.println("nutrient unit : " + model.getNutrientUnit("PROTEIN"));
     }
     
     private void getAlternativeFoodItems(Meal meal) {
@@ -638,37 +650,22 @@ public class Controller {
     		Goal goal = new Goal(selectedNutrients[i], selectedActions[i], selectedIntensities[i]);
     		goals.add(goal);
     	}
-    	
-    	for(int i = 0; i < numOfGoal; i++) {
-    		System.out.println(goals.get(i).getNutrient());
-    		System.out.println(goals.get(i).isIncrease());
-    		System.out.println(goals.get(i).getIntensity());
+    			
+    	FoodItem selectedFoodItem = null;
+    	for(FoodItem food : meal.getFoodItems()) {
+    		if(food.getName().equals(view.getSelectedIngredient())) {
+    			selectedFoodItem = food;
+    		}
     	}
-    	
-    	
-    	System.out.println("Type:" + meal.getType());
-		System.out.println("FoodItems:" + meal.getFoodItems().get(0));
 		
-		//=================================================
-		// Mock Meal and Nutrition Data
+		List<FoodItem> replaceableFoodItems = model.getAlternativeFoodOptions(meal, selectedFoodItem, goals);
 		
-		List<String> foodNames = view.getMealIngredients();
-		List<String> foodQuantities = view.getMealQuantities();
-		List<String> foodUnits = view.getMealUnits();
+		System.out.println("replaceableFoodItems' size : " + replaceableFoodItems.size());
 		
-		
-//		List<FoodItem> replaceableFoodItems
-		
-		
-		
-//		List<FoodItem> replaceableFoodItems = model.getAlternativeFoodOptions(meal, meal.getFoodItems().get(0), goals);
-//		
-//		System.out.println(replaceableFoodItems.size());
-//		
-//		for(int i = 0 ; i < replaceableFoodItems.size(); i++) {
-//			System.out.println("foodItem to replace with : " + replaceableFoodItems.get(i));
-//			
-//		}
+		for(int i = 0 ; i < replaceableFoodItems.size(); i++) {
+			System.out.println("foodItem to replace with : " + replaceableFoodItems.get(i));
+			
+		}
 		
 		
     }

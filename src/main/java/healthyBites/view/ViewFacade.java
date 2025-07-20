@@ -128,15 +128,19 @@ public class ViewFacade {
     // ===========================================
     // Goal PANEL 2 METHODS
     // ===========================================
-  
+  /*
    	public void setOriginalMeal(String ingredientName, DefaultPieDataset dataset) {
     	goalPanel2.setOriginalMeal(ingredientName, dataset);
     }
     
     public void setSwappableMeal(String ingredientName, DefaultPieDataset dataset) {
     	goalPanel2.setSwappableMeal(ingredientName, dataset);
-    }
-    
+    }*/
+
+	public void displaySwapList(List<FoodItem> swapMeal, List<Nutrition> swapNutrition) {
+		goalPanel2.displaySwapList(swapMeal, swapNutrition);
+	}
+	    
 	public void addBackButtonListener(ActionListener listener) {
         goalPanel2.addBackButtonListener(listener);
     }
@@ -148,6 +152,14 @@ public class ViewFacade {
 	public void addApplyAcrossButtonListener(ActionListener listener) {
         goalPanel2.addApplyAcrossButtonListener(listener);
     }
+
+	public void clearPreviousChart() {
+		goalPanel2.clearPreviousChart();
+	}
+	
+	public void initializeComparisonChart(Nutrition originalNutrient, Nutrition swapNutrient, String originalFoodName) {
+		goalPanel2.initializeComparisonChart(originalNutrient, swapNutrient, originalFoodName);
+	}
 	
     // ===========================================
     // Goal PANEL METHODS

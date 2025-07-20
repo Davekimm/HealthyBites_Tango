@@ -58,11 +58,11 @@ public class CFGAnalysisPanel extends JPanel {
         
         // Summary panel on the south side
         summaryPanel = new JPanel();
-        summaryPanel.setLayout(new BoxLayout(summaryPanel, BoxLayout.Y_AXIS));
+        summaryPanel.setLayout(new BoxLayout(summaryPanel, BoxLayout.X_AXIS));
         
         JScrollPane summaryScrollPane = new JScrollPane(summaryPanel);
         summaryScrollPane.setBorder(BorderFactory.createTitledBorder("Analysis Summary"));
-        summaryScrollPane.setPreferredSize(new Dimension(0, 100)); 
+        summaryScrollPane.setPreferredSize(new Dimension(0, 120)); 
         mainPanel.add(summaryScrollPane, BorderLayout.SOUTH);
         
         add(mainPanel, BorderLayout.CENTER);
@@ -220,7 +220,7 @@ public class CFGAnalysisPanel extends JPanel {
         }
 
         summaryPanel.add(itemPanel);
-        summaryPanel.add(Box.createVerticalStrut(5));
+        summaryPanel.add(Box.createHorizontalStrut(5));
     }
     
     public void clearAnalysis() {

@@ -1,6 +1,9 @@
 package healthyBites.view;
 
 import javax.swing.*;
+
+import org.jfree.data.general.DefaultPieDataset;
+
 import java.awt.*;
 import java.awt.event.ActionListener;
 import java.util.Date;
@@ -9,7 +12,7 @@ import java.util.Map;
 import java.util.function.BiConsumer;
 import healthyBites.model.Meal;
 import healthyBites.model.Nutrition;
-import healthyBites.model.CFGFoodGroup;
+import healthyBites.model.CFGFoodGroup;  // ADD THIS IMPORT
 import healthyBites.model.FoodItem;
 
 import java.util.function.Consumer;	//for selection of meal to swap
@@ -36,7 +39,7 @@ public class ViewFacade {
     private GoalPanel goalPanel;
     private GoalPanel2 goalPanel2;
     private NutrientAnalysisPanel nutrientAnalysisPanel;
-    private CFGAnalysisPanel cfgAnalysisPanel;
+    private CFGAnalysisPanel cfgAnalysisPanel; // ADD THIS
     
     // Panel name constants for card layout navigation
     public static final String LOGIN_PANEL = "LoginPanel";
@@ -186,12 +189,19 @@ public class ViewFacade {
     	goalPanel.setNutrientList(nutrientList);
     }
     
-    public void setUnit(String[] unitList) {
-    	goalPanel.setUnit(unitList);
+    public void setGoalSwapUnitsForRow(int rowIndex, String[] units) {
+        goalPanel.setUnitsForRow(rowIndex, units);
     }
     
     public void setIngredientList(List<FoodItem> ingredientList) {
     	goalPanel.setIngredientList(ingredientList);
+    }
+    
+    // ===========================================================
+    // Added by Dave
+    // ===========================================================
+    public void setNutrientSelectionListener(BiConsumer<Integer, String> action) {
+    	goalPanel.onNutrientSelected(action);
     }
 	
 	//for testing

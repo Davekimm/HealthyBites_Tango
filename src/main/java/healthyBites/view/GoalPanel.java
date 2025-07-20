@@ -8,6 +8,7 @@ import java.awt.*;
 import java.awt.event.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.BiConsumer;
 
 /*
  * expose some methods so controller can set options / listen to change on combo boxes 
@@ -35,6 +36,8 @@ public class GoalPanel extends JPanel {
     
     private MealHistoryPanel forMealSelection;
     private List<JTextField> preciseField;
+    
+    private BiConsumer<Integer, String> nutrientSelectionAction;
    
     public GoalPanel(MealHistoryPanel mealHistoryPanel) {
       //initialize
@@ -166,21 +169,28 @@ public class GoalPanel extends JPanel {
         intensityArbiComboBox.add(intensityArbiList);
         preciseField.add(preciseText);
         unitCombo.add(unitList);
+
+        // =======================================================
+        // Added by Dave
+        // =======================================================
+        applyNutrientListenerToRow(nutrientComboBox.size() - 1);
         
         return rowPanel;
     }
     
     
     private void addGoalRow() {
-    	if(nutrientComboBox.size() < MAX_OPTIONS) {
-    		JPanel newRow = createNewGoal();
-    		goalRowPanel.add(newRow);
-    		goalContainerPanel.add(newRow);
-    		
-    		updateButtonState();
-    		goalContainerPanel.revalidate();
-    		goalContainerPanel.repaint();
-    	}
+        if(nutrientComboBox.size() < MAX_OPTIONS) {
+            JPanel newRow = createNewGoal();
+            goalRowPanel.add(newRow);
+            goalContainerPanel.add(newRow);
+
+            applyNutrientListenerToRow(nutrientComboBox.size() - 1); // <--- Add this line!
+
+            updateButtonState();
+            goalContainerPanel.revalidate();
+            goalContainerPanel.repaint();
+        }
     }
     
     private void removeGoalRow() {
@@ -212,9 +222,7 @@ public class GoalPanel extends JPanel {
     
     public void setIngredientList(List<FoodItem> list) {
     	this.ingredientList = list;
-    	
-    	// add each item of this.ingredientList to ingredientComboBox...
-    	
+       	
     	// Clear existing items
         ingredientComboBox.removeAllItems();
 
@@ -226,13 +234,50 @@ public class GoalPanel extends JPanel {
     	revalidate();
     }
     
-    public void setUnit(String[] unitList) {
-    	this.unitList = unitList;
-    	for (JComboBox<String> list : unitCombo) {
-    		list.setModel(new DefaultComboBoxModel<>(unitList));
-    	}
+ // ===========================================================
+    // Added by Dave
+    // ===========================================================
+    public void setUnitsForRow(int rowIndex, String[] units) {
+        if (rowIndex >= 0 && rowIndex < unitCombo.size()) {
+            JComboBox<String> unitBox = unitCombo.get(rowIndex);
+
+            String currentSelection = (String) unitBox.getSelectedItem();
+            unitBox.removeAllItems();
+            for (String unit : units) {
+                unitBox.addItem(unit);
+            }
+            unitBox.setSelectedItem(currentSelection);
+        }
     }
     
+    // ===========================================================
+    // Added by Dave
+    // ===========================================================
+    public void onNutrientSelected(BiConsumer<Integer, String> action) {
+        this.nutrientSelectionAction = action;
+
+        for (int i = 0; i < nutrientComboBox.size(); i++) {
+            applyNutrientListenerToRow(i);
+        }
+    }
+    
+    // ===========================================================
+    // Added by Dave
+    // ===========================================================
+    private void applyNutrientListenerToRow(int rowIndex) {
+        JComboBox<String> nutrientBox = nutrientComboBox.get(rowIndex);
+
+        for (ActionListener al : nutrientBox.getActionListeners()) {
+            nutrientBox.removeActionListener(al);
+        }
+
+        nutrientBox.addActionListener(e -> {
+            String selectedNutrient = (String) nutrientBox.getSelectedItem();
+            if (selectedNutrient != null && !selectedNutrient.equals("<pick one>") && nutrientSelectionAction != null) {
+                nutrientSelectionAction.accept(rowIndex, selectedNutrient);
+            }
+        });
+    }
     
  // getter methods to be utilized by a facade
        	

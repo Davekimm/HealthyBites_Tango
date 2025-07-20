@@ -38,6 +38,11 @@ public class ConcreteModel implements Model, MealSubject {
     private Connection conn;
     private ArrayList<MealObserver> mealObservers = new ArrayList<>();
 
+    /**
+     * Gets the singleton instance of the ConcreteModel.
+     *
+     * @return the ConcreteModel instance
+     */
     public static ConcreteModel getInstance() {
         if (instance == null)
             instance = new ConcreteModel();
@@ -84,8 +89,12 @@ public class ConcreteModel implements Model, MealSubject {
     }
     
     @Override
+    /**
+     * Sets the user profile in the database.
+     *
+     * @param profile the user profile to store
+     */
     public void setProfile(UserProfile profile) {
-        
         String sql = "INSERT INTO user_profiles (email, name, sex, unit, height, weight, dob) VALUES (?, ?, ?, ?, ?, ?, ?);";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, profile.getEmail());
@@ -102,6 +111,12 @@ public class ConcreteModel implements Model, MealSubject {
     }
 
     @Override
+    /**
+     * Retrieves a user profile by email.
+     *
+     * @param email the email of the user
+     * @return the user profile or null if not found
+     */
     public UserProfile getProfile(String email) {
         // take the email, fomulate a query with it, execute it on the database, get the results, make a UserProfile using the results
         String query = "SELECT * FROM user_profiles WHERE email = ?;";
@@ -127,6 +142,11 @@ public class ConcreteModel implements Model, MealSubject {
     }
 
     @Override
+    /**
+     * Updates a user profile in the database.
+     *
+     * @param profile the user profile with updated information
+     */
     public void updateProfile(UserProfile profile) {
         String sql = "UPDATE user_profiles SET name = ?, sex = ?, unit = ?, height = ?, weight = ?, dob = ? WHERE email = ?;";
         // we set every attribute even tho some main remain the same
@@ -146,6 +166,11 @@ public class ConcreteModel implements Model, MealSubject {
     }
 
     @Override
+    /**
+     * Deletes a user profile from the database.
+     *
+     * @param email the email of the user to delete
+     */
     public void deleteProfile(String email) {
         String sql = "DELETE FROM user_profiles WHERE email = ?;";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -157,6 +182,12 @@ public class ConcreteModel implements Model, MealSubject {
     }
 
     @Override
+    /**
+     * Adds a meal and its food items for a specific user.
+     *
+     * @param meal the meal to add
+     * @param email the email of the user who ate the meal
+     */
     public void addMeal(Meal meal, String email) {
         int generatedMealId = 0; // to save auto gen id
         // add a meal into the table and save the auto gen id
@@ -193,6 +224,12 @@ public class ConcreteModel implements Model, MealSubject {
     }
     
     @Override
+    /**
+     * Retrieves all meals for a specific user.
+     *
+     * @param email the user's email
+     * @return list of all meals
+     */
     public List<Meal> getMeals(String email) { // get all the meals in the userInfo database in the meal table
         Calendar cal = Calendar.getInstance();
         cal.set(1000, Calendar.JANUARY, 1); // MySQL min date
@@ -205,11 +242,26 @@ public class ConcreteModel implements Model, MealSubject {
     }
 
     @Override
+    /**
+     * Retrieves meals for a specific user on a specific date.
+     *
+     * @param email the user's email
+     * @param date the date to filter meals by
+     * @return list of meals on that date
+     */
     public List<Meal> getMealsByDate(String email, Date date) {
         return getMealsByTimeFrame(email, date, date);
     }
 
     @Override
+    /**
+     * Retrieves meals for a user within a time range.
+     *
+     * @param email the user's email
+     * @param begin start date
+     * @param end end date
+     * @return list of meals in the given time frame
+     */
     public List<Meal> getMealsByTimeFrame(String email, Date begin, Date end) {
         // join meals and food items tables to produce meal objects
         String query = 
@@ -250,8 +302,13 @@ public class ConcreteModel implements Model, MealSubject {
         return result;
     }
 
-
-    // can be empty set
+    @Override
+    /**
+     * Gets measurement units available for a food item.
+     *
+     * @param foodName the name of the food
+     * @return list of units (can be empty list)
+     */
     public List<String> getAvailableUnits(String foodName) {
         //get all the measurement units of the food name
         List<String> result = new ArrayList<>();
@@ -262,9 +319,11 @@ public class ConcreteModel implements Model, MealSubject {
             JOIN conversion_factors c ON m.measure_id = c.measure_id
             JOIN food_names f ON f.food_id = c.food_id
             WHERE f.food_description = ?
-            AND ((food_group_id IN (1, 9, 11, 12, 16, 20, 5, 7, 10, 13, 15, 17, 4) AND measure_description LIKE "%ml%") 
-            OR (food_group_id IN (18, 8, 5, 7, 10, 13, 15, 17, 4) AND measure_description REGEXP "(\\d+)g")) ;
+            AND measure_description REGEXP '\\d+'
+            ;
         """;
+        // WHERE (food_group_id IN (1, 9, 11, 12, 16, 20, 5, 7, 10, 13, 15, 17, 4) AND measure_description LIKE "%ml%") 
+        // OR (food_group_id IN (18, 8, 5, 7, 10, 13, 15, 17, 4) AND measure_description REGEXP "\\d+\\s?g");
         try (PreparedStatement stmt = conn.prepareStatement(query)) {
             stmt.setString(1, foodName);
             ResultSet rs = stmt.executeQuery();
@@ -279,6 +338,11 @@ public class ConcreteModel implements Model, MealSubject {
     }
 
     @Override
+    /**
+     * Gets a list of available food names.
+     *
+     * @return list of food names
+     */
     public List<String> getFoodNames() {
     	String sql =
         """
@@ -286,9 +350,10 @@ public class ConcreteModel implements Model, MealSubject {
         FROM food_names
         INNER JOIN conversion_factors ON food_names.food_id = conversion_factors.food_id
         INNER JOIN measure_names ON measure_names.measure_id = conversion_factors.measure_id
-        WHERE (food_group_id IN (1, 9, 11, 12, 16, 20, 5, 7, 10, 13, 15, 17, 4) AND measure_description LIKE "%ml%") 
-        OR (food_group_id IN (18, 8, 5, 7, 10, 13, 15, 17, 4) AND measure_description REGEXP "(\\d+)g");
         """;
+
+        // WHERE (food_group_id IN (1, 9, 11, 12, 16, 20, 5, 7, 10, 13, 15, 17, 4) AND measure_description LIKE "%ml%") 
+        // OR (food_group_id IN (18, 8, 5, 7, 10, 13, 15, 17, 4) AND measure_description REGEXP "\\d+\\s?g");
 
         List<String> foodNames = new ArrayList<>();
         try (Statement stmt = conn.createStatement();
@@ -304,6 +369,11 @@ public class ConcreteModel implements Model, MealSubject {
     }
 
     @Override
+    /**
+     * Gets all available nutrient names.
+     *
+     * @return list of nutrient names
+     */
     public List<String> getNutrientNames() {
         String query = 
         """        
@@ -323,6 +393,12 @@ public class ConcreteModel implements Model, MealSubject {
     }
 
     @Override
+    /**
+     * Calculates nutritional value of a food item.
+     *
+     * @param foodItem the food item
+     * @return nutritional values of the food item
+     */
     public Nutrition getFoodItemNutrtionalValue(FoodItem foodItem) {
         Map<String, Double> nutrients = new HashMap<>();
         
@@ -397,6 +473,12 @@ public class ConcreteModel implements Model, MealSubject {
     }
 
     @Override
+    /**
+     * Calculates nutritional value of a meal.
+     *
+     * @param originalMeal the meal
+     * @return total nutrition of the meal
+     */
     public Nutrition getMealNutrtionalValue(Meal originalMeal) {
         Nutrition totalNutrition = new Nutrition();
         for (FoodItem item : originalMeal.getFoodItems()) {
@@ -407,6 +489,14 @@ public class ConcreteModel implements Model, MealSubject {
     }
 
     @Override
+    /**
+     * Suggests alternative food items for one item in a meal based on goals.
+     *
+     * @param originalMeal the original meal
+     * @param selectedFoodItem the food item to replace
+     * @param goals list of user nutrition goals
+     * @return list of valid alternative food items
+     */
     public List<FoodItem> getAlternativeFoodOptions(Meal originalMeal, FoodItem selectedFoodItem, List<Goal> goals) {
         // nutrition of original meal without the food item that user wants to replace
         Nutrition unselectedFoodItemsNutrition = new Nutrition(); 
@@ -506,6 +596,12 @@ public class ConcreteModel implements Model, MealSubject {
     }
 
     @Override
+    /**
+     * Gets food names in the same category as a given food name.
+     *
+     * @param foodName the food name to match category
+     * @return list of similar food names
+     */
     public List<String> getFoodNamesWithSameFoodCategoryAs(String foodName) {
         List<String> foodNames = new ArrayList<>();
         String query =
@@ -531,16 +627,32 @@ public class ConcreteModel implements Model, MealSubject {
     }
 
     @Override
+    /**
+     * Adds a meal observer.
+     *
+     * @param observer the observer to add
+     */
     public void addObserver(MealObserver observer) {
         mealObservers.add(observer);
     }
 
     @Override
+    /**
+     * Removes a meal observer.
+     *
+     * @param observer the observer to remove
+     */
     public void removeObserver(MealObserver observer) {
         mealObservers.remove(observer);
     }
 
     @Override
+    /**
+     * Notifies all observers of a meal update.
+     *
+     * @param meal the meal
+     * @param nutrition the nutritional value of the meal
+     */
     public void notifyObservers(Meal meal, Nutrition nutrition) {
         for (MealObserver observer: mealObservers) {
             observer.update(meal, nutrition);
@@ -549,6 +661,12 @@ public class ConcreteModel implements Model, MealSubject {
 
 
     @Override
+    /**
+     * Gets the unit of a nutrient.
+     *
+     * @param nutrientName the name of the nutrient
+     * @return the unit of the nutrient
+     */
     public String getNutrientUnit(String nutrientName) {
         String query = 
         """
@@ -571,6 +689,13 @@ public class ConcreteModel implements Model, MealSubject {
         return null;
     }
 
+    @Override
+    /**
+     * Gets the Canada Food Guide recommended servings based on user sex.
+     *
+     * @param profile the user profile
+     * @return recommended CFG servings
+     */
     public CFGFoodGroup getDailyRecommendedServingsFromCFG(UserProfile profile) {
         if (profile.getSex().equalsIgnoreCase("Male"))
             return new CFGFoodGroup(9, 8, 2, 3, 45); 
@@ -613,6 +738,13 @@ public class ConcreteModel implements Model, MealSubject {
         throw new IllegalArgumentException(foodName);
     }
 
+    @Override
+    /**
+     * Calculates CFG servings for an entire meal.
+     *
+     * @param meal the meal
+     * @return CFG servings
+     */
     public CFGFoodGroup getUserMealCFGServings(Meal meal) {
         CFGFoodGroup total = new CFGFoodGroup(0, 0, 0, 0, 0);
         for (FoodItem foodItem : meal.getFoodItems()) {
@@ -622,6 +754,13 @@ public class ConcreteModel implements Model, MealSubject {
         return total;
     }
     
+    @Override
+    /**
+     * Calculates CFG servings for a food item.
+     *
+     * @param foodItem the food item
+     * @return CFG servings
+     */
     public CFGFoodGroup getFoodItemCFGServings(FoodItem foodItem) {
         int foodGroupId = getFoodGroupId(foodItem.getName());
         int unitValue = getUnitValue(foodItem.getUnit());
@@ -655,22 +794,20 @@ public class ConcreteModel implements Model, MealSubject {
         }
         throw new IllegalArgumentException();
     }
-
-   
 }
 
 
-// Fresh, fronze or canned vegetables #11 -> 125 ml / serv 
-        // Fruits and fruit juices # 9 -> 125 ml / serv
+    // Fresh, fronze or canned vegetables #11 -> 125 ml / serv 
+    // Fruits and fruit juices # 9 -> 125 ml / serv
 
-        // Baked products #18 -> 35 g / serv
-        // Breakfast cereals # 8 -> 30g or 175ml / serv
-        // Cereals, Grains and Pasta #20 -> 125 ml / ser
+    // Baked products #18 -> 35 g / serv
+    // Breakfast cereals # 8 -> 30g or 175ml / serv
+    // Cereals, Grains and Pasta #20 -> 125 ml / ser
         
-        // Dairy and egg products # 1 -> 250ml / serv
+    // Dairy and egg products # 1 -> 250ml / serv
         
-        // 5, 7, 10, 13, 15, 17  -> 75 g or 125 ml / serv
-        // Legumes and Legume products #16 -> 175 ml /serv
-        // Nuts and seeds #12 -> 60ml / serv
+    // 5, 7, 10, 13, 15, 17  -> 75 g or 125 ml / serv
+    // Legumes and Legume products #16 -> 175 ml /serv
+    // Nuts and seeds #12 -> 60ml / serv
 
-        // Oils and Fats -> Fats and oils #4 -> measured in ml of fat (1 ml of fat is 0.9 g rougly)
+    // Oils and Fats -> Fats and oils #4 -> measured in ml of fat (1 ml of fat is 0.9 g rougly)

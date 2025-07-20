@@ -111,6 +111,10 @@ public class Controller {
 		view.setLogoutButtonListener(e -> {
 			// Clear cache when logging out
 			clearAnalysisCache();
+
+			// clear nutrient analysis and CFG analysis panels
+			view.clearNutrientAnalysis();  
+    			view.clearCFGAnalysis();       
 			
 			view.showLoginPanel();
 			view.clearLoginFields();
@@ -190,6 +194,7 @@ public class Controller {
 		view.setNutrientAnalysisBackButtonListener(e -> {
 		    view.showHomePanel();
 		    view.clearNutrientAnalysis();
+		    view.clearCFGAnalysis();	// clear CFG panel when returning to home screen
 		    // Clear cache when going back to home from nutrient analysis
 		    clearAnalysisCache();
 		    this.currentPage = "HomePage";
@@ -200,6 +205,7 @@ public class Controller {
 
 		view.setCFGAnalysisBackButtonListener(e -> {
 		    view.showHomePanel();
+		    view.clearNutrientAnalysis();  // clear Nutrient Analysis panel when returning to home
 		    view.clearCFGAnalysis();
 		    // Clear cache when going back to home from CFG analysis
 		    clearAnalysisCache();
@@ -257,6 +263,11 @@ public class Controller {
         if (profile != null) {
         	
         	this.currentUser = profile;
+
+		// Clear any residual data from previous user
+        	view.clearNutrientAnalysis();
+        	view.clearCFGAnalysis();
+        	clearAnalysisCache();
         	
         	JOptionPane.showMessageDialog(null, "Login successful!", "Success", JOptionPane.INFORMATION_MESSAGE);
         	

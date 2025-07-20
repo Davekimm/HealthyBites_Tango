@@ -319,13 +319,12 @@ public class ConcreteModel implements Model, MealSubject {
             JOIN conversion_factors c ON m.measure_id = c.measure_id
             JOIN food_names f ON f.food_id = c.food_id
             WHERE f.food_description = ?
-            AND measure_description REGEXP '\\d+'
-            ;
+            AND ((food_group_id IN (1, 9, 11, 12, 16, 20, 5, 7, 10, 13, 15, 17, 4) AND measure_description LIKE "%ml%") 
+            OR (food_group_id IN (18, 8, 5, 7, 10, 13, 15, 17, 4) AND measure_description REGEXP ?));
         """;
-        // WHERE (food_group_id IN (1, 9, 11, 12, 16, 20, 5, 7, 10, 13, 15, 17, 4) AND measure_description LIKE "%ml%") 
-        // OR (food_group_id IN (18, 8, 5, 7, 10, 13, 15, 17, 4) AND measure_description REGEXP "\\d+\\s?g");
         try (PreparedStatement stmt = conn.prepareStatement(query)) {
             stmt.setString(1, foodName);
+            stmt.setString(2, "\\d+\\s?g");
             ResultSet rs = stmt.executeQuery();
             while (rs.next()) {
                 result.add(rs.getString(1));
@@ -344,21 +343,23 @@ public class ConcreteModel implements Model, MealSubject {
      * @return list of food names
      */
     public List<String> getFoodNames() {
-    	String sql =
+    	String query =
         """
         SELECT DISTINCT food_description
         FROM food_names
         INNER JOIN conversion_factors ON food_names.food_id = conversion_factors.food_id
         INNER JOIN measure_names ON measure_names.measure_id = conversion_factors.measure_id
+        WHERE (
+            (food_group_id IN (1, 9, 11, 12, 16, 20, 5, 7, 10, 13, 15, 17, 4) AND measure_description LIKE '%ml%') 
+            OR 
+            (food_group_id IN (18, 8, 5, 7, 10, 13, 15, 17, 4) AND measure_description REGEXP ? )
+        );
         """;
 
-        // WHERE (food_group_id IN (1, 9, 11, 12, 16, 20, 5, 7, 10, 13, 15, 17, 4) AND measure_description LIKE "%ml%") 
-        // OR (food_group_id IN (18, 8, 5, 7, 10, 13, 15, 17, 4) AND measure_description REGEXP "\\d+\\s?g");
-
         List<String> foodNames = new ArrayList<>();
-        try (Statement stmt = conn.createStatement();
-            ResultSet rs = stmt.executeQuery(sql)
-        ) {
+        try (PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setString(1, "\\d+\\s?g");
+            ResultSet rs = stmt.executeQuery();
             while(rs.next()) {
                 foodNames.add(rs.getString(1));
             }
@@ -401,36 +402,18 @@ public class ConcreteModel implements Model, MealSubject {
      */
     public Nutrition getFoodItemNutrtionalValue(FoodItem foodItem) {
         Map<String, Double> nutrients = new HashMap<>();
-        
-        int food_id = -1;
         String query = 
-        """
-            SELECT food_id
-            FROM food_names
-            WHERE food_description = ?;
-        """;
-        try (PreparedStatement stmt = conn.prepareStatement(query)) {
-            stmt.setString(1, foodItem.getName());
-            ResultSet rs = stmt.executeQuery();
-            if(rs.next()) {
-                food_id = rs.getInt(1);
-            } else {
-                throw new IllegalArgumentException();
-            }
-        } catch (SQLException ex) {
-            ex.printStackTrace();
-        }
-
-        // we have food_id
-        query = 
         """
         SELECT nutrient_names.nutrient_name, nutrient_amounts.nutrient_value
         FROM nutrient_amounts
         INNER JOIN nutrient_names ON nutrient_amounts.nutrient_id = nutrient_names.nutrient_id
-        WHERE nutrient_amounts.food_id = ?;
+        WHERE nutrient_amounts.food_id = 
+            (SELECT food_id
+            FROM food_names
+            WHERE food_description = ?);
         """;
         try (PreparedStatement stmt = conn.prepareStatement(query)) {
-            stmt.setInt(1, food_id);
+            stmt.setString(1, foodItem.getName());
             ResultSet rs = stmt.executeQuery();
             while(rs.next()) {
                 nutrients.put(rs.getString(1), rs.getDouble(2));
@@ -797,17 +780,17 @@ public class ConcreteModel implements Model, MealSubject {
 }
 
 
-    // Fresh, fronze or canned vegetables #11 -> 125 ml / serv 
-    // Fruits and fruit juices # 9 -> 125 ml / serv
+// Fresh, fronze or canned vegetables #11 -> 125 ml / serv 
+// Fruits and fruit juices # 9 -> 125 ml / serv
 
-    // Baked products #18 -> 35 g / serv
-    // Breakfast cereals # 8 -> 30g or 175ml / serv
-    // Cereals, Grains and Pasta #20 -> 125 ml / ser
+// Baked products #18 -> 35 g / serv
+// Breakfast cereals # 8 -> 30g or 175ml / serv
+// Cereals, Grains and Pasta #20 -> 125 ml / ser
         
-    // Dairy and egg products # 1 -> 250ml / serv
+// Dairy and egg products # 1 -> 250ml / serv
         
-    // 5, 7, 10, 13, 15, 17  -> 75 g or 125 ml / serv
-    // Legumes and Legume products #16 -> 175 ml /serv
-    // Nuts and seeds #12 -> 60ml / serv
+// 5, 7, 10, 13, 15, 17  -> 75 g or 125 ml / serv
+// Legumes and Legume products #16 -> 175 ml /serv
+// Nuts and seeds #12 -> 60ml / serv
 
-    // Oils and Fats -> Fats and oils #4 -> measured in ml of fat (1 ml of fat is 0.9 g rougly)
+// Oils and Fats -> Fats and oils #4 -> measured in ml of fat (1 ml of fat is 0.9 g rougly)

@@ -41,6 +41,9 @@ public class GoalPanel2 extends JPanel {
         JPanel topPanel = new JPanel();
         topPanel.setPreferredSize(new Dimension(0,150));
         
+        Panel topPanel = new JPanel();
+        topPanel.setPreferredSize(new Dimension(0,150));
+        
         ingredientContainerPanel = new JPanel();
         ingredientContainerPanel.setLayout(new FlowLayout(FlowLayout.LEFT, 10, 5));
         listModel = new DefaultListModel<>();
@@ -48,11 +51,11 @@ public class GoalPanel2 extends JPanel {
         JScrollPane listScrollPane = new JScrollPane(swapList);
         listScrollPane.setBorder(BorderFactory.createTitledBorder("Choose a replacement"));
         listScrollPane.setPreferredSize(new Dimension(0,150));
-        topPanel.add(listScrollPane, BorderLayout.EAST);
         
         selectedFood = new JLabel("");
         
         topPanel.add(new JLabel("You chose to replace:"), BorderLayout.NORTH);
+        topPanel.add(listScrollPane, BorderLayout.EAST);
         topPanel.add(selectedFood, BorderLayout.WEST);
         topPanel.add(ingredientContainerPanel, BorderLayout.CENTER);
         
@@ -66,7 +69,7 @@ public class GoalPanel2 extends JPanel {
         swapIngredientChartPanel.setPreferredSize(new Dimension(300, 400));
         
         middlePanel.add(originalIngredientChartPanel, BorderLayout.WEST);
-        //middlePanel.add(swapLabel);
+
         middlePanel.add(swapIngredientChartPanel, BorderLayout.EAST);
         
         
@@ -80,7 +83,8 @@ public class GoalPanel2 extends JPanel {
         bottomPanel.add(applyGoalButton);
         applyAcrossButton = new JButton("Apply Across Time");
         bottomPanel.add(applyAcrossButton);
-        
+
+	addSwapListListener();
         
         // add above sections
         add(topPanel, BorderLayout.NORTH);       
@@ -146,6 +150,23 @@ public class GoalPanel2 extends JPanel {
     public void setOriginalFoodName(String name) {
     	originalFood.setText(name);
     } */
+
+    public void displaySwapList(List<FoodItem> swapFood, List<Nutrition> swapNutrient) {
+    	this.swapFood = swapFood;
+    	this.swapNutrition = swapNutrient;
+    	
+    	listModel.clear();
+    	for(FoodItem item : swapFood) {
+    		listModel.addElement(item.toString());
+    	}
+    	
+    	if(swapFood.isEmpty())
+    		swapList.setSelectedIndex(0);
+    	else
+    		swapIngredientChartPanel.setChart(createChart(new DefaultPieDataset(), "No Suggestions"));
+    	
+    }
+    
   // Action Listeners
     public void addBackButtonListener(ActionListener listener) {
     	backButton.addActionListener(listener);
@@ -158,7 +179,19 @@ public class GoalPanel2 extends JPanel {
     public void addApplyAcrossButtonListener(ActionListener listener) {
         applyAcrossButton.addActionListener(listener);
     }
-    
+
+	private void addSwapListListener() {
+    		swapList.addListSelectionListener(e -> {
+    			if(!e.getValueIsAdjusting() && swapList.getSelectedIndex() != -1) {
+    				int selectedIndex = swapList.getSelectedIndex();
+    				FoodItem selectedFood = swapFood.get(selectedIndex);
+    				Nutrition selectedNutrition = swapNutrition.get(selectedIndex);
+    			
+    				DefaultPieDataset newSwapDataset = createDataset(selectedNutrition);
+    				swapIngredientChartPanel.setChart(createChart(newSwapDataset, "Suggestion: "));
+    		}    			
+    	});
+    }
     
     //Create dataset for chart
     private DefaultPieDataset createDataset (Nutrition nutrition) {

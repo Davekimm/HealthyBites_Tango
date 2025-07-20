@@ -305,6 +305,7 @@ public class ConcreteModel implements Model, MealSubject {
     @Override
     /**
      * Gets measurement units available for a food item.
+     * This method checks if the food item is in a group that uses ml or g units.
      *
      * @param foodName the name of the food
      * @return list of units (can be empty list)
@@ -338,7 +339,8 @@ public class ConcreteModel implements Model, MealSubject {
 
     @Override
     /**
-     * Gets a list of available food names.
+     * Gets a list of available food names. 
+     * This method filters food items based on their group and measurement units.
      *
      * @return list of food names
      */
@@ -493,6 +495,7 @@ public class ConcreteModel implements Model, MealSubject {
         Nutrition selectedFoodItemNutrition = getFoodItemNutrtionalValue(selectedFoodItem);
         Nutrition originalMealNutrition = unselectedFoodItemsNutrition.add(selectedFoodItemNutrition);
 
+       
         List<FoodItem> altFoodItemsList = new ArrayList<>();
         
         List<String> alternativeFoodNames = getFoodNamesWithSameFoodCategoryAs(selectedFoodItem.getName());
@@ -502,7 +505,10 @@ public class ConcreteModel implements Model, MealSubject {
 
             List<String> units = getAvailableUnits(altFoodName); // get available units for the food item
             //calculate nutrition of food item with first unit and quantity 1
-            FoodItem altFoodItem = new FoodItem(altFoodName, 1, units.isEmpty()? null: units.getFirst());
+            if (units.isEmpty())
+                continue;
+
+            FoodItem altFoodItem = new FoodItem(altFoodName, 1, units.getFirst());
             Nutrition altFoodItemNutrition = getFoodItemNutrtionalValue(altFoodItem);
 
             for (Goal goal: goals) {
@@ -549,8 +555,7 @@ public class ConcreteModel implements Model, MealSubject {
                 double nutrientInUnselectedFoodItems = unselectedFoodItemsNutrition.getNutrientValue(nutrient);
                 double nutrientInAltFoodItem = altFoodItemNutrition.getNutrientValue(nutrient);
                 if (nutrientInAltFoodItem == 0) {
-                    isValidAlternative = false;
-                    break; 
+                    continue; // skip if nutrient is not present in alternative food item
                 }
                 double upperPoint = (nutrientInOriginalMeal * (1 + marginOfError / 100) - nutrientInUnselectedFoodItems)/nutrientInAltFoodItem;
                 double lowerPoint = (nutrientInOriginalMeal * (1 - marginOfError / 100) - nutrientInUnselectedFoodItems)/nutrientInAltFoodItem;
@@ -687,7 +692,7 @@ public class ConcreteModel implements Model, MealSubject {
     }
 
     private int getUnitValue(String unit) {
-        String regex = "(\\d+)(ml|g)";
+        String regex = "(\\d+)\\s?(ml|g)";
 
         Pattern pattern = Pattern.compile(regex);
         Matcher matcher = pattern.matcher(unit);
@@ -749,9 +754,7 @@ public class ConcreteModel implements Model, MealSubject {
         int unitValue = getUnitValue(foodItem.getUnit());
         double foodItemAmount = foodItem.getQuantity() * unitValue;
         
-        
         boolean isMl = foodItem.getUnit().contains("ml"); // check if unit is in grams or ml
-
 
         switch (foodGroupId) {
             case 11, 9:

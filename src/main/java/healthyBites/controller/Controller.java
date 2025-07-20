@@ -894,7 +894,7 @@ public class Controller {
         );
         
         // Get recommended servings based on user's profile (currently only considers sex)
-        // TODO: Should be updated to consider age as well for proper CFG 2007 compliance
+        // Application design choice to provide recommendations for adult users ages 19 to 50 only
         CFGFoodGroup recommendedServings = ((ConcreteModel) model)
             .getDailyRecommendedServingsFromCFG(this.currentUser);
         

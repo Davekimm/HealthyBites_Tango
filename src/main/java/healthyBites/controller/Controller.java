@@ -36,6 +36,7 @@ public class Controller {
     
     private Meal recentMeal;
     private Meal selectedMeal;
+	private Nutrition selectedNutrition;
     
     // Cache for meal data - used by both nutrient and CFG analysis
     private List<Meal> cachedMeals = null;

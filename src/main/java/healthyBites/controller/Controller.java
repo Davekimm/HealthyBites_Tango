@@ -166,19 +166,38 @@ public class Controller {
 		
 		view.setMealSelectionListener(meal -> {
 			this.selectedMeal = meal;
-			
+			this.selectedNutrition = model.getMealNutrtionalValue(selectedMeal);
 			view.setIngredientList(this.selectedMeal.getFoodItems());
 		});
 		
 		view.getReplaceButtonListener(e -> {
-			//view.showGoalPanel2();
-			this.currentPage = "GoalPage2";
+			System.out.println("You selected:" + view.getSelectedIngredient());
+			System.out.println("You want " + view.getSelectedAction() + " for: " + view.getSelectedIntensityPrecise());
+			System.out.println("targetting:" + view.getSelectedNutrient());
+			
+			System.out.println("selected Meal:" + this.selectedMeal.getFoodItems());
+			
+			System.out.println("selected Meal Total Energy:" + selectedNutrition.getNutrientValue("ENERGY (KILOCALORIES)"));
+			System.out.println("selected Meal Total Protein:" + selectedNutrition.getNutrientValue("PROTEIN"));
+			System.out.println("selected Meal Total Carbs:" + selectedNutrition.getNutrientValue("CARBOHYDRATE, TOTAL (BY DIFFERENCE)"));
+			System.out.println("selected Meal Total Fat:" + selectedNutrition.getNutrientValue("FAT (TOTAL LIPIDS)"));
+			System.out.println("selected Meal Total Fibre:" + selectedNutrition.getNutrientValue("FIBRE, TOTAL DIETARY"));
+			
+			view.initializeComparisonChart(selectedNutrition, selectedNutrition, view.getSelectedIngredient());
 			
 			getAlternativeFoodItems(this.selectedMeal);
-			
+			view.showGoalPanel2();
+			this.currentPage = "GoalPage2";
 		});
-		
-		//===========================================================
+
+		//goalPanel2======================================
+		view.addBackButtonListener(e -> {
+			this.currentPage = "GoalPage";
+					
+			view.showGoalPanel();
+					
+		});
+	//===========================================================
     	// My Plate page - Nutrient and CFG Analysis
     	//===========================================================
 		

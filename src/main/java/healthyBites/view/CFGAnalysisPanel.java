@@ -184,14 +184,10 @@ public class CFGAnalysisPanel extends JPanel {
         addSummaryItem("Meat & Alternatives", 
             userAverage.getMeatAndAlternatives(), 
             recommended.getMeatAndAlternatives());
-        
-        DecimalFormat df = new DecimalFormat("#.##");
-        JLabel oilsNote = new JLabel(String.format(
-            "<html><b>Oils & Fats:</b><br>Your Average: %s ml<br>Recommended: %s ml</html>", 
-            df.format(userAverage.getOilsAndFat()), 
-            df.format(recommended.getOilsAndFat())));
-        oilsNote.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-        summaryPanel.add(oilsNote);
+
+        addSummaryItem("Oil & Fats", 
+                userAverage.getOilsAndFat(), 
+                recommended.getOilsAndFat());
     }
 
     private void addSummaryItem(String name, double actual, double recommended) {

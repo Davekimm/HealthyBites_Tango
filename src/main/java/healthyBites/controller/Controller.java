@@ -691,8 +691,6 @@ public class Controller {
     		System.out.println(" Goal intensity with " + goal.getIntensity());
     		System.out.println();
     	}
-    			
-    	
 		
 		List<FoodItem> replaceableFoodItems = model.getAlternativeFoodOptions(meal, selectedFoodItem, goals);
 		

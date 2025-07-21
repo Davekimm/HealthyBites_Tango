@@ -36,7 +36,6 @@ public class Controller {
     
     private Meal recentMeal;
     private Meal selectedMeal;
-	private Nutrition selectedNutrition;
     
     // Cache for meal data - used by both nutrient and CFG analysis
     private List<Meal> cachedMeals = null;
@@ -112,10 +111,6 @@ public class Controller {
 		view.setLogoutButtonListener(e -> {
 			// Clear cache when logging out
 			clearAnalysisCache();
-
-			// clear nutrient analysis and CFG analysis panels
-			view.clearNutrientAnalysis();  
-    			view.clearCFGAnalysis();       
 			
 			view.showLoginPanel();
 			view.clearLoginFields();
@@ -167,38 +162,19 @@ public class Controller {
 		
 		view.setMealSelectionListener(meal -> {
 			this.selectedMeal = meal;
-			this.selectedNutrition = model.getMealNutrtionalValue(selectedMeal);
+			
 			view.setIngredientList(this.selectedMeal.getFoodItems());
 		});
 		
 		view.getReplaceButtonListener(e -> {
-			System.out.println("You selected:" + view.getSelectedIngredient());
-			System.out.println("You want " + view.getSelectedAction() + " for: " + view.getSelectedIntensityPrecise());
-			System.out.println("targetting:" + view.getSelectedNutrient());
-			
-			System.out.println("selected Meal:" + this.selectedMeal.getFoodItems());
-			
-			System.out.println("selected Meal Total Energy:" + selectedNutrition.getNutrientValue("ENERGY (KILOCALORIES)"));
-			System.out.println("selected Meal Total Protein:" + selectedNutrition.getNutrientValue("PROTEIN"));
-			System.out.println("selected Meal Total Carbs:" + selectedNutrition.getNutrientValue("CARBOHYDRATE, TOTAL (BY DIFFERENCE)"));
-			System.out.println("selected Meal Total Fat:" + selectedNutrition.getNutrientValue("FAT (TOTAL LIPIDS)"));
-			System.out.println("selected Meal Total Fibre:" + selectedNutrition.getNutrientValue("FIBRE, TOTAL DIETARY"));
-			
-			view.initializeComparisonChart(selectedNutrition, selectedNutrition, view.getSelectedIngredient());
+			//view.showGoalPanel2();
+			this.currentPage = "GoalPage2";
 			
 			getAlternativeFoodItems(this.selectedMeal);
-			view.showGoalPanel2();
-			this.currentPage = "GoalPage2";
+			
 		});
-
-		//goalPanel2======================================
-		view.addBackButtonListener(e -> {
-			this.currentPage = "GoalPage";
-					
-			view.showGoalPanel();
-					
-		});
-	//===========================================================
+		
+		//===========================================================
     	// My Plate page - Nutrient and CFG Analysis
     	//===========================================================
 		
@@ -214,7 +190,6 @@ public class Controller {
 		view.setNutrientAnalysisBackButtonListener(e -> {
 		    view.showHomePanel();
 		    view.clearNutrientAnalysis();
-		    view.clearCFGAnalysis();	// clear CFG panel when returning to home screen
 		    // Clear cache when going back to home from nutrient analysis
 		    clearAnalysisCache();
 		    this.currentPage = "HomePage";
@@ -225,7 +200,6 @@ public class Controller {
 
 		view.setCFGAnalysisBackButtonListener(e -> {
 		    view.showHomePanel();
-		    view.clearNutrientAnalysis();  // clear Nutrient Analysis panel when returning to home
 		    view.clearCFGAnalysis();
 		    // Clear cache when going back to home from CFG analysis
 		    clearAnalysisCache();
@@ -283,11 +257,6 @@ public class Controller {
         if (profile != null) {
         	
         	this.currentUser = profile;
-
-		// Clear any residual data from previous user
-        	view.clearNutrientAnalysis();
-        	view.clearCFGAnalysis();
-        	clearAnalysisCache();
         	
         	JOptionPane.showMessageDialog(null, "Login successful!", "Success", JOptionPane.INFORMATION_MESSAGE);
         	
@@ -635,8 +604,9 @@ public class Controller {
     private void addGoalSwapPanelNutrientComboBoxListeners() {
         view.setNutrientSelectionListener((rowIndex, foodName) -> {
         	        	
-        	String[] unitList = new String[1];
-        	unitList[0] = model.getNutrientUnit(foodName);
+        	String[] unitList = new String[2];
+        	unitList[0] = "%";
+        	unitList[1] = model.getNutrientUnit(foodName);
             
         	view.setGoalSwapUnitsForRow(rowIndex, unitList);
         });
@@ -653,8 +623,9 @@ public class Controller {
     	    	
     	view.setNutrientList(foodNutrientAry);
     	
-    	String[] unitList = new String[1];
-    	unitList[0] = model.getNutrientUnit("PROTEIN");
+    	String[] unitList = new String[2];
+    	unitList[0] = "%";
+    	unitList[1] = model.getNutrientUnit("PROTEIN");
     	
     	view.setGoalSwapUnitsForRow(0, unitList);
     }
@@ -667,30 +638,64 @@ public class Controller {
     	double[] selectedIntensities = new double[numOfGoal];
     	String[] selectedUnits = new String[numOfGoal];
     	
-    	List<Goal> goals = new ArrayList<>();
-    	
-    	for(int i = 0; i < numOfGoal; i++) {
-    		selectedNutrients[i] = view.getSelectedNutrient().get(i);
-    		
-    		selectedActions[i] = true;
-    		if(view.getSelectedAction().get(i).equals("decrease")) {
-    			selectedActions[i] = false;
-        	}
-    		
-    		selectedIntensities[i] = Double.parseDouble(view.getSelectedIntensityPrecise().get(i));
-    		
-    		selectedUnits[i] = view.getSelectedUnit().get(i);
-    		
-    		Goal goal = new Goal(selectedNutrients[i], selectedActions[i], selectedIntensities[i]);
-    		goals.add(goal);
-    	}
-    			
     	FoodItem selectedFoodItem = null;
     	for(FoodItem food : meal.getFoodItems()) {
     		if(food.getName().equals(view.getSelectedIngredient())) {
     			selectedFoodItem = food;
     		}
     	}
+    	
+    	System.out.println("Selected food item is " + selectedFoodItem.getName());
+    	
+    	Nutrition nutrition = model.getMealNutrtionalValue(meal);
+    	
+    	System.out.println("Nutrition : " + nutrition.getNutrients());
+    	
+    	List<Goal> goals = new ArrayList<>();
+    	
+    	for(int i = 0; i < numOfGoal; i++) {
+    		selectedNutrients[i] = view.getSelectedNutrient().get(i);
+    		System.out.print("selected Options : " + selectedNutrients[i]);
+    		
+    		selectedActions[i] = true;
+    		if(view.getSelectedAction().get(i).equals("decrease")) {
+    			selectedActions[i] = false;
+        	}
+    		
+    		System.out.print(", " + selectedActions[i]);
+    		
+    		selectedUnits[i] = view.getSelectedUnit().get(i);
+    		selectedIntensities[i] = Double.parseDouble(view.getSelectedIntensityPrecise().get(i));
+    		
+    		System.out.print(", " + selectedIntensities[i]);
+    		System.out.println(", " + selectedUnits[i]);
+
+    		double currentNutrientValue = nutrition.getNutrientValue(selectedNutrients[i]);
+    		double desiredChange = selectedIntensities[i];
+    		double intensity;
+
+    		// Check the unit and calculate the target intensity accordingly
+    		if (selectedUnits[i].equals("%")) {
+    		    double multiplier = selectedActions[i] ? (1 + desiredChange / 100) : (1 - desiredChange / 100);
+    		    intensity = currentNutrientValue * multiplier;
+    		} else {	
+    		    intensity = selectedActions[i] ? (currentNutrientValue + desiredChange) : (currentNutrientValue - desiredChange);
+    		}
+
+    		Goal goal = new Goal(selectedNutrients[i], selectedActions[i], intensity);
+    		goals.add(goal);
+    		
+    		System.out.print("Setting a goal with : ");
+    		System.out.print(selectedNutrients[i] + ", ");
+    		System.out.print(selectedActions[i] + ", ");
+    		System.out.print(nutrition.getNutrientValue(selectedNutrients[i]) + " +/- ");
+    		System.out.print(selectedIntensities[i]);
+    		
+    		System.out.println(" => Goal intensity : " + goal.getIntensity());
+    		System.out.println();
+    	}
+    			
+    	
 		
 		List<FoodItem> replaceableFoodItems = model.getAlternativeFoodOptions(meal, selectedFoodItem, goals);
 		
@@ -914,7 +919,7 @@ public class Controller {
         );
         
         // Get recommended servings based on user's profile (currently only considers sex)
-        // Application design choice to provide recommendations for adult users ages 19 to 50 only
+        // TODO: Should be updated to consider age as well for proper CFG 2007 compliance
         CFGFoodGroup recommendedServings = ((ConcreteModel) model)
             .getDailyRecommendedServingsFromCFG(this.currentUser);
         

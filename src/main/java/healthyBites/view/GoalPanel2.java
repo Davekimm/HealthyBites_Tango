@@ -35,19 +35,13 @@ public class GoalPanel2 extends JPanel {
     private DefaultListModel<String> listModel, originalListModel;
     private List<FoodItem> swapFood;
     private List<Nutrition> swapNutrition;
-    private FoodItem originalFood;
+    FoodItem originalFood;
     
     private CardLayout viewSwitcherLayout;
     private JPanel viewSwitcherPanel;
     
-    private Meal originalMeal;
-
     private JTable originalMealTable, swapMealTable;
     private DefaultTableModel originalTableModel, swapTableModel;
-    private JTable originalMealItemTable, swapMealItemTable;
-    private DefaultTableModel originalMealItemModel, swapMealItemModel;
-    
-    
 
 	DecimalFormat numberFormat = new DecimalFormat("0.00");
 	DecimalFormat percentFormat = new DecimalFormat("0.0%");
@@ -61,22 +55,20 @@ public class GoalPanel2 extends JPanel {
         setLayout(new BorderLayout());
         
       //top area with 
-        JPanel topPanel = new JPanel(new FlowLayout());
+        JPanel topPanel = new JPanel(new GridLayout(1,2,10,10));
 //        topPanel.setPreferredSize(new Dimension(0,150));
         topPanel.setBorder(BorderFactory.createEmptyBorder(5,5,5,5));
         
         originalListModel = new DefaultListModel<>();
         originalMealList = new JList<>(originalListModel);
         originalMealList.setEnabled(false);
-        originalMealList.setVisibleRowCount(5);
         
         JScrollPane originalListPane = new JScrollPane(originalMealList);
         originalListPane.setBorder(BorderFactory.createTitledBorder("Your Meal Items:"));
         
         listModel = new DefaultListModel<>();
         swapList = new JList<>(listModel);
-        swapList.setVisibleRowCount(5);
-        
+       
         JScrollPane listScrollPane = new JScrollPane(swapList);
         listScrollPane.setBorder(BorderFactory.createTitledBorder("Choose a replacement:"));
         
@@ -84,18 +76,18 @@ public class GoalPanel2 extends JPanel {
         topPanel.add(listScrollPane);
         
       //middle
-        JPanel middlePanel = new JPanel(new FlowLayout());
+        JPanel middlePanel = new JPanel(new GridLayout(1,2,10,10));
         
         originalIngredientChartPanel = new ChartPanel(createChart(new DefaultPieDataset(), "Original Food"));
-        originalIngredientChartPanel.setPreferredSize(new Dimension(300, 200));
+        originalIngredientChartPanel.setPreferredSize(new Dimension(300, 400));
         
         swapIngredientChartPanel = new ChartPanel(createChart(new DefaultPieDataset(), "Swappable Foods"));
-        swapIngredientChartPanel.setPreferredSize(new Dimension(300, 200));
+        swapIngredientChartPanel.setPreferredSize(new Dimension(300, 400));
         
         middlePanel.add(originalIngredientChartPanel, BorderLayout.WEST);
         middlePanel.add(swapIngredientChartPanel, BorderLayout.EAST);
        
-        JPanel centerWrapper = new JPanel(new BorderLayout(2,2));
+ //       JPanel centerWrapper = new JPanel(new BorderLayout(2,2));
         JPanel radioPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
         pieChartRadio = new JRadioButton("Pie Chart View", true);
         tableRadio = new JRadioButton("Table View");
@@ -107,62 +99,34 @@ public class GoalPanel2 extends JPanel {
         radioPanel.add(pieChartRadio);
         radioPanel.add(tableRadio);
         
-        centerWrapper.add(radioPanel, BorderLayout.SOUTH);
+//        centerWrapper.add(radioPanel, BorderLayout.NORTH);
         
         
         viewSwitcherLayout = new CardLayout();
         viewSwitcherPanel = new JPanel(viewSwitcherLayout);
-        
-        JPanel tableViewPanel = new JPanel(new  BorderLayout(5,5));
-        
-        //Food Item table
-        JPanel mealItemPanel = new JPanel(new FlowLayout());
-        
-        String[] mealColumns = {"Food Items"};
-        originalMealItemModel = new DefaultTableModel(mealColumns,0);
-        originalMealItemTable = new JTable(originalMealItemModel);
-        JScrollPane originalMealItemPane = new JScrollPane(originalMealItemTable);
-        originalMealItemPane.setBorder(BorderFactory.createTitledBorder("Selected Meal"));
-        originalMealItemPane.setMaximumSize(new Dimension(Integer.MAX_VALUE, 80));
 
+        /*        JPanel chartViewPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        chartViewPanel.add(originalIngredientChartPanel, BorderLayout.WEST);
+        chartViewPanel.add(swapIngredientChartPanel, BorderLayout.EAST);*/
         
-        swapMealItemModel = new DefaultTableModel(mealColumns,0);
-        swapMealItemTable = new JTable(swapMealItemModel);
-        JScrollPane swapMealItemPane = new JScrollPane(swapMealItemTable);
-        swapMealItemPane.setBorder(BorderFactory.createTitledBorder("Swappable Meal"));
-        swapMealItemPane.setMaximumSize(new Dimension(Integer.MAX_VALUE, 80));
-
-        mealItemPanel.add(originalMealItemPane);
-        mealItemPanel.add(swapMealItemPane);
-        
-        
-        //Nutrient Table
-        JPanel nutritionPanel = new JPanel(new FlowLayout());
+        JPanel tableViewPanel = new JPanel(new  GridLayout(1,2,10,10));
         String[] columns = {"Nutrient", "Value"};
         
         originalTableModel = new DefaultTableModel(columns, 0);
         originalMealTable = new JTable(originalTableModel);
-  //      originalMealItemTable.setDefaultRenderer(Object.class,  new HighlightRenderer());
+        originalMealTable.setDefaultRenderer(Object.class,  new HighlightRenderer());
         JScrollPane originalTablePane = new JScrollPane(originalMealTable);
         originalTablePane.setBorder(BorderFactory.createTitledBorder("Original Food"));
-        originalTablePane.setMaximumSize(new Dimension(Integer.MAX_VALUE, 80));
         
         swapTableModel = new DefaultTableModel(columns, 0);
         swapMealTable = new JTable(swapTableModel);
         JScrollPane swapTablePane = new JScrollPane(swapMealTable);
         swapTablePane.setBorder(BorderFactory.createTitledBorder("Swaped Food"));
-        swapTablePane.setMaximumSize(new Dimension(Integer.MAX_VALUE, 80));
                 
-        nutritionPanel.add(originalTablePane);
-        nutritionPanel.add(swapTablePane);
-        
-        
-        tableViewPanel.add(mealItemPanel, BorderLayout.NORTH);
-        tableViewPanel.add(nutritionPanel, BorderLayout.SOUTH);
         
         viewSwitcherPanel.add(middlePanel, "Charts");
         viewSwitcherPanel.add(tableViewPanel, "Tables");
-        centerWrapper.add(viewSwitcherPanel, BorderLayout.CENTER);
+ //       centerWrapper.add(viewSwitcherPanel, BorderLayout.CENTER);
         
       //bottom
         JPanel bottomPanel = new JPanel();
@@ -177,31 +141,9 @@ public class GoalPanel2 extends JPanel {
         addListeners();
         // add above sections
         add(topPanel, BorderLayout.NORTH);       
-        add(centerWrapper, BorderLayout.CENTER);
+        add(viewSwitcherPanel, BorderLayout.CENTER);
         add(bottomPanel, BorderLayout.SOUTH);
        
-    }
-    
-  /*  class MealItemHighlightRenderer extends DefaultTableCellRenderer {
-    	private String itemToHighlight;
-    	public void setItemToHighlight(String item) {
-    		this.itemToHighlight = item;
-    	}
-    	
-    	@Override
-    	public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-    		Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-    		String itemInRow = table.getValueAt(row,  0).toString();
-    		
-    		if(itemToHighlight != null && itemToHighlight.equals(itemInRow))
-    			c.setBackground(Color.CYAN);
-    		else
-    			c.setBackground(table.getBackground());
-    		c.setForeground(Color.BLACK);
-    		
-    		return c;
-    		
-    	}
     }
     
     class HighlightRenderer extends DefaultTableCellRenderer{
@@ -216,7 +158,7 @@ public class GoalPanel2 extends JPanel {
     		
     		return c;
     	}
-    }*/
+    }
     
     public void clearPreviousChart() {
     	originalIngredientChartPanel.setChart(null);
@@ -246,19 +188,9 @@ public class GoalPanel2 extends JPanel {
     
     	this.swapFood = swapFood;
     	this.swapNutrition = swapNutrient;
-    	this.originalFood = originalItem;
-    	this.originalMeal = originalMeal;
+    	
     	
     	originalListModel.clear();
-    	
-    	originalMealItemModel.setRowCount(0);;
-    	this.highlightRow = -1;
-    	for(int i=0; i<originalMeal.getFoodItems().size(); i++) {
-    		FoodItem current = originalMeal.getFoodItems().get(i);
-    		originalMealItemModel.addRow(new Object[] {current.toString()});
-    		if(current.equals(originalItem))
-    			this.highlightRow = i;
-    	}
     	
     	List<FoodItem> originalItems = originalMeal.getFoodItems();
     	for(int i=0; i<originalItems.size(); i++) {
@@ -270,10 +202,7 @@ public class GoalPanel2 extends JPanel {
     	 	
     	DefaultPieDataset originalDataset = createDataset(originalNutrition);
     	originalIngredientChartPanel.setChart(createChart(originalDataset, "Original: "));
-//    	swapIngredientChartPanel.setChart(createChart(newSwapDataset, "Suggestion: "));
     	
-  //  	populateTableModel(originalMealItemModel, originalNutrition);
-    	populateTableModel(originalTableModel, originalNutrition);
     	
     	listModel.clear();
     	
@@ -305,7 +234,6 @@ public class GoalPanel2 extends JPanel {
   		DefaultPieDataset newSwapDataset = createDataset(nutrition);
     	swapIngredientChartPanel.setChart(createChart(newSwapDataset, "Suggestion: "));    			
     	populateTableModel(swapTableModel, nutrition);
-    	
     }
     
     
@@ -332,23 +260,6 @@ public class GoalPanel2 extends JPanel {
     			Nutrition selectedNutrition = swapNutrition.get(selectedIndex);
     			
     			updateSwapViews(selectedFood, selectedNutrition);
-    			
-    			List<FoodItem> newMealItem = new ArrayList<>();
-    			
-    			for(FoodItem item : originalMeal.getFoodItems()) {
-    				if(item.equals(originalFood))
-    					newMealItem.add(selectedFood);
-    				else
-    					newMealItem.add(item);
-    			};
-    			
-    			swapMealItemModel.setRowCount(0);
-    			for(FoodItem newItem : newMealItem)
-    				swapMealItemModel.addRow(new Object[] {newItem.toString()});
-    			
-   // 			swapMealItemTable.setDefaultRenderer(Object.class, new MealItemHighlightRenderer(selectedFood.toString()));
-    			
-    			
     		}
     	});
     }
@@ -356,8 +267,6 @@ public class GoalPanel2 extends JPanel {
 
 //dataset    
     //
-
-    
     private void populateTableModel(DefaultTableModel model, Nutrition nutrition) {
     	model.setRowCount(0);
     	String[] importantNutrients = {

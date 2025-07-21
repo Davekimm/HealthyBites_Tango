@@ -30,6 +30,7 @@ public class GoalPanel2 extends JPanel {
     private JList<String> originalList, swapList;
     private DefaultListModel<String> listModel;
     private List<FoodItem> originalFood, swapFood;
+    private List<Nutrition> swapNutrition;
     
    
     public GoalPanel2() {

@@ -160,10 +160,10 @@ public class Controller {
     	//===========================================================
 		addGoalSwapPanelNutrientComboBoxListeners();
 		
-		view.setMealSelectionListener(meal -> {
+		view.setMealSelectionListener4GoalPanel1(meal -> {
 			this.selectedMeal = meal;
 			
-			view.setIngredientList(this.selectedMeal.getFoodItems());
+			view.setIngredientList4GoalPanel1(this.selectedMeal.getFoodItems());
 		});
 		
 		view.getReplaceButtonListener(e -> {
@@ -602,13 +602,13 @@ public class Controller {
     }
     
     private void addGoalSwapPanelNutrientComboBoxListeners() {
-        view.setNutrientSelectionListener((rowIndex, foodName) -> {
+        view.setNutrientSelectionListener4GoalPanel1((rowIndex, foodName) -> {
         	        	
         	String[] unitList = new String[2];
         	unitList[0] = "%";
         	unitList[1] = model.getNutrientUnit(foodName);
             
-        	view.setGoalSwapUnitsForRow(rowIndex, unitList);
+        	view.setGoalSwapUnitsForRow4GoalPanel1(rowIndex, unitList);
         });
     }
     
@@ -621,17 +621,17 @@ public class Controller {
     		foodNutrientAry[i] = availableNutrients.get(i);
     	}
     	    	
-    	view.setNutrientList(foodNutrientAry);
+    	view.setNutrientList4GoalPanel1(foodNutrientAry);
     	
     	String[] unitList = new String[2];
     	unitList[0] = "%";
     	unitList[1] = model.getNutrientUnit("PROTEIN");
     	
-    	view.setGoalSwapUnitsForRow(0, unitList);
+    	view.setGoalSwapUnitsForRow4GoalPanel1(0, unitList);
     }
     
     private void getAlternativeFoodItems(Meal meal) {
-    	int numOfGoal = view.getSelectedNutrient().size();
+    	int numOfGoal = view.getSelectedNutrient4GoalPanel1().size();
     	
     	String[] selectedNutrients = new String[numOfGoal];
     	boolean[] selectedActions = new boolean[numOfGoal];
@@ -640,7 +640,7 @@ public class Controller {
     	
     	FoodItem selectedFoodItem = null;
     	for(FoodItem food : meal.getFoodItems()) {
-    		if(food.getName().equals(view.getSelectedIngredient())) {
+    		if(food.getName().equals(view.getSelectedIngredient4GoalPanel1())) {
     			selectedFoodItem = food;
     		}
     	}
@@ -649,23 +649,22 @@ public class Controller {
     	
     	Nutrition nutrition = model.getMealNutrtionalValue(meal);
     	
-    	System.out.println("Nutrition : " + nutrition.getNutrients());
-    	
     	List<Goal> goals = new ArrayList<>();
     	
     	for(int i = 0; i < numOfGoal; i++) {
-    		selectedNutrients[i] = view.getSelectedNutrient().get(i);
+    		selectedNutrients[i] = view.getSelectedNutrient4GoalPanel1().get(i);
     		System.out.print("selected Options : " + selectedNutrients[i]);
+    		System.out.print(" with " + nutrition.getNutrientValue(selectedNutrients[i]));
     		
     		selectedActions[i] = true;
-    		if(view.getSelectedAction().get(i).equals("decrease")) {
+    		if(view.getSelectedAction4GoalPanel1().get(i).equals("decrease")) {
     			selectedActions[i] = false;
         	}
     		
     		System.out.print(", " + selectedActions[i]);
     		
-    		selectedUnits[i] = view.getSelectedUnit().get(i);
-    		selectedIntensities[i] = Double.parseDouble(view.getSelectedIntensityPrecise().get(i));
+    		selectedUnits[i] = view.getSelectedUnit4GoalPanel1().get(i);
+    		selectedIntensities[i] = Double.parseDouble(view.getSelectedIntensityPrecise4GoalPanel1().get(i));
     		
     		System.out.print(", " + selectedIntensities[i]);
     		System.out.println(", " + selectedUnits[i]);
@@ -688,10 +687,8 @@ public class Controller {
     		System.out.print("Setting a goal with : ");
     		System.out.print(selectedNutrients[i] + ", ");
     		System.out.print(selectedActions[i] + ", ");
-    		System.out.print(nutrition.getNutrientValue(selectedNutrients[i]) + " +/- ");
-    		System.out.print(selectedIntensities[i]);
-    		
-    		System.out.println(" => Goal intensity : " + goal.getIntensity());
+    		    		
+    		System.out.println(" Goal intensity with " + goal.getIntensity());
     		System.out.println();
     	}
     			

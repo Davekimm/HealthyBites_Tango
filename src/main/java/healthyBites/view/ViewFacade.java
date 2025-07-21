@@ -125,41 +125,26 @@ public class ViewFacade {
     }
     
     
-    // ===========================================
+ // ===========================================
     // Goal PANEL 2 METHODS
     // ===========================================
-  /*
-   	public void setOriginalMeal(String ingredientName, DefaultPieDataset dataset) {
-    	goalPanel2.setOriginalMeal(ingredientName, dataset);
-    }
-    
-    public void setSwappableMeal(String ingredientName, DefaultPieDataset dataset) {
-    	goalPanel2.setSwappableMeal(ingredientName, dataset);
-    }*/
-
-	public void displaySwapList(List<FoodItem> swapMeal, List<Nutrition> swapNutrition) {
-		goalPanel2.displaySwapList(swapMeal, swapNutrition);
-	}
-	    
-	public void addBackButtonListener(ActionListener listener) {
-        goalPanel2.addBackButtonListener(listener);
-    }
+    	
 	
-	public void addApplyGoalButtonListener(ActionListener listener) {
-        goalPanel2.addApplyGoalButtonListener(listener);
-    }
+		public void displaySwapList4GoalPanel2(Meal selectedMeal, FoodItem selectedItem, Nutrition selectedNutrition, List<FoodItem> swapMeal, List<Nutrition> swapNutrition) {
+			goalPanel2.displaySwapList(selectedMeal, selectedItem, selectedNutrition, swapMeal, swapNutrition);
+		}
+		
+		public void addBackButtonListener(ActionListener listener) {
+		    goalPanel2.addBackButtonListener(listener);
+		}
 	
-	public void addApplyAcrossButtonListener(ActionListener listener) {
-        goalPanel2.addApplyAcrossButtonListener(listener);
-    }
-
-	public void clearPreviousChart() {
-		goalPanel2.clearPreviousChart();
-	}
+		public void addApplyAcrossButtonListener(ActionListener listener) {
+	    	goalPanel2.addApplyAcrossButtonListener(listener);
+		}
 	
-	public void initializeComparisonChart(Nutrition originalNutrient, Nutrition swapNutrient, String originalFoodName) {
-		goalPanel2.initializeComparisonChart(originalNutrient, swapNutrient, originalFoodName);
-	}
+		public void clearPreviousChart() {
+			goalPanel2.clearPreviousChart();
+		}
 	
     // ===========================================
     // Goal PANEL METHODS
@@ -169,50 +154,50 @@ public class ViewFacade {
         goalPanel.getReplaceButtonListener(listener);
     }
 	
-	public List<String> getSelectedNutrient() {
+	public List<String> getSelectedNutrient4GoalPanel1() {
 		return goalPanel.getSelectedNutrient();
 	}
 
-	public List<String> getSelectedAction() {
+	public List<String> getSelectedAction4GoalPanel1() {
 		return goalPanel.getSelectedAction();
 	}
 	
-	public List<String> getSelectedIntensityPrecise() {
+	public List<String> getSelectedIntensityPrecise4GoalPanel1() {
 		return goalPanel.getSelectedIntensityPrecise();
 	}
 	
-	public List<String> getSelectedUnit() {
+	public List<String> getSelectedUnit4GoalPanel1() {
 		return goalPanel.getSelectedUnit();
 	}
 	
-	public MealHistoryPanel getMealHistorySelection() {
+	public MealHistoryPanel getMealHistorySelection4GoalPanel1() {
     	return goalPanel.getMealHistorySelection();
     }
 	
-	public String getSelectedIngredient() {
+	public String getSelectedIngredient4GoalPanel1() {
     	return goalPanel.getSelectedIngredient();
     }
 	
-	public void setMealSelectionListener(Consumer<Meal> listener) {
+	public void setMealSelectionListener4GoalPanel1(Consumer<Meal> listener) {
 		goalPanel.getMealHistorySelection().setOnMealSelectedListener(listener);	
 	}
 	
-    public void setNutrientList(String[] nutrientList) {
+    public void setNutrientList4GoalPanel1(String[] nutrientList) {
     	goalPanel.setNutrientList(nutrientList);
     }
     
-    public void setGoalSwapUnitsForRow(int rowIndex, String[] units) {
+    public void setGoalSwapUnitsForRow4GoalPanel1(int rowIndex, String[] units) {
         goalPanel.setUnitsForRow(rowIndex, units);
     }
     
-    public void setIngredientList(List<FoodItem> ingredientList) {
+    public void setIngredientList4GoalPanel1(List<FoodItem> ingredientList) {
     	goalPanel.setIngredientList(ingredientList);
     }
     
     // ===========================================================
     // Added by Dave
     // ===========================================================
-    public void setNutrientSelectionListener(BiConsumer<Integer, String> action) {
+    public void setNutrientSelectionListener4GoalPanel1(BiConsumer<Integer, String> action) {
     	goalPanel.onNutrientSelected(action);
     }
 	

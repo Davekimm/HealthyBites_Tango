@@ -1,306 +1,313 @@
 package healthyBites.view;
 
 import javax.swing.*;
-import javax.swing.event.EventListenerList;
-import javax.swing.table.DefaultTableModel;
-import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.*;
 import java.awt.*;
-import java.awt.event.*;
-import java.text.DecimalFormat;
-import java.util.ArrayList;
-import java.util.List;
-
-import org.jfree.chart.*;
-import org.jfree.chart.plot.PiePlot;
-import org.jfree.data.general.DefaultPieDataset;
-import org.jfree.data.general.PieDataset;
-import org.jfree.chart.ChartFactory;
-import org.jfree.chart.labels.StandardPieSectionLabelGenerator;
-import org.jfree.chart.labels.StandardPieToolTipGenerator;
-
-import healthyBites.model.FoodItem;
+import java.awt.event.ActionListener;
+import java.util.Map;
 import healthyBites.model.Meal;
-import healthyBites.model.Nutrition;
+import healthyBites.model.FoodItem;
 
-
+/**
+ * GoalPanel2 is the user interface panel that displays the results of a food swap.
+ * It is designed to be a "what-if" scenario screen.
+ *
+ * This panel has three main sections:
+ * 1. Meal Comparison (Top): Shows the original and modified meal lists side-by-side.
+ * The food item that was removed is highlighted in red in the original list.
+ * The food item that was added is highlighted in green in the modified list.
+ * 2. Nutrient Changes (Center): A detailed table showing how each nutrient's total
+ * value changes between the two meals.
+ * 3. Action Buttons (Bottom): Buttons to go back, apply the change, or try a different swap.
+ */
 public class GoalPanel2 extends JPanel {
-	
-    private JButton backButton, applyAcrossButton;  
-    private JPanel ingredientContainerPanel;
-    private JLabel selectedFood;
-    private ChartPanel originalIngredientChartPanel, swapIngredientChartPanel;
-    private JRadioButton pieChartRadio, tableRadio;
- 
-    private JList<String> originalMealList, swapList;
-    private DefaultListModel<String> listModel, originalListModel;
-    private List<FoodItem> swapFood;
-    private List<Nutrition> swapNutrition;
-    FoodItem originalFood;
     
-    private CardLayout viewSwitcherLayout;
-    private JPanel viewSwitcherPanel;
-    
-    private JTable originalMealTable, swapMealTable;
-    private DefaultTableModel originalTableModel, swapTableModel;
+    // --- Member Variables (Class-wide variables) ---
 
-	DecimalFormat numberFormat = new DecimalFormat("0.00");
-	DecimalFormat percentFormat = new DecimalFormat("0.0%");
+    // These JPanels will hold the lists of food items for each meal.
+    // They are member variables so they can be accessed and updated from different methods.
+    private JPanel originalMealPanel;
+    private JPanel modifiedMealPanel;
+
+    // The JTable and its data model are declared here so they can be updated
+    // by the displayNutrientComparison method.
+    private JTable nutrientComparisonTable;
+    private DefaultTableModel tableModel;
+
+    // Buttons are declared here to be accessible throughout the class,
+    // especially for adding action listeners.
+    private JButton backButton;
+    private JButton applySwapButton;
+    private JButton tryAgainButton;
     
-    private int highlightRow = -1;
+    // Using static final constants for colors is a good practice.
+    // It makes the code more readable and easier to maintain. If you want to change
+    // a color, you only have to change it in one place.
+    private static final Color ADDED_ITEM_COLOR = new Color(200, 255, 200); // Light Green
+    private static final Color REMOVED_ITEM_COLOR = new Color(255, 200, 200); // Light Red
+    private static final Color INCREASE_COLOR = new Color(0, 150, 0);       // Dark Green for text
+    private static final Color DECREASE_COLOR = new Color(200, 0, 0);       // Dark Red for text
+
+    /**
+     * An 'enum' is a special type that represents a fixed set of constants.
+     * Using an enum for HighlightState is clearer and safer than using simple numbers or strings
+     * because it restricts the possible values to only NORMAL, ADDED, or REMOVED.
+     */
+    private enum HighlightState {
+        NORMAL, // Default state, no special background color.
+        ADDED,  // For the new item in the modified meal (green background).
+        REMOVED // For the old item in the original meal (red background).
+    }
     
-   
+    /**
+     * The constructor is called when a new GoalPanel2 object is created.
+     * Its job is to set up the panel's layout and initialize all the visible components.
+     */
     public GoalPanel2() {
-    	
-      // set BorderLayout to split area
-        setLayout(new BorderLayout());
+        // A BorderLayout divides the panel into five regions: NORTH, SOUTH, EAST, WEST, and CENTER.
+        // We are using NORTH for the meal comparison, CENTER for the nutrient table, and SOUTH for the buttons.
+        setLayout(new BorderLayout(10, 10)); // The 10, 10 adds a small gap between regions.
         
-      //top area with 
-        JPanel topPanel = new JPanel(new GridLayout(1,2,10,10));
-//        topPanel.setPreferredSize(new Dimension(0,150));
-        topPanel.setBorder(BorderFactory.createEmptyBorder(5,5,5,5));
+        // An EmptyBorder adds padding around the edges of the panel.
+        setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         
-        originalListModel = new DefaultListModel<>();
-        originalMealList = new JList<>(originalListModel);
-        originalMealList.setEnabled(false);
-        
-        JScrollPane originalListPane = new JScrollPane(originalMealList);
-        originalListPane.setBorder(BorderFactory.createTitledBorder("Your Meal Items:"));
-        
-        listModel = new DefaultListModel<>();
-        swapList = new JList<>(listModel);
-       
-        JScrollPane listScrollPane = new JScrollPane(swapList);
-        listScrollPane.setBorder(BorderFactory.createTitledBorder("Choose a replacement:"));
-        
-        topPanel.add(originalListPane);
-        topPanel.add(listScrollPane);
-        
-      //middle
-        JPanel middlePanel = new JPanel(new GridLayout(1,2,10,10));
-        
-        originalIngredientChartPanel = new ChartPanel(createChart(new DefaultPieDataset(), "Original Food"));
-        originalIngredientChartPanel.setPreferredSize(new Dimension(300, 400));
-        
-        swapIngredientChartPanel = new ChartPanel(createChart(new DefaultPieDataset(), "Swappable Foods"));
-        swapIngredientChartPanel.setPreferredSize(new Dimension(300, 400));
-        
-        middlePanel.add(originalIngredientChartPanel, BorderLayout.WEST);
-        middlePanel.add(swapIngredientChartPanel, BorderLayout.EAST);
-       
- //       JPanel centerWrapper = new JPanel(new BorderLayout(2,2));
-        JPanel radioPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
-        pieChartRadio = new JRadioButton("Pie Chart View", true);
-        tableRadio = new JRadioButton("Table View");
-        
-        ButtonGroup viewGroup = new ButtonGroup();
-        viewGroup.add(pieChartRadio);
-        viewGroup.add(tableRadio);
-        
-        radioPanel.add(pieChartRadio);
-        radioPanel.add(tableRadio);
-        
-//        centerWrapper.add(radioPanel, BorderLayout.NORTH);
-        
-        
-        viewSwitcherLayout = new CardLayout();
-        viewSwitcherPanel = new JPanel(viewSwitcherLayout);
-
-        /*        JPanel chartViewPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
-        chartViewPanel.add(originalIngredientChartPanel, BorderLayout.WEST);
-        chartViewPanel.add(swapIngredientChartPanel, BorderLayout.EAST);*/
-        
-        JPanel tableViewPanel = new JPanel(new  GridLayout(1,2,10,10));
-        String[] columns = {"Nutrient", "Value"};
-        
-        originalTableModel = new DefaultTableModel(columns, 0);
-        originalMealTable = new JTable(originalTableModel);
-        originalMealTable.setDefaultRenderer(Object.class,  new HighlightRenderer());
-        JScrollPane originalTablePane = new JScrollPane(originalMealTable);
-        originalTablePane.setBorder(BorderFactory.createTitledBorder("Original Food"));
-        
-        swapTableModel = new DefaultTableModel(columns, 0);
-        swapMealTable = new JTable(swapTableModel);
-        JScrollPane swapTablePane = new JScrollPane(swapMealTable);
-        swapTablePane.setBorder(BorderFactory.createTitledBorder("Swaped Food"));
-                
-        
-        viewSwitcherPanel.add(middlePanel, "Charts");
-        viewSwitcherPanel.add(tableViewPanel, "Tables");
- //       centerWrapper.add(viewSwitcherPanel, BorderLayout.CENTER);
-        
-      //bottom
-        JPanel bottomPanel = new JPanel();
-        bottomPanel.setPreferredSize(new Dimension(0,50));
-        
-        backButton = new JButton("Back");
-        bottomPanel.add(backButton);
-        applyAcrossButton = new JButton("Apply Across Time");
-        bottomPanel.add(applyAcrossButton);
-        
-        
-        addListeners();
-        // add above sections
-        add(topPanel, BorderLayout.NORTH);       
-        add(viewSwitcherPanel, BorderLayout.CENTER);
-        add(bottomPanel, BorderLayout.SOUTH);
-       
+        // Call our helper methods to create and add the different sections of the UI.
+        // This keeps the constructor clean and organized.
+        add(createMealComparisonPanel(), BorderLayout.NORTH);
+        add(createNutrientComparisonPanel(), BorderLayout.CENTER);
+        add(createButtonPanel(), BorderLayout.SOUTH);
     }
     
-    class HighlightRenderer extends DefaultTableCellRenderer{
-    	@Override
-    	public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-    		Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-    		
-    		if(row == highlightRow) 
-    			c.setBackground(Color.YELLOW);
-    		else
-    			c.setBackground(table.getBackground());   		
-    		
-    		return c;
-    	}
+    /**
+     * This method builds the top part of the UI, which shows the two meal lists.
+     * @return A JPanel that is ready to be added to the main panel.
+     */
+    private JPanel createMealComparisonPanel() {
+        // A GridLayout arranges components in a grid of rows and columns.
+        // Here, we use 1 row and 2 columns to create the side-by-side layout.
+        JPanel mainPanel = new JPanel(new GridLayout(1, 2, 20, 0)); // 20px horizontal gap
+        mainPanel.setBorder(BorderFactory.createTitledBorder("Meal Comparison"));
+        mainPanel.setPreferredSize(new Dimension(0, 200)); // Give it a fixed height.
+        
+        // --- Setup for the Original Meal List ---
+        originalMealPanel = new JPanel();
+        // BoxLayout stacks components either vertically (Y_AXIS) or horizontally (X_AXIS).
+        originalMealPanel.setLayout(new BoxLayout(originalMealPanel, BoxLayout.Y_AXIS));
+        originalMealPanel.setBorder(BorderFactory.createTitledBorder("Original Meal"));
+        originalMealPanel.setBackground(Color.WHITE);
+        // A JScrollPane provides scrollbars if the content is too big to fit.
+        JScrollPane originalScrollPane = new JScrollPane(originalMealPanel);
+        
+        // --- Setup for the Modified Meal List ---
+        modifiedMealPanel = new JPanel();
+        modifiedMealPanel.setLayout(new BoxLayout(modifiedMealPanel, BoxLayout.Y_AXIS));
+        modifiedMealPanel.setBorder(BorderFactory.createTitledBorder("Modified Meal"));
+        modifiedMealPanel.setBackground(Color.WHITE);
+        JScrollPane modifiedScrollPane = new JScrollPane(modifiedMealPanel);
+        
+        // Add the two scrollable lists to the main panel.
+        mainPanel.add(originalScrollPane);
+        mainPanel.add(modifiedScrollPane);
+        
+        return mainPanel;
     }
     
-    public void clearPreviousChart() {
-    	originalIngredientChartPanel.setChart(null);
-    	swapIngredientChartPanel.setChart(null);
-    }
-
-    private JFreeChart createChart(PieDataset dataset, String title) {
-    	
-    	JFreeChart chart = ChartFactory.createPieChart(title, dataset, true, true, false);
-    	
-    	PiePlot plot = (PiePlot) chart.getPlot();
-    	
-    	String tooltipFormat = "{0}: {1} ({2})";
-    	String labelFormat = "{0}: {1} ({2})";
-    	
-    	plot.setToolTipGenerator(new StandardPieToolTipGenerator(tooltipFormat, numberFormat, percentFormat));
-    	plot.setLabelGenerator(new StandardPieSectionLabelGenerator(labelFormat, numberFormat, percentFormat));
-
-    	plot.setCircular(true);
-    	plot.setOutlineVisible(true);
-    	
-    	return chart;
-
-    }
-    
-    public void displaySwapList(Meal originalMeal, FoodItem originalItem, Nutrition originalNutrition, List<FoodItem> swapFood, List<Nutrition> swapNutrient) {
-    
-    	this.swapFood = swapFood;
-    	this.swapNutrition = swapNutrient;
-    	
-    	
-    	originalListModel.clear();
-    	
-    	List<FoodItem> originalItems = originalMeal.getFoodItems();
-    	for(int i=0; i<originalItems.size(); i++) {
-    		FoodItem current = originalItems.get(i);
-    		originalListModel.addElement("- " + current.toString());
-    		if(current.equals(originalItem))
-    			originalMealList.setSelectedIndex(i);
-    	}
-    	 	
-    	DefaultPieDataset originalDataset = createDataset(originalNutrition);
-    	originalIngredientChartPanel.setChart(createChart(originalDataset, "Original: "));
-    	
-    	
-    	listModel.clear();
-    	
-    	for(FoodItem item : swapFood) {
-    		listModel.addElement(item.toString());
-    	}
-    	
-    	if(!swapFood.isEmpty())
-    		swapList.setSelectedIndex(0);
-    	else
-    		swapIngredientChartPanel.setChart(createChart(new DefaultPieDataset(), "No Suggestions"));
-    	
-    	revalidate();
-    	repaint();
-    	
+    /**
+     * This method builds the central part of the UI, which is the nutrient table.
+     * @return A JPanel containing the scrollable table.
+     */
+    private JPanel createNutrientComparisonPanel() {
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.setBorder(BorderFactory.createTitledBorder("Nutrient Changes"));
+        
+        String[] columnHeaders = {"Nutrient", "Original", "Modified", "Change", "% Change"};
+        
+        // A DefaultTableModel holds the data for a JTable.
+        // We create an anonymous inner class here to override one method.
+        tableModel = new DefaultTableModel(columnHeaders, 0) {
+            // By overriding this method to always return false, we make the table read-only.
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
+        
+        nutrientComparisonTable = new JTable(tableModel);
+        nutrientComparisonTable.setRowHeight(25); // Make rows taller for easier reading.
+        
+        // A "renderer" is responsible for drawing a cell in a table.
+        // We set a custom renderer to add color to the "Change" columns.
+        nutrientComparisonTable.setDefaultRenderer(Object.class, new NutrientTableCellRenderer());
+        
+        // Place the table inside a JScrollPane to make it scrollable.
+        JScrollPane scrollPane = new JScrollPane(nutrientComparisonTable);
+        scrollPane.setPreferredSize(new Dimension(400, 200));
+        panel.add(scrollPane, BorderLayout.CENTER);
+        
+        return panel;
     }
     
-  // Action Listeners
-    
-    public void addBackButtonListener(ActionListener listener) {
-    	backButton.addActionListener(listener);
+    /**
+     * This method builds the bottom part of the UI, which holds the buttons.
+     * @return A JPanel containing the action buttons.
+     */
+    private JPanel createButtonPanel() {
+        // FlowLayout arranges components in a left-to-right flow, like words on a page.
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 10));
+        backButton = new JButton("Back to Goals");
+        applySwapButton = new JButton("Apply Changes");
+        tryAgainButton = new JButton("Try Different Swap");
+        
+        buttonPanel.add(backButton);
+        buttonPanel.add(tryAgainButton);
+        buttonPanel.add(applySwapButton);
+        
+        return buttonPanel;
     }
     
-    public void addApplyAcrossButtonListener(ActionListener listener) {
-        applyAcrossButton.addActionListener(listener);
+    /**
+     * This is a main public method called by the Controller to update the panel with data.
+     * It clears old data and then populates the meal lists based on the provided meals.
+     */
+    public void displayMealComparison(Meal originalMeal, Meal modifiedMeal, Map<FoodItem, FoodItem> replacements) {
+        // It's important to clear previous content before adding new content.
+        originalMealPanel.removeAll();
+        modifiedMealPanel.removeAll();
+        
+        // --- Populate the Original Meal List ---
+        for (FoodItem item : originalMeal.getFoodItems()) {
+            HighlightState state;
+            // Check if the current item is the one that was replaced.
+            if (replacements.containsKey(item)) {
+                state = HighlightState.REMOVED; // If yes, mark it for red highlighting.
+            } else {
+                state = HighlightState.NORMAL;
+            }
+            JPanel itemPanel = createFoodItemPanel(item, state);
+            originalMealPanel.add(itemPanel);
+            originalMealPanel.add(Box.createVerticalStrut(5)); // Adds a 5-pixel vertical space
+        }
+        
+        // --- Populate the Modified Meal List ---
+        for (FoodItem item : modifiedMeal.getFoodItems()) {
+            HighlightState state;
+            // Check if the current item is the new replacement item.
+            if (replacements.containsValue(item)) {
+                state = HighlightState.ADDED; // If yes, mark it for green highlighting.
+            } else {
+                state = HighlightState.NORMAL;
+            }
+            JPanel itemPanel = createFoodItemPanel(item, state);
+            modifiedMealPanel.add(itemPanel);
+            modifiedMealPanel.add(Box.createVerticalStrut(5));
+        }
+        
+        // After changing the components in a visible container, you must call revalidate() and repaint().
+        // revalidate() tells the layout manager to recalculate the layout.
+        // repaint() tells Swing that the component needs to be redrawn.
+        originalMealPanel.revalidate();
+        originalMealPanel.repaint();
+        modifiedMealPanel.revalidate();
+        modifiedMealPanel.repaint();
     }
     
-    private void updateSwapViews(FoodItem food, Nutrition nutrition) {
-  		DefaultPieDataset newSwapDataset = createDataset(nutrition);
-    	swapIngredientChartPanel.setChart(createChart(newSwapDataset, "Suggestion: "));    			
-    	populateTableModel(swapTableModel, nutrition);
+    /**
+     * A small helper method to create a consistent-looking panel for each food item.
+     * This avoids duplicating panel creation code.
+     */
+    private JPanel createFoodItemPanel(FoodItem item, HighlightState state) {
+        JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        panel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 35));
+        panel.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY));
+        
+        // Use a switch statement to set the background color based on the state.
+        switch (state) {
+            case ADDED:
+                panel.setBackground(ADDED_ITEM_COLOR);
+                break;
+            case REMOVED:
+                panel.setBackground(REMOVED_ITEM_COLOR);
+                break;
+            case NORMAL:
+            default:
+                panel.setBackground(Color.WHITE);
+                break;
+        }
+        
+        String foodText = String.format("%.1f %s %s", item.getQuantity(), item.getUnit(), item.getName());
+        JLabel foodLabel = new JLabel(foodText);
+        panel.add(foodLabel);
+        return panel;
     }
     
-    
-    private void addListeners() {
-    	ActionListener viewListener = e -> {
-    		String command = e.getActionCommand();
-    		if("Pie Chart View".equals(command))
-				viewSwitcherLayout.show(viewSwitcherPanel, "Charts");
-			else if("Table View".equals(command))
-				viewSwitcherLayout.show(viewSwitcherPanel, "Tables");
-				
-    	};
-    	
-    	pieChartRadio.addActionListener(viewListener);
-    	pieChartRadio.setActionCommand("Pie Chart View");
-    	
-    	tableRadio.addActionListener(viewListener);
-    	tableRadio.setActionCommand("Table View");
-    	
-    	swapList.addListSelectionListener(e -> {
-    		if(!e.getValueIsAdjusting() && swapList.getSelectedIndex() != -1) {
-    			int selectedIndex = swapList.getSelectedIndex();
-    			FoodItem selectedFood = swapFood.get(selectedIndex);
-    			Nutrition selectedNutrition = swapNutrition.get(selectedIndex);
-    			
-    			updateSwapViews(selectedFood, selectedNutrition);
-    		}
-    	});
+    /**
+     * This public method is called by the Controller to fill the nutrient table with data.
+     */
+    public void displayNutrientComparison(Map<String, Double> originalNutrients,
+                                         Map<String, Double> modifiedNutrients,
+                                         Map<String, String> nutrientUnits) {
+        tableModel.setRowCount(0); // Clear existing rows
+        
+        // Loop through all the nutrients of the original meal
+        for (Map.Entry<String, Double> entry : originalNutrients.entrySet()) {
+            String nutrientName = entry.getKey();
+            Double originalValue = entry.getValue();
+            Double modifiedValue = modifiedNutrients.getOrDefault(nutrientName, 0.0);
+            
+            Double change = modifiedValue - originalValue;
+            Double percentChange = (originalValue != 0) ? (change / originalValue) * 100 : 0.0;
+            String unit = nutrientUnits.getOrDefault(nutrientName, "");
+            
+            // Create an array of objects for the new row.
+            Object[] rowData = {
+                nutrientName,
+                String.format("%.2f %s", originalValue, unit),
+                String.format("%.2f %s", modifiedValue, unit),
+                String.format("%+.2f %s", change, unit),
+                String.format("%+.1f%%", percentChange)
+            };
+            tableModel.addRow(rowData); // Add the new row to the table's model.
+        }
     }
     
-
-//dataset    
-    //
-    private void populateTableModel(DefaultTableModel model, Nutrition nutrition) {
-    	model.setRowCount(0);
-    	String[] importantNutrients = {
-    			"ENERGY (KILOCALORIES)", 
-                "PROTEIN", 
-                "CARBOHYDRATE, TOTAL (BY DIFFERENCE)", 
-                "FAT (TOTAL LIPIDS)",
-                "FIBRE, TOTAL DIETARY"};
-
-    	for (String nutrientName : importantNutrients) {
-    		double value = nutrition.getNutrientValue(nutrientName);
-    		model.addRow(new Object[] {nutrientName.split(" ")[0], numberFormat.format(value)});
-    	}
+    /**
+     * This is a private inner class that defines how cells in the nutrient table should be drawn.
+     * It extends DefaultTableCellRenderer, which is the standard renderer for JTable cells.
+     */
+    private class NutrientTableCellRenderer extends DefaultTableCellRenderer {
+        @Override
+        public Component getTableCellRendererComponent(JTable table, Object value,
+                                                     boolean isSelected, boolean hasFocus,
+                                                     int row, int column) {
+            // First, call the parent method to get the default cell component (a JLabel).
+            Component cellComponent = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+            
+            // Now, customize it. Check if we are in the "Change" or "% Change" column.
+            if (column >= 3) {
+                String textValue = value.toString();
+                if (textValue.startsWith("+")) {
+                    cellComponent.setForeground(INCREASE_COLOR); // Set text to green
+                } else if (textValue.startsWith("-")) {
+                    cellComponent.setForeground(DECREASE_COLOR); // Set text to red
+                } else {
+                    cellComponent.setForeground(Color.BLACK); // Default color
+                }
+            } else {
+                cellComponent.setForeground(Color.BLACK); // Default color for other columns
+            }
+            
+            // Set text alignment
+            setHorizontalAlignment(column == 0 ? SwingConstants.LEFT : SwingConstants.CENTER);
+            return cellComponent;
+        }
     }
     
+    // =======================================================
+    // Public methods to allow the Controller to attach listeners to the buttons.
+    // This is a standard way to handle events in MVC architecture.
+    // =======================================================
     
-    //Create dataset for chart
-    private DefaultPieDataset createDataset (Nutrition nutrition) {
-    	DefaultPieDataset dataset = new DefaultPieDataset();
-    	
-    	String[] importantNutrients = {
-    			"ENERGY (KILOCALORIES)", 
-                "PROTEIN", 
-                "CARBOHYDRATE, TOTAL (BY DIFFERENCE)", 
-                "FAT (TOTAL LIPIDS)",
-                "FIBRE, TOTAL DIETARY"};
-    	
-    	for(String n : importantNutrients) {
-    		double value = nutrition.getNutrientValue(n);
-    		if(value > 0) {
-    			String displayname = n.split(" ")[0];
-    			dataset.setValue(displayname, value);
-    		}
-    	}
-    	return dataset;
-    }
+    public void addBackButtonListener(ActionListener listener) { backButton.addActionListener(listener); }
+    public void addApplySwapButtonListener(ActionListener listener) { applySwapButton.addActionListener(listener); }
+    public void addTryAgainButtonListener(ActionListener listener) { tryAgainButton.addActionListener(listener); }
 }

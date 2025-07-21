@@ -158,6 +158,7 @@ public class CFGAnalysisPanel extends JPanel {
         );
         
         PiePlot plot = (PiePlot) chart.getPlot();
+        plot.setBackgroundPaint(new Color(255,255,255));
         plot.setSectionPaint("Vegetables & Fruits", new Color(0, 128, 0)); // green
         plot.setSectionPaint("Grain Products", new Color(255, 165, 0)); // yellow
         plot.setSectionPaint("Milk & Alternatives", new Color(0, 0, 255)); // blue

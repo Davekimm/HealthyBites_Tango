@@ -127,6 +127,8 @@ public class Controller {
 			view.clearLoginFields();
 			view.clearRegisterFields();
 			view.clearMealHistory();
+			view.clearCFGAnalysis();
+			view.clearNutrientAnalysis();
 			this.currentPage = "LoginPage";
 			this.currentUser = null;
 			JOptionPane.showMessageDialog(null, "Logged out successfully", "Success", JOptionPane.INFORMATION_MESSAGE);
@@ -213,6 +215,7 @@ public class Controller {
 		view.setNutrientAnalysisBackButtonListener(e -> {
 		    view.showHomePanel();
 		    view.clearNutrientAnalysis();
+		    view.clearCFGAnalysis();
 		    clearAnalysisCache();
 		    this.currentPage = "HomePage";
 		});
@@ -220,6 +223,7 @@ public class Controller {
 		view.setCFGAnalysisBackButtonListener(e -> {
 		    view.showHomePanel();
 		    view.clearCFGAnalysis();
+		    view.clearNutrientAnalysis();
 		    clearAnalysisCache();
 		    this.currentPage = "HomePage";
 		});

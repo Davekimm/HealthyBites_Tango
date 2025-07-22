@@ -1,7 +1,6 @@
 package healthyBites.view;
 
 import javax.swing.*;
-import javax.swing.plaf.basic.BasicComboBoxRenderer;
 import healthyBites.model.FoodItem;
 import java.awt.*;
 import java.awt.event.*;
@@ -106,6 +105,14 @@ public class GoalPanel extends JPanel {
         //bottom
         JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
         cancelButton = new JButton("Cancel");
+
+        // This local listener de-selects the meal card when the user leaves the panel.
+        cancelButton.addActionListener(e -> {
+            if (forMealSelection != null) {
+                forMealSelection.clearSelection();
+            }
+        });
+
         bottomPanel.add(cancelButton);
         getReplaceButton = new JButton("Get Replaceable Food");
         bottomPanel.add(getReplaceButton);

@@ -15,12 +15,14 @@ import healthyBites.observers.InitialLoadObserver;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -29,6 +31,11 @@ public class Controller {
     private Model model;
     private String currentPage;
     private UserProfile currentUser;
+    
+    private static final double KG_TO_LB = 2.20462;
+    private static final double LB_TO_KG = 0.453592;
+    private static final double CM_TO_INCH = 0.393701;
+    private static final double INCH_TO_CM = 2.54;
     
     private Map<String, String> cachedSelectedOriginalUnit = new HashMap<>();
     private Map<String, String> cachedSelectedUnit = new HashMap<>();
@@ -48,6 +55,14 @@ public class Controller {
     
     private List<InitialLoadObserver> initialLoadObservers;
 
+    // =======================================================
+    // Member variables for Food Swap functionality (UC 2)
+    // =======================================================
+    private Meal originalMealForSwap;
+    private FoodItem itemToSwap;
+    private FoodItem selectedReplacementItem;
+    private Meal modifiedMealForSwap;
+
     public Controller(ViewFacade view, Model model, List<InitialLoadObserver> initialLoadObservers) {
     	this.model = model;
     	this.view = view;
@@ -61,7 +76,6 @@ public class Controller {
     
     private void registerActionListeners() {
     	
-    	
     	//===========================================================
     	// Login page
     	//===========================================================
@@ -72,7 +86,6 @@ public class Controller {
 			this.currentPage = "RegisterPage";
 		});
 				
-		
 		//===========================================================
     	// Register page
     	//===========================================================
@@ -80,9 +93,10 @@ public class Controller {
 		
 		view.setRegisterCancelButtonListener(e -> {
 			view.showLoginPanel();
+			view.clearLoginFields();
+			view.clearRegisterFields();
 			this.currentPage = "LoginPage";
 		});
-		
 		
 		//===========================================================
     	// Home page
@@ -96,8 +110,6 @@ public class Controller {
 		view.setLogMealButtonListener(e -> {
 			view.showMealPanel();
 			getAvailableIngredients();
-
-			// prevent user from entering future dated meals
 			view.limitMealDateToToday();
 			this.currentPage = "MealPage";
 		});
@@ -109,9 +121,7 @@ public class Controller {
 		});
 
 		view.setLogoutButtonListener(e -> {
-			// Clear cache when logging out
 			clearAnalysisCache();
-			
 			view.showLoginPanel();
 			view.clearLoginFields();
 			view.clearRegisterFields();
@@ -121,165 +131,144 @@ public class Controller {
 			JOptionPane.showMessageDialog(null, "Logged out successfully", "Success", JOptionPane.INFORMATION_MESSAGE);
 		});
 		
-		
 		//===========================================================
     	// Edit page
     	//===========================================================
 		view.setEditMetricListener(e ->	convertUnitInEditPanel());
-		
 		view.setEditImperialListener(e -> convertUnitInEditPanel());
-		
 		view.setDeleteButtonListener(e -> deleteProfile());
-		
 		view.setSaveButtonListener(e -> saveEditProfile());
-		
 		view.setCancelButtonListener(e -> {
 			view.showHomePanel();
 			this.currentPage = "HomePage";
 		});
 		
-		
 		//===========================================================
     	// Log Meal page
     	//===========================================================
 		addMealPanelIngredientComboBoxListeners();
-		
 		view.setAddToMealButtonListener(e -> logMealHandler());
-		
 		view.setMealBackButtonListener(e -> {
 			view.showHomePanel();
 			view.clearMealFields();
-			// Clear cache when going back to home from meal panel
 			clearAnalysisCache();
 			this.currentPage = "HomePage";
 		});		
 		
-		
 		//===========================================================
-    	// Get Food Swaps page
+    	// Get Food Swaps page (GoalPanel)
     	//===========================================================
 		addGoalSwapPanelNutrientComboBoxListeners();
-		
 		view.setMealSelectionListener4GoalPanel1(meal -> {
 			this.selectedMeal = meal;
-			
-			view.setIngredientList4GoalPanel1(this.selectedMeal.getFoodItems());
+			if (this.selectedMeal != null) {
+				view.setIngredientList4GoalPanel1(this.selectedMeal.getFoodItems());
+			}
 		});
-		
 		view.getReplaceButtonListener(e -> {
-			//view.showGoalPanel2();
-			this.currentPage = "GoalPage2";
-			
-			getAlternativeFoodItems(this.selectedMeal);
-			
+			if (this.selectedMeal != null) {
+				getAlternativeFoodItems(this.selectedMeal);
+			} else {
+				JOptionPane.showMessageDialog(null, "Please select a meal first.", "Error", JOptionPane.ERROR_MESSAGE);
+			}
 		});
+
+        //===========================================================
+        // Swap Selection Page
+        //===========================================================
+        view.setSwapSelectionListener(selectedItem -> {
+            this.selectedReplacementItem = selectedItem;
+            displayComparisonForSelectedItem();
+        });
+        
+        view.setSwapSelectionBackButtonListener(e -> {
+            view.showGoalPanel();
+            this.currentPage = "GoalPage";
+        });
+
+        //===========================================================
+    	// Food Swaps Result page (GoalPanel2)
+    	//===========================================================
+        view.setGoalPanel2BackButtonListener(e -> {
+            view.showGoalPanel(); 
+            this.currentPage = "GoalPage";
+        });
+        
+        view.setTryAgainButtonListener(e -> {
+            view.showSwapSelectionPanel();
+            this.currentPage = "SwapSelectionPage";
+        });
+        
+        view.setApplySwapButtonListener(e -> applySwap());
 		
 		//===========================================================
     	// My Plate page - Nutrient and CFG Analysis
     	//===========================================================
-		
-		// My Plate button now opens CFG Analysis panel
 		view.setmyPlateButtonListener(e -> {
 		    view.showCFGAnalysisPanel();
 		    this.currentPage = "CFGAnalysisPage";
 		});
-		
-		// Nutrient Analysis listeners
 		view.setNutrientAnalyzeButtonListener(e -> analyzeNutrientIntake());
-
 		view.setNutrientAnalysisBackButtonListener(e -> {
 		    view.showHomePanel();
 		    view.clearNutrientAnalysis();
-		    // Clear cache when going back to home from nutrient analysis
 		    clearAnalysisCache();
 		    this.currentPage = "HomePage";
 		});
-		
-		// CFG Analysis listeners
 		view.setCFGAnalyzeButtonListener(e -> analyzeCFGAlignment());
-
 		view.setCFGAnalysisBackButtonListener(e -> {
 		    view.showHomePanel();
 		    view.clearCFGAnalysis();
-		    // Clear cache when going back to home from CFG analysis
 		    clearAnalysisCache();
 		    this.currentPage = "HomePage";
 		});
-
-		// Navigation between nutrient and CFG panels
 		view.setNutrientToCFGNavigationListener(e -> {
-		    // Get current date range from nutrient panel
 		    Date startDate = view.getNutrientAnalysisStartDate();
 		    Date endDate = view.getNutrientAnalysisEndDate();
-		    
-		    // Switch to CFG panel and set the same date range
 		    view.showCFGAnalysisPanel();
 		    view.setCFGAnalysisDates(startDate, endDate);
 		    this.currentPage = "CFGAnalysisPage";
-		    
-		    // Auto-analyze if we have valid dates (will use cached data if available)
 		    if (startDate != null && endDate != null && !startDate.after(endDate)) {
 		        analyzeCFGAlignment();
 		    }
 		});
-
 		view.setCFGToNutrientNavigationListener(e -> {
-		    // Get current date range from CFG panel
 		    Date startDate = view.getCFGAnalysisStartDate();
 		    Date endDate = view.getCFGAnalysisEndDate();
-		    
-		    // Switch to nutrient panel and set the same date range
 		    view.showNutrientAnalysisPanel();
 		    view.setNutrientAnalysisDates(startDate, endDate);
 		    this.currentPage = "NutrientAnalysisPage";
-		    
-		    // Auto-analyze if we have valid dates (will use cached data if available)
 		    if (startDate != null && endDate != null && !startDate.after(endDate)) {
 		        analyzeNutrientIntake();
 		    }
 		});
-		
 	}
     
-    /**
-     * Check if user's profile exists in UserInfo DB.
-     */
-    private void loginHandler() {
+    //===========================================================
+    // Login & Profile Management Methods
+    //===========================================================
 
+    private void loginHandler() {
     	String email = view.getLoginEmail();
-    	UserProfile profile = model.getProfile(email);
-    	
     	if(email.length() < 1) {
     		JOptionPane.showMessageDialog(null, "Invalid info. Please try again.", "Login Failed", JOptionPane.ERROR_MESSAGE);
     		return;
     	}
-
+        UserProfile profile = model.getProfile(email);
         if (profile != null) {
-        	
         	this.currentUser = profile;
-        	
         	JOptionPane.showMessageDialog(null, "Login successful!", "Success", JOptionPane.INFORMATION_MESSAGE);
-        	
-        	// Trigger the initial history load for all registered observers.
             for (InitialLoadObserver observer : initialLoadObservers) {
                 observer.loadInitialHistory(this.currentUser);
-               // System.out.println("Initial observer sets up in Controller");
             }
-            
             view.showHomePanel();
             this.currentPage = "HomePage";
-            
         } else {
         	JOptionPane.showMessageDialog(null, "Invalid info. Please try again.", "Login Failed", JOptionPane.ERROR_MESSAGE);
         }
     }
     
-    /**
-     * Register a new profile and save it in UserInfo DB.
-     */
     private void registerProfile() {
-    	
-    	// Check if any of the entries is null
     	String email = view.getRegisterEmail();
     	String name = view.getRegisterName();
     	String gender = view.getRegisterSex();
@@ -288,142 +277,181 @@ public class Controller {
     	double weight = view.getRegisterWeight();
     	String unit = view.getRegisterUnit();
     	
-    	if(email.length() == 0) {
-    		JOptionPane.showMessageDialog(null, "Email is required", "invalid email", JOptionPane.ERROR_MESSAGE);
-    		return;
-    	}
-    	
-//    	if(!email.contains("@")) {
-//    		JOptionPane.showMessageDialog(null, "Inappropriate email format", "invalid email", JOptionPane.ERROR_MESSAGE);
-//    		return;
-//    	}
-    	
-    	if(model.getProfile(email) != null) {
-    		JOptionPane.showMessageDialog(null, "This email already exists!", "invalid email", JOptionPane.ERROR_MESSAGE);
-    		return;
-    	}
-    	
-    	if(name.length() == 0) {
-    		JOptionPane.showMessageDialog(null, "Name is required.", "invalid name", JOptionPane.ERROR_MESSAGE);
-    		return;
-    	}
-    	
-    	if(height < 1) {
-    		JOptionPane.showMessageDialog(null, "Proper height is required.", "invalid height", JOptionPane.ERROR_MESSAGE);
-    		return;
-    	}
-    	
-    	if(weight < 1) {
-    		JOptionPane.showMessageDialog(null, "Proper weight is required.", "invalid weight", JOptionPane.ERROR_MESSAGE);
-    		return;
-    	}
+    	// Check for empty required fields
+        if (name.isEmpty() || email.isEmpty()) {
+            JOptionPane.showMessageDialog(null, "Please complete all required fields.", "Registration Failed", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        if (DOB.after(new Date())) {
+            JOptionPane.showMessageDialog(null, "The date of birth cannot be in the future", "Registration Failed", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        
+        Calendar minAge = Calendar.getInstance();
+        minAge.add(Calendar.YEAR, -19); 
+
+        Calendar maxAge = Calendar.getInstance();
+        maxAge.add(Calendar.YEAR, -50); 
+
+        if (DOB.after(minAge.getTime()) || DOB.before(maxAge.getTime())) {
+            JOptionPane.showMessageDialog(null, "Age should be from 19 to 50", "Registration Failed", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        
+        if (height < 1 || weight < 1) {
+            JOptionPane.showMessageDialog(null, "Height and weight must be valid numbers.", "Registration Failed", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        if (!email.contains("@") || email.substring(email.indexOf("@")+1).length() < 1) {
+            JOptionPane.showMessageDialog(null, "Please enter a valid email address format.", "Registration Failed", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        
+        if (model.getProfile(email) != null) {
+            JOptionPane.showMessageDialog(null, "This email already exists.", "Registration Failed", JOptionPane.ERROR_MESSAGE);
+            return;
+        }        
 		
 		this.currentUser = new UserProfile(name, gender, email, unit, DOB, height, weight);
-		
 		model.setProfile(this.currentUser);
-		
 		JOptionPane.showMessageDialog(null, "Successfully created your profile!", "Success", JOptionPane.INFORMATION_MESSAGE);
-
-	    	// new user doesn't have any history but this clears the history panel just to be defensive
    		view.clearMealHistory();
-		
 		view.showHomePanel();
 	    this.currentPage = "HomePage";
     }
     
-    /**
-     * Delete user's profile from UserInfo DB.
-     */
     private void deleteProfile() {
     	model.deleteProfile(this.currentUser.getEmail());
-    	
     	JOptionPane.showMessageDialog(null, "Successfully deleted your profile!", "Success", JOptionPane.INFORMATION_MESSAGE);
-		
     	view.clearMealHistory();
     	this.currentUser = null;
-    	
     	view.showLoginPanel();
     	view.clearLoginFields();
     	this.currentPage = "LoginPage";
     }
     
-    /**
-     * Show user's info in Edit Panel.
-     */
     private void updateUserInfoInEditPage() {
-    	
-    	// Update user info in Edit page.
     	view.populateEditPanel(
     			this.currentUser.getName(), this.currentUser.getSex(), this.currentUser.getUnitOfMeasurement(), 
     			this.currentUser.getWeight(), this.currentUser.getHeight(), this.currentUser.getDob(), this.currentUser.getEmail());
     }
     
-    /**
-     * Save the profile that the user has changed.
-     */
     private void saveEditProfile() {
-    	this.currentUser.setName(view.getEditName());
-    	this.currentUser.setSex(view.getEditSex());
-    	this.currentUser.setDob(view.getEditDOB());
-    	this.currentUser.setHeight(view.getEditHeight());
-    	this.currentUser.setWeight(view.getEditWeight());
-    	this.currentUser.setUnitOfMeasurement(view.getEditUnit());
-    	    	
+    	String name = view.getEditName();
+    	String gender = view.getEditSex();
+    	Date DOB = view.getEditDOB();
+    	double height = view.getEditHeight();
+    	double weight = view.getEditWeight();
+    	String unit = view.getEditUnit();
+    	
+        if (name.isEmpty()) {
+            JOptionPane.showMessageDialog(null, "Please enter a name.", "Registration Failed", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        if (DOB.after(new Date())) {
+            JOptionPane.showMessageDialog(null, "The date of birth cannot be in the future", "Registration Failed", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        
+        Calendar minAge = Calendar.getInstance();
+        minAge.add(Calendar.YEAR, -19); 
+
+        Calendar maxAge = Calendar.getInstance();
+        maxAge.add(Calendar.YEAR, -50); 
+
+        if (DOB.after(minAge.getTime()) || DOB.before(maxAge.getTime())) {
+            JOptionPane.showMessageDialog(null, "Age should be from 19 to 50", "Registration Failed", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        
+        if (height < 1 || weight < 1) {
+            JOptionPane.showMessageDialog(null, "Height and weight must be valid numbers.", "Registration Failed", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+    	
+    	this.currentUser.setName(name);
+    	this.currentUser.setSex(gender);
+    	this.currentUser.setDob(DOB);
+    	this.currentUser.setHeight(height);
+    	this.currentUser.setWeight(weight);
+    	this.currentUser.setUnitOfMeasurement(unit);
     	model.updateProfile(this.currentUser);
-    	
     	JOptionPane.showMessageDialog(null, "Successfully edited your profile!", "Success", JOptionPane.INFORMATION_MESSAGE);
-    	
     	updateUserInfoInEditPage();
-    	
     	view.showHomePanel();
     	this.currentPage = "HomePage";
     }
     
-    /**
-     * Convert units interchangeably between Metric and Imperial.
-     */
     private void convertUnitInEditPanel() {
-    	double convertedHeight = 0;
-    	double convertedWeight = 0;
-    	
-    	if(this.currentUser.getUnitOfMeasurement().equals("metric")) {
-    		// Imperial btn is clicked, show value in Imperial
-    		if(view.getEditUnit().equals("imperial")) {
-    			convertedHeight = view.getEditHeight() * 0.0328;
-    			convertedWeight = view.getEditWeight() * 2.204;
-        		
-    		}else {
-    			convertedHeight = this.currentUser.getHeight();
-    			convertedWeight = this.currentUser.getWeight();
-    		}
-    	}else {
-    		// Metric btn is clicked, show value in Metric
-        	if(view.getEditUnit().equals("metric")) {
-        		convertedHeight = view.getEditHeight() * 30.48;
-        		convertedWeight = view.getEditWeight() * 0.453;
-        	}else {
-        		convertedHeight = this.currentUser.getHeight();
-    			convertedWeight = this.currentUser.getWeight();
-        	}
-    	}
-    	
-    	view.populateEditPanel(this.currentUser.getName(), this.currentUser.getSex(), view.getEditUnit(),
-    			convertedWeight, convertedHeight, this.currentUser.getDob(), this.currentUser.getEmail());
+        String fromUnit = this.currentUser.getUnitOfMeasurement();
+        String toUnit = view.getEditUnit();
+
+        if (fromUnit.equals(toUnit)) {
+            return;
+        }
+
+        double currentHeight = view.getEditHeight();
+        double currentWeight = view.getEditWeight();
+        double convertedHeight;
+        double convertedWeight;
+
+        if (fromUnit.equals("metric") && toUnit.equals("imperial")) {
+            convertedHeight = currentHeight * CM_TO_INCH;
+            convertedWeight = currentWeight * KG_TO_LB;
+        } else { 
+            convertedHeight = currentHeight * INCH_TO_CM;
+            convertedWeight = currentWeight * LB_TO_KG;
+        }
+        
+        double height = Math.round(convertedHeight * 10.0) / 10.0;
+        double weight = Math.round(convertedWeight * 10.0) / 10.0;
+
+        view.populateEditPanel( this.currentUser.getName(), this.currentUser.getSex(),
+            toUnit, weight, height, this.currentUser.getDob(), this.currentUser.getEmail()
+        );
+
+        this.currentUser.setUnitOfMeasurement(toUnit);
     }
 	
-    /***
-     * Log the user's meal.
-     */
+    //===========================================================
+    // Meal Logging Methods
+    //===========================================================
+
     private void logMealHandler() {
-    	
     	List<String> foodNames = view.getMealIngredients();
 		List<String> foodQuantities = view.getMealQuantities();
-		List<String> foodUnits = view.getMealUnits();
 		
 		if (foodNames.isEmpty()) {
             JOptionPane.showMessageDialog(null, "Need to select at least one valid ingredient.", "Input Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
+		
+		List<Double> convertedFoodQuantities = new ArrayList<>();
+		
+		System.out.println("Received user's inputs ");
+		try {
+			for(int i = 0; i < foodNames.size(); i++) {
+	    		System.out.print("Looking for " + foodNames.get(i));
+	    		System.out.println(" / User entered qty of " + foodQuantities.get(i));
+	    		
+	    		double userInputQuantity = Double.parseDouble(foodQuantities.get(i));
+	    		double referenceUnitValue = this.cachedSelectedUnitValue.get(foodNames.get(i));
+	    		
+	    		convertedFoodQuantities.add(i, userInputQuantity / referenceUnitValue);
+	    	}
+			
+		}catch(NumberFormatException e) {
+		    JOptionPane.showMessageDialog(null, "Invalid quantity. Please enter numbers only.", "Input Error", JOptionPane.ERROR_MESSAGE);
+		    return;
+		}
+		
+		for(int i = 0; i < convertedFoodQuantities.size(); i++) {
+    		System.out.println(foodNames.get(i) + " has " + convertedFoodQuantities.get(i) + " x " + this.cachedSelectedUnitValue.get(foodNames.get(i)) + this.cachedSelectedUnit.get(foodNames.get(i)));
+    	}
+    	System.out.println();
 		
 		Date mealDate = view.getMealDate();
 		String mealType = view.getMealType();
@@ -432,25 +460,6 @@ public class Controller {
 			JOptionPane.showMessageDialog(null, mealType + " already exists!", "invalid meal type input", JOptionPane.ERROR_MESSAGE);
 			return;
 		}
-    	
-    	System.out.println("Received user's inputs ");
-		    	
-    	List<Double> convertedFoodQuantities = new ArrayList<>();
-    	for(int i = 0; i < foodNames.size(); i++) {
-    		System.out.print("Looking for " + foodNames.get(i));
-    		
-    		System.out.println(" / User entered qty of " + foodQuantities.get(i));
-    		
-    		double userInputQuantity = Double.parseDouble(foodQuantities.get(i));
-    		double referenceUnitValue = this.cachedSelectedUnitValue.get(foodNames.get(i));
-    		
-    		convertedFoodQuantities.add(i, userInputQuantity / referenceUnitValue);
-    	}
-    	
-    	for(int i = 0; i < convertedFoodQuantities.size(); i++) {
-    		System.out.println(foodNames.get(i) + " has " + convertedFoodQuantities.get(i) + " x " + this.cachedSelectedUnitValue.get(foodNames.get(i)) + this.cachedSelectedUnit.get(foodNames.get(i)));
-    	}
-    	System.out.println();
 
 		List<FoodItem> foodList = new ArrayList<>();
 		for(int i = 0; i < foodNames.size(); i++) {
@@ -467,108 +476,62 @@ public class Controller {
     		System.out.println(food.getName() + " / " + food.getQuantity() + " / " + food.getUnit());
     	}
     	
-    	
-    	
 		model.addMeal(meal, currentUser.getEmail());
 		
-		// Check if the new meal date falls within cached date range and clear cache if needed
-		if (cachedStartDate != null && cachedEndDate != null) {
-		    if (!mealDate.before(cachedStartDate) && !mealDate.after(cachedEndDate)) {
-		        // New meal is within cached range, invalidate cache
-		        clearAnalysisCache();
-		    }
+		if (cachedStartDate != null && cachedEndDate != null && !mealDate.before(cachedStartDate) && !mealDate.after(cachedEndDate)) {
+		    clearAnalysisCache();
 		}
 			
 		JOptionPane.showMessageDialog(null, "Logged meal data successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
-		
 		view.clearMealFields();
     }
     
-    /***
-     * Check if the meal type already exists on the date the user has selected.
-     * Only multiple snacks are allowed.
-     * @param date Meal's date
-     * @param type Meal's type
-     * @return Returns a boolean value.
-     */
     private boolean mealTypeExist(Date date, String type) {
-    	
         List<Meal> meals = model.getMeals(this.currentUser.getEmail());
-        
         Calendar targetDate = Calendar.getInstance();
         targetDate.setTime(date);
-        int year = targetDate.get(Calendar.YEAR);
-        int month = targetDate.get(Calendar.MONTH) + 1;
-        int day = targetDate.get(Calendar.DAY_OF_MONTH);
-                        		
     	for(Meal m : meals) {
-    		
     		Calendar mealDate = Calendar.getInstance();
     		mealDate.setTime(m.getDate());
-    		    		
-    		if(mealDate.get(Calendar.YEAR) == year &&
-    			mealDate.get(Calendar.MONTH) + 1 == month &&
-    			mealDate.get(Calendar.DAY_OF_MONTH) == day &&
-    			m.getType().equals(type)) 
-    		{
+    		if(mealDate.get(Calendar.YEAR) == targetDate.get(Calendar.YEAR) &&
+    			mealDate.get(Calendar.MONTH) == targetDate.get(Calendar.MONTH) &&
+    			mealDate.get(Calendar.DAY_OF_MONTH) == targetDate.get(Calendar.DAY_OF_MONTH) &&
+    			m.getType().equals(type)) {
     			return true;
     		}
     	}
-    	
     	return false;
     }
     
-    /**
-     * Show all the available ingredients that user can select in  
-     * Ingredient Combo box of the Meal Panel.
-     */
     private void getAvailableIngredients() {
-    	
-    	// Get available ingredients from Nutrient DB
     	List<String> availableIngredients = model.getFoodNames();
-    	    	
     	String[] foodNameAry = new String[availableIngredients.size()];
-    	for(int i = 0; i < availableIngredients.size(); i++) {
-    		foodNameAry[i] = availableIngredients.get(i);
-    	}
-    	    	
+    	availableIngredients.toArray(foodNameAry);
     	view.setMealIngredients(foodNameAry);
-    	
     }
     
-    /**
-     * Listens to an action of each food name combo box and query available 
-     * units from Nutrient DB based on the food name selected by users.
-     */    
     private void addMealPanelIngredientComboBoxListeners() {
         view.setIngredientSelectionListener((rowIndex, foodName) -> {
-        	        	
             List<String> unitList = model.getAvailableUnits(foodName);
-
-            // Filter units that include numeric value + ml or g
             List<String> filteredUnits = new ArrayList<>();
             Pattern unitPattern = Pattern.compile("\\b(\\d+)(ml|g)\\b", Pattern.CASE_INSENSITIVE);
 
             for (String unit : unitList) {
-                String cleaned = unit.toLowerCase().replace(",", "").trim(); // e.g., "250ml diced" → "250ml diced"
+                String cleaned = unit.toLowerCase().replace(",", "").trim();
                 Matcher matcher = unitPattern.matcher(cleaned);
                 if (matcher.find()) {
-                    String cleanUnit = matcher.group(1) + matcher.group(2); // e.g., "250ml"
-                    filteredUnits.add(cleanUnit);
+                    filteredUnits.add(matcher.group(1) + matcher.group(2));
                 }
             }
 
-            // Handle no valid units
             if (filteredUnits.isEmpty()) {
                 view.setUnitsForRow(rowIndex, new String[]{"units"});
                 this.cachedSelectedUnit.put(foodName, "units");
                 return;
             }
 
-            // Find the smallest numeric unit
             String smallestUnit = null;
             int smallestValue = Integer.MAX_VALUE;
-
             for (String unit : filteredUnits) {
                 try {
                     int value = Integer.parseInt(unit.replaceAll("[^0-9]", ""));
@@ -576,9 +539,7 @@ public class Controller {
                         smallestValue = value;
                         smallestUnit = unit;
                     }
-                } catch (NumberFormatException e) {
-                    // Do nothing
-                }
+                } catch (NumberFormatException e) { /* Ignore */ }
             }
 
             if (smallestUnit == null) {
@@ -588,132 +549,168 @@ public class Controller {
             }
             
             this.cachedSelectedOriginalUnit.put(foodName, smallestUnit);
-
-            // Extract and store numeric and unit separately
             String numericStr = smallestUnit.replaceAll("[^0-9]", "");
             String unitOnly = smallestUnit.replaceAll("[0-9]", "");
-
             this.cachedSelectedUnit.put(foodName, unitOnly);
             this.cachedSelectedUnitValue.put(foodName, Double.parseDouble(numericStr));
-            
             view.setUnitsForRow(rowIndex, new String[]{unitOnly});
-
         });
     }
-    
+
+    //===========================================================
+    // Food Swap & Goal Methods
+    //===========================================================
+
     private void addGoalSwapPanelNutrientComboBoxListeners() {
-        view.setNutrientSelectionListener4GoalPanel1((rowIndex, foodName) -> {
-        	        	
-        	String[] unitList = new String[2];
-        	unitList[0] = "%";
-        	unitList[1] = model.getNutrientUnit(foodName);
-            
+        view.setNutrientSelectionListener4GoalPanel1((rowIndex, nutrientName) -> {
+        	String[] unitList = {"%", model.getNutrientUnit(nutrientName)};
         	view.setGoalSwapUnitsForRow4GoalPanel1(rowIndex, unitList);
         });
     }
     
     private void getAvailableNutrients() {
-    	
     	List<String> availableNutrients = model.getNutrientNames();
+    	String[] foodNutrientAry = new String[Math.min(50, availableNutrients.size())];
     	
-    	String[] foodNutrientAry = new String[50];
-    	for(int i = 0; i < 50; i++) {
+    	for(int i = 0; i < foodNutrientAry.length; i++) {
     		foodNutrientAry[i] = availableNutrients.get(i);
     	}
-    	    	
+    	
     	view.setNutrientList4GoalPanel1(foodNutrientAry);
-    	
-    	String[] unitList = new String[2];
-    	unitList[0] = "%";
-    	unitList[1] = model.getNutrientUnit("PROTEIN");
-    	
+    	String[] unitList = {"%", model.getNutrientUnit("PROTEIN")};
     	view.setGoalSwapUnitsForRow4GoalPanel1(0, unitList);
     }
     
     private void getAlternativeFoodItems(Meal meal) {
-    	int numOfGoal = view.getSelectedNutrient4GoalPanel1().size();
-    	
-    	String[] selectedNutrients = new String[numOfGoal];
-    	boolean[] selectedActions = new boolean[numOfGoal];
-    	double[] selectedIntensities = new double[numOfGoal];
-    	String[] selectedUnits = new String[numOfGoal];
-    	
-    	FoodItem selectedFoodItem = null;
-    	for(FoodItem food : meal.getFoodItems()) {
-    		if(food.getName().equals(view.getSelectedIngredient4GoalPanel1())) {
-    			selectedFoodItem = food;
-    		}
-    	}
-    	
-    	System.out.println("Selected food item is " + selectedFoodItem.getName());
-    	
-    	Nutrition nutrition = model.getMealNutrtionalValue(meal);
-    	
-    	List<Goal> goals = new ArrayList<>();
-    	
-    	for(int i = 0; i < numOfGoal; i++) {
-    		selectedNutrients[i] = view.getSelectedNutrient4GoalPanel1().get(i);
-    		System.out.print("selected Options : " + selectedNutrients[i]);
-    		System.out.print(" with " + nutrition.getNutrientValue(selectedNutrients[i]));
-    		
-    		selectedActions[i] = true;
-    		if(view.getSelectedAction4GoalPanel1().get(i).equals("decrease")) {
-    			selectedActions[i] = false;
-        	}
-    		
-    		System.out.print(", " + selectedActions[i]);
-    		
-    		selectedUnits[i] = view.getSelectedUnit4GoalPanel1().get(i);
-    		selectedIntensities[i] = Double.parseDouble(view.getSelectedIntensityPrecise4GoalPanel1().get(i));
-    		
-    		System.out.print(", " + selectedIntensities[i]);
-    		System.out.println(", " + selectedUnits[i]);
+        this.originalMealForSwap = meal;
+        String selectedFoodItemName = view.getSelectedIngredient4GoalPanel1();
 
-    		double currentNutrientValue = nutrition.getNutrientValue(selectedNutrients[i]);
-    		double desiredChange = selectedIntensities[i];
-    		double intensity;
+        if (selectedFoodItemName == null) {
+            JOptionPane.showMessageDialog(null, "Please select a food item to swap.", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
 
-    		// Check the unit and calculate the target intensity accordingly
-    		if (selectedUnits[i].equals("%")) {
-    		    double multiplier = selectedActions[i] ? (1 + desiredChange / 100) : (1 - desiredChange / 100);
-    		    intensity = currentNutrientValue * multiplier;
-    		} else {	
-    		    intensity = selectedActions[i] ? (currentNutrientValue + desiredChange) : (currentNutrientValue - desiredChange);
-    		}
+        this.itemToSwap = null;
+        for (FoodItem food : meal.getFoodItems()) {
+            if (food.getName().equals(selectedFoodItemName)) {
+                this.itemToSwap = food;
+                break;
+            }
+        }
 
-    		Goal goal = new Goal(selectedNutrients[i], selectedActions[i], intensity);
-    		goals.add(goal);
-    		
-    		System.out.print("Setting a goal with : ");
-    		System.out.print(selectedNutrients[i] + ", ");
-    		System.out.print(selectedActions[i] + ", ");
-    		    		
-    		System.out.println(" Goal intensity with " + goal.getIntensity());
-    		System.out.println();
-    	}
-		
-		List<FoodItem> replaceableFoodItems = model.getAlternativeFoodOptions(meal, selectedFoodItem, goals);
-		
-		System.out.println("replaceableFoodItems' size : " + replaceableFoodItems.size());
-		
-		for(int i = 0 ; i < replaceableFoodItems.size(); i++) {
-			System.out.println("foodItem to replace with : " + replaceableFoodItems.get(i));
-			
-		}
-		
-		
+        if (this.itemToSwap == null) {
+             JOptionPane.showMessageDialog(null, "Could not find the selected food item in the meal.", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        List<Goal> goals = new ArrayList<>();
+        List<String> selectedNutrients = view.getSelectedNutrient4GoalPanel1();
+        Nutrition originalMealNutrition = model.getMealNutrtionalValue(meal);
+
+        try {
+        	for (int i = 0; i < selectedNutrients.size(); i++) {
+                String nutrient = selectedNutrients.get(i);
+                boolean isIncrease = view.getSelectedAction4GoalPanel1().get(i).equals("increase");
+                String unit = view.getSelectedUnit4GoalPanel1().get(i);
+                double intensityValue = Double.parseDouble(view.getSelectedIntensityPrecise4GoalPanel1().get(i));
+                
+                double targetIntensity;
+                double currentMealNutrientValue = originalMealNutrition.getNutrientValue(nutrient);
+
+                if (unit.equals("%")) {
+                    double multiplier = intensityValue / 100.0;
+                    targetIntensity = isIncrease ? (currentMealNutrientValue * (1 + multiplier)) : (currentMealNutrientValue * (1 - multiplier));
+                } else {
+                    targetIntensity = isIncrease ? (currentMealNutrientValue + intensityValue) : (currentMealNutrientValue - intensityValue);
+                }
+                
+                if (targetIntensity < 0) {
+                    targetIntensity = 0;
+                }
+
+                goals.add(new Goal(nutrient, isIncrease, targetIntensity));
+            }
+        }catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(null, "Invalid intensity. Please enter numbers only.", "Input Error", JOptionPane.ERROR_MESSAGE);
+            return; 
+        }
+        
+
+        List<FoodItem> alternativeOptions = model.getAlternativeFoodOptions(meal, this.itemToSwap, goals);
+
+        if (alternativeOptions == null || alternativeOptions.isEmpty()) {
+            JOptionPane.showMessageDialog(null, "No suitable food swaps found for the specified goals.", "No Results", JOptionPane.INFORMATION_MESSAGE);
+        } else {
+            view.setSwapOptions(alternativeOptions);
+            view.showSwapSelectionPanel();
+            this.currentPage = "SwapSelectionPage";
+        }
     }
     
+    private void displayComparisonForSelectedItem() {
+        if (selectedReplacementItem == null) return;
+
+        List<FoodItem> modifiedFoodItems = new ArrayList<>();
+        for (FoodItem originalItem : originalMealForSwap.getFoodItems()) {
+            if (originalItem.equals(itemToSwap)) {
+                modifiedFoodItems.add(selectedReplacementItem);
+            } else {
+                modifiedFoodItems.add(originalItem);
+            }
+        }
+        this.modifiedMealForSwap = new Meal(originalMealForSwap.getDate(), modifiedFoodItems, originalMealForSwap.getType());
+
+        Nutrition originalNutrition = model.getMealNutrtionalValue(originalMealForSwap);
+        Nutrition modifiedNutrition = model.getMealNutrtionalValue(modifiedMealForSwap);
+        
+        // Use a TreeMap to automatically sort the nutrients alphabetically by name
+        Map<String, Double> sortedOriginalNutrients = new TreeMap<>(originalNutrition.getNutrients());
+        Map<String, Double> sortedModifiedNutrients = new TreeMap<>(modifiedNutrition.getNutrients());
+        
+        Map<String, String> nutrientUnits = new HashMap<>();
+        for (String nutrientName : originalNutrition.getNutrients().keySet()) {
+            try {
+                nutrientUnits.put(nutrientName, model.getNutrientUnit(nutrientName));
+            } catch (IllegalArgumentException e) {
+                nutrientUnits.put(nutrientName, "");
+            }
+        }
+
+        Map<FoodItem, FoodItem> replacements = Collections.singletonMap(itemToSwap, selectedReplacementItem);
+        
+        view.displaySwapResults(
+            originalMealForSwap, 
+            modifiedMealForSwap, 
+            replacements,
+            sortedOriginalNutrients, 
+            sortedModifiedNutrients, 
+            nutrientUnits
+        );
+        view.showGoalPanel2();
+        this.currentPage = "GoalPage2";
+    }
+
+    private void applySwap() {
+        if (originalMealForSwap != null && modifiedMealForSwap != null) {
+        	
+            JOptionPane.showMessageDialog(null, "Meal swap applied (Simulated).\nMeal data was not permanently changed.", "Success", JOptionPane.INFORMATION_MESSAGE);
+            
+            this.originalMealForSwap = null;
+            this.modifiedMealForSwap = null;
+            this.itemToSwap = null;
+            this.selectedReplacementItem = null;
+            
+            view.showHomePanel();
+            this.currentPage = "HomePage";
+        } else {
+            JOptionPane.showMessageDialog(null, "No swap to apply.", "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    //===========================================================
+    // Nutrient & CFG Analysis Methods
+    //===========================================================
     
-    
-    
-    
-    
-    
-    /**
-     * Helper method to clear all analysis-related cache data.
-     * Called when returning to home or after adding a meal within cached date range.
-     */
     private void clearAnalysisCache() {
         cachedMeals = null;
         cachedStartDate = null;
@@ -724,79 +721,38 @@ public class Controller {
         cachedNumberOfDays = 0;
     }
     
-    /**
-     * Caching method used by both nutrient and CFG analysis.
-     * This method checks if we already have the meals for the requested date range cached.
-     * If yes, returns the cached meals. If no, fetches from database and caches them.
-     * 
-     * @param startDate The start date of the analysis period
-     * @param endDate The end date of the analysis period
-     * @return List of meals within the date range
-     */
     private List<Meal> getCachedMealsForDateRange(Date startDate, Date endDate) {
-        // Check if we have valid cached data for this date range
-        if (cachedMeals != null && 
-            cachedStartDate != null && 
-            cachedEndDate != null &&
-            cachedStartDate.equals(startDate) && 
-            cachedEndDate.equals(endDate)) {
+        if (cachedMeals != null && cachedStartDate != null && cachedEndDate != null &&
+            cachedStartDate.equals(startDate) && cachedEndDate.equals(endDate)) {
             return cachedMeals;
         }
-        
-        // Otherwise, fetch fresh data and cache it
         cachedMeals = model.getMealsByTimeFrame(this.currentUser.getEmail(), startDate, endDate);
         cachedStartDate = startDate;
         cachedEndDate = endDate;
-        
-        // Clear derived cache data since we have new meals
         cachedTotalNutrients = null;
         cachedNutrientUnits = null;
         cachedTotalCFGServings = null;
         cachedNumberOfDays = 0;
-        
         return cachedMeals;
     }
     
-    /**
-     * Analyzes nutrient intake for a selected date range.
-     * Uses caching to avoid repeated database queries when switching between analyses.
-     * Calculates average daily nutrient values and displays them in charts and summaries.
-     */
     private void analyzeNutrientIntake() {
         Date startDate = view.getNutrientAnalysisStartDate();
         Date endDate = view.getNutrientAnalysisEndDate();
         
-        if (startDate == null || endDate == null) {
-            JOptionPane.showMessageDialog(null,
-                "Please select both start and end dates",
-                "Missing Dates",
-                JOptionPane.ERROR_MESSAGE);
+        if (startDate == null || endDate == null || startDate.after(endDate)) {
+            JOptionPane.showMessageDialog(null, "Please select a valid date range.", "Invalid Dates", JOptionPane.ERROR_MESSAGE);
             return;
         }
         
-        if (startDate.after(endDate)) {
-            JOptionPane.showMessageDialog(null,
-                "Start date must be before end date",
-                "Invalid Date Range",
-                JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-        
-        // Use cached meals if available
         List<Meal> mealsInRange = getCachedMealsForDateRange(startDate, endDate);
-        
         if (mealsInRange.isEmpty()) {
-            JOptionPane.showMessageDialog(null,
-                "No meals found in the selected time period.",
-                "No Data",
-                JOptionPane.INFORMATION_MESSAGE);
+            JOptionPane.showMessageDialog(null, "No meals found in the selected time period.", "No Data", JOptionPane.INFORMATION_MESSAGE);
             view.clearNutrientAnalysis();
             return;
         }
         
-        // Check if we have cached calculations for this date range
         if (cachedTotalNutrients == null || cachedNumberOfDays == 0) {
-            // Calculate total nutrients
             cachedTotalNutrients = new HashMap<>();
             Set<String> uniqueMealDays = new HashSet<>();
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
@@ -804,107 +760,63 @@ public class Controller {
             for (Meal meal : mealsInRange) {
                 uniqueMealDays.add(sdf.format(meal.getDate()));
                 Nutrition nutrition = model.getMealNutrtionalValue(meal);
-                
                 if (nutrition != null && nutrition.getNutrients() != null) {
                     for (Map.Entry<String, Double> nutrientEntry : nutrition.getNutrients().entrySet()) {
-                        String nutrientName = nutrientEntry.getKey();
-                        Double value = nutrientEntry.getValue();
-                        cachedTotalNutrients.put(nutrientName, 
-                            cachedTotalNutrients.getOrDefault(nutrientName, 0.0) + value);
+                        cachedTotalNutrients.merge(nutrientEntry.getKey(), nutrientEntry.getValue(), Double::sum);
                     }
                 }
             }
             
             cachedNumberOfDays = uniqueMealDays.isEmpty() ? 1 : uniqueMealDays.size();
             
-            // Get nutrient units (only if not cached)
             if (cachedNutrientUnits == null) {
                 cachedNutrientUnits = new HashMap<>();
                 for (String nutrientName : cachedTotalNutrients.keySet()) {
                     try {
-                        String unit = model.getNutrientUnit(nutrientName);
-                        cachedNutrientUnits.put(nutrientName, unit);
+                        cachedNutrientUnits.put(nutrientName, model.getNutrientUnit(nutrientName));
                     } catch (IllegalArgumentException e) {
                         cachedNutrientUnits.put(nutrientName, null);
-                        System.err.println(e.getMessage());
                     }
                 }
             }
         }
         
-        // Calculate average daily nutrients
         Map<String, Double> averageDailyNutrients = new HashMap<>();
         for (Map.Entry<String, Double> entry : cachedTotalNutrients.entrySet()) {
             averageDailyNutrients.put(entry.getKey(), entry.getValue() / cachedNumberOfDays);
         }
-        
-        // Display the analysis
         view.displayNutrientAnalysis(averageDailyNutrients, cachedNumberOfDays, cachedNutrientUnits);
     }
     
-    /**
-     * Analyzes how well the user's diet aligns with Canada Food Guide recommendations.
-     * Uses caching to avoid repeated database queries when switching between analyses.
-     * Calculates average daily food group servings and compares them to CFG recommendations.
-     * 
-     * The analysis shows:
-     * 1. Two pie charts comparing user's average plate vs CFG recommended plate
-     * 2. Detailed table showing actual vs recommended servings for each food group
-     * 3. Status indicators showing if user is meeting recommendations
-     */
     private void analyzeCFGAlignment() {
-        // Get the date range from the CFG panel
         Date startDate = view.getCFGAnalysisStartDate();
         Date endDate = view.getCFGAnalysisEndDate();
         
-        // Validate date inputs
-        if (startDate == null || endDate == null) {
-            JOptionPane.showMessageDialog(null,
-                "Please select both start and end dates",
-                "Missing Dates",
-                JOptionPane.ERROR_MESSAGE);
+        if (startDate == null || endDate == null || startDate.after(endDate)) {
+            JOptionPane.showMessageDialog(null, "Please select a valid date range.", "Invalid Dates", JOptionPane.ERROR_MESSAGE);
             return;
         }
         
-        if (startDate.after(endDate)) {
-            JOptionPane.showMessageDialog(null,
-                "Start date must be before end date",
-                "Invalid Date Range",
-                JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-        
-        // Use cached meals if available for the same date range
         List<Meal> mealsInRange = getCachedMealsForDateRange(startDate, endDate);
-        
         if (mealsInRange.isEmpty()) {
-            JOptionPane.showMessageDialog(null,
-                "No meals found in the selected time period.",
-                "No Data",
-                JOptionPane.INFORMATION_MESSAGE);
+            JOptionPane.showMessageDialog(null, "No meals found in the selected time period.", "No Data", JOptionPane.INFORMATION_MESSAGE);
             view.clearCFGAnalysis();
             return;
         }
         
-        // Check if we have cached CFG calculations for this date range
         if (cachedTotalCFGServings == null || cachedNumberOfDays == 0) {
-            // Calculate total CFG servings across all meals
             cachedTotalCFGServings = new CFGFoodGroup(0, 0, 0, 0, 0);
             Set<String> uniqueDays = new HashSet<>();
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
             
-            // Aggregate servings from each meal
             for (Meal meal : mealsInRange) {
                 uniqueDays.add(sdf.format(meal.getDate()));
-                // Get CFG servings for this meal using the model's method
                 CFGFoodGroup mealServings = ((ConcreteModel) model).getUserMealCFGServings(meal);
                 cachedTotalCFGServings = cachedTotalCFGServings.add(mealServings);
             }
-            
             cachedNumberOfDays = uniqueDays.isEmpty() ? 1 : uniqueDays.size();
         }
         
-        // Calculate average daily servings by dividing total by number of days
         CFGFoodGroup averageDailyServings = new CFGFoodGroup(
             cachedTotalCFGServings.getVegtablesAndFruits() / cachedNumberOfDays,
             cachedTotalCFGServings.getGrainProducts() / cachedNumberOfDays,
@@ -913,13 +825,7 @@ public class Controller {
             cachedTotalCFGServings.getOilsAndFat() / cachedNumberOfDays
         );
         
-        // Get recommended servings based on user's profile (currently only considers sex)
-        // TODO: Should be updated to consider age as well for proper CFG 2007 compliance
-        CFGFoodGroup recommendedServings = ((ConcreteModel) model)
-            .getDailyRecommendedServingsFromCFG(this.currentUser);
-        
-        // Display the analysis with visual comparison
+        CFGFoodGroup recommendedServings = ((ConcreteModel) model).getDailyRecommendedServingsFromCFG(this.currentUser);
         view.displayCFGAnalysis(averageDailyServings, recommendedServings, cachedNumberOfDays);
     }
-    
 }

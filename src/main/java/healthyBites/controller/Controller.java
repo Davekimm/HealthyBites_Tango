@@ -747,14 +747,6 @@ public class Controller {
 
 // ================== CHANGE START ==================
     /**
-     * This method is now obsolete, as its functionality is replaced by the
-     * more comprehensive "what-if" analysis workflow.
-     */
-    private void applySwap() {
-        // Obsolete
-    }
-    
-    /**
      * Clears the cached results of a "what-if" analysis. This is called when
      * the user navigates away from the analysis workflow to ensure stale data isn't used.
      */

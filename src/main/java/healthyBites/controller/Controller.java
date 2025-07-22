@@ -3,6 +3,7 @@ package healthyBites.controller;
 import javax.swing.JOptionPane;
 import healthyBites.view.ViewFacade;
 import healthyBites.model.ConcreteModel;
+import healthyBites.model.ConcreteModelProxy;
 import healthyBites.model.FoodItem;
 import healthyBites.model.Goal;
 import healthyBites.model.Meal;
@@ -64,7 +65,7 @@ public class Controller {
     private Meal modifiedMealForSwap;
 
     public Controller(ViewFacade view, Model model, List<InitialLoadObserver> initialLoadObservers) {
-    	this.model = model;
+    	this.model = ConcreteModelProxy.getInstance();
     	this.view = view;
     	this.currentPage = "LoginPage";
     	this.initialLoadObservers = initialLoadObservers;
@@ -811,7 +812,7 @@ public class Controller {
             
             for (Meal meal : mealsInRange) {
                 uniqueDays.add(sdf.format(meal.getDate()));
-                CFGFoodGroup mealServings = ((ConcreteModel) model).getUserMealCFGServings(meal);
+                CFGFoodGroup mealServings = model.getUserMealCFGServings(meal);
                 cachedTotalCFGServings = cachedTotalCFGServings.add(mealServings);
             }
             cachedNumberOfDays = uniqueDays.isEmpty() ? 1 : uniqueDays.size();
@@ -825,7 +826,7 @@ public class Controller {
             cachedTotalCFGServings.getOilsAndFat() / cachedNumberOfDays
         );
         
-        CFGFoodGroup recommendedServings = ((ConcreteModel) model).getDailyRecommendedServingsFromCFG(this.currentUser);
+        CFGFoodGroup recommendedServings = model.getDailyRecommendedServingsFromCFG(this.currentUser);
         view.displayCFGAnalysis(averageDailyServings, recommendedServings, cachedNumberOfDays);
     }
 }

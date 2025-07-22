@@ -412,7 +412,8 @@ public class ConcreteModel implements Model, MealSubject {
         WHERE nutrient_amounts.food_id = 
             (SELECT food_id
             FROM food_names
-            WHERE food_description = ?);
+            WHERE food_description = ?
+            LIMIT 1);
         """;
         try (PreparedStatement stmt = conn.prepareStatement(query)) {
             stmt.setString(1, foodItem.getName());

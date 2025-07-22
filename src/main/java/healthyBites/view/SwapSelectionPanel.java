@@ -37,7 +37,7 @@ public class SwapSelectionPanel extends JPanel {
         // Bottom panel for buttons
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 10));
         backButton = new JButton("Back");
-        selectButton = new JButton("Select Swap");
+        selectButton = new JButton("Apply Swap");
         buttonPanel.add(backButton);
         buttonPanel.add(selectButton);
 

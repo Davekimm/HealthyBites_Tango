@@ -1,9 +1,6 @@
 package healthyBites.view;
 
 import javax.swing.*;
-
-import org.jfree.data.general.DefaultPieDataset;
-
 import java.awt.*;
 import java.awt.event.ActionListener;
 import java.util.Date;
@@ -11,7 +8,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
-
 import healthyBites.model.Meal;
 import healthyBites.model.Nutrition;
 import healthyBites.model.CFGFoodGroup;
@@ -33,10 +29,16 @@ public class ViewFacade {
     private MealHistoryPanel mealHistoryPanelForGoal;
     private MealHistoryPanel mealHistoryPanelForHome;
     private GoalPanel goalPanel;
-    private SwapSelectionPanel swapSelectionPanel; // New panel
+    private SwapSelectionPanel swapSelectionPanel;
     private GoalPanel2 goalPanel2;
     private NutrientAnalysisPanel nutrientAnalysisPanel;
     private CFGAnalysisPanel cfgAnalysisPanel;
+// ================== NEW CODE START ==================
+    private AnalysisSelectionPanel analysisSelectionPanel;
+    private AverageImpactPanel averageImpactPanel;
+    private CumulativeAnalysisPanel cumulativeAnalysisPanel;
+    private PerMealAnalysisPanel perMealAnalysisPanel;
+// ==================  NEW CODE END  ==================
     
     // Panel name constants for card layout navigation
     public static final String LOGIN_PANEL = "LoginPanel";
@@ -45,10 +47,16 @@ public class ViewFacade {
     public static final String EDIT_PANEL = "EditPanel";
     public static final String MEAL_PANEL = "MealPanel";
     public static final String GOAL_PANEL = "GoalPanel";
-    public static final String SWAP_SELECTION_PANEL = "SwapSelectionPanel"; // New panel name
+    public static final String SWAP_SELECTION_PANEL = "SwapSelectionPanel";
     public static final String GOAL_PANEL2 = "GoalPanel2";
     public static final String NUTRIENT_ANALYSIS_PANEL = "NutrientAnalysisPanel";
     public static final String CFG_ANALYSIS_PANEL = "CFGAnalysisPanel";
+// ================== NEW CODE START ==================
+    public static final String ANALYSIS_SELECTION_PANEL = "AnalysisSelectionPanel";
+    public static final String AVERAGE_IMPACT_PANEL = "AverageImpactPanel";
+    public static final String CUMULATIVE_ANALYSIS_PANEL = "CumulativeAnalysisPanel";
+    public static final String PER_MEAL_ANALYSIS_PANEL = "PerMealAnalysisPanel";
+// ==================  NEW CODE END  ==================
 
     public ViewFacade() {
         initializeMainFrame();
@@ -70,7 +78,6 @@ public class ViewFacade {
     private void initializeMainFrame() {
         mainFrame = new JFrame("Healthy Bites");
         mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        
         cardLayout = new CardLayout();
         cardPanel = new JPanel(cardLayout);
         mainFrame.add(cardPanel);
@@ -85,11 +92,17 @@ public class ViewFacade {
         mealHistoryPanelForHome = new MealHistoryPanel(BoxLayout.X_AXIS);
         mealPanel = new MealPanel(mealHistoryPanel);
         goalPanel = new GoalPanel(mealHistoryPanelForGoal);
-        swapSelectionPanel = new SwapSelectionPanel(); // Initialize new panel
+        swapSelectionPanel = new SwapSelectionPanel();
         homePanel = new HomePanel(mealHistoryPanelForHome);
         goalPanel2 = new GoalPanel2();
         nutrientAnalysisPanel = new NutrientAnalysisPanel();
         cfgAnalysisPanel = new CFGAnalysisPanel();
+// ================== NEW CODE START ==================
+        analysisSelectionPanel = new AnalysisSelectionPanel();
+        averageImpactPanel = new AverageImpactPanel();
+        cumulativeAnalysisPanel = new CumulativeAnalysisPanel();
+        perMealAnalysisPanel = new PerMealAnalysisPanel();
+// ==================  NEW CODE END  ==================
         
         cardPanel.add(loginPanel, LOGIN_PANEL);
         cardPanel.add(registerPanel, REGISTER_PANEL);
@@ -97,10 +110,16 @@ public class ViewFacade {
         cardPanel.add(editPanel, EDIT_PANEL);
         cardPanel.add(mealPanel, MEAL_PANEL);
         cardPanel.add(goalPanel, GOAL_PANEL);
-        cardPanel.add(swapSelectionPanel, SWAP_SELECTION_PANEL); // Add new panel to layout
+        cardPanel.add(swapSelectionPanel, SWAP_SELECTION_PANEL);
         cardPanel.add(goalPanel2, GOAL_PANEL2);
         cardPanel.add(nutrientAnalysisPanel, NUTRIENT_ANALYSIS_PANEL);
         cardPanel.add(cfgAnalysisPanel, CFG_ANALYSIS_PANEL);
+// ================== NEW CODE START ==================
+        cardPanel.add(analysisSelectionPanel, ANALYSIS_SELECTION_PANEL);
+        cardPanel.add(averageImpactPanel, AVERAGE_IMPACT_PANEL);
+        cardPanel.add(cumulativeAnalysisPanel, CUMULATIVE_ANALYSIS_PANEL);
+        cardPanel.add(perMealAnalysisPanel, PER_MEAL_ANALYSIS_PANEL);
+// ==================  NEW CODE END  ==================
     }
     
     // ===========================================
@@ -127,26 +146,20 @@ public class ViewFacade {
     // Goal PANEL 2 METHODS
     // ===========================================
     
-    /**
-     * Populates GoalPanel2 with the results of a food swap.
-     * The nutrientChanges parameter has been removed.
-     */
-    public void displaySwapResults(Meal originalMeal, Meal modifiedMeal,
-                                   Map<FoodItem, FoodItem> replacements,
-                                   Map<String, Double> originalNutrients,
-                                   Map<String, Double> modifiedNutrients,
-                                   Map<String, String> nutrientUnits) {
-        goalPanel2.displayMealComparison(originalMeal, modifiedMeal, replacements);
-        goalPanel2.displayNutrientComparison(originalNutrients, modifiedNutrients, nutrientUnits);
+    public void displaySwapResults(Meal originalMeal, Meal modifiedMeal, Map<FoodItem, FoodItem> replacements, Map<String, Double> originalNutrients, Map<String, Double> modifiedNutrients, Map<String, String> nutrientUnits) {
+    	goalPanel2.displayMealComparison(originalMeal, modifiedMeal, replacements);
+    	goalPanel2.displayNutrientComparison(originalNutrients, modifiedNutrients, nutrientUnits);
     }
     
     public void setGoalPanel2BackButtonListener(ActionListener listener) {
         goalPanel2.addBackButtonListener(listener);
     }
 
-    public void setApplySwapButtonListener(ActionListener listener) {
-        goalPanel2.addApplySwapButtonListener(listener);
+// ================== CHANGE START ==================
+    public void setAnalyzeCumulativeButtonListener(ActionListener listener) {
+        goalPanel2.addAnalyzeCumulativeButtonListener(listener);
     }
+// ==================  CHANGE END  ==================
 
     public void setTryAgainButtonListener(ActionListener listener) {
         goalPanel2.addTryAgainButtonListener(listener);
@@ -294,6 +307,24 @@ public class ViewFacade {
     	showPanel(GOAL_PANEL2);
     }
     
+// ================== NEW CODE START ==================
+    public void showAnalysisSelectionPanel() {
+        showPanel(ANALYSIS_SELECTION_PANEL);
+    }
+
+    public void showAverageImpactPanel() {
+        showPanel(AVERAGE_IMPACT_PANEL);
+    }
+
+    public void showCumulativeAnalysisPanel() {
+        showPanel(CUMULATIVE_ANALYSIS_PANEL);
+    }
+
+    public void showPerMealAnalysisPanel() {
+        showPanel(PER_MEAL_ANALYSIS_PANEL);
+    }
+// ==================  NEW CODE END  ==================
+
     public void showFrame() {
         mainFrame.pack();
         mainFrame.setLocationRelativeTo(null);
@@ -555,4 +586,45 @@ public class ViewFacade {
     public void setNutrientAnalysisDates(Date startDate, Date endDate) {
         nutrientAnalysisPanel.setDateRange(startDate, endDate);
     }
+
+// ================== NEW CODE START ==================
+    // --- Analysis Selection Panel Methods ---
+    public Date getAnalysisSelectionStartDate() {
+        return analysisSelectionPanel.getStartDate();
+    }
+    public Date getAnalysisSelectionEndDate() {
+        return analysisSelectionPanel.getEndDate();
+    }
+    public AnalysisSelectionPanel.AnalysisType getSelectedAnalysisType() {
+        return analysisSelectionPanel.getSelectedAnalysisType();
+    }
+    public void addAnalysisSelectionAnalyzeButtonListener(ActionListener listener) {
+        analysisSelectionPanel.addAnalyzeButtonListener(listener);
+    }
+    public void addAnalysisSelectionBackButtonListener(ActionListener listener) {
+        analysisSelectionPanel.addBackButtonListener(listener);
+    }
+    
+    // --- Population methods for the individual analysis panels ---
+    public void populateAverageImpactPanel(Map<String, Double> originalAverages, Map<String, Double> modifiedAverages, int numberOfDays) {
+        averageImpactPanel.displayAnalysis(originalAverages, modifiedAverages, numberOfDays);
+    }
+    public void populateCumulativeAnalysisPanel(Map<String, Double> originalTotals, Map<String, Double> modifiedTotals, int numberOfDays) {
+        cumulativeAnalysisPanel.displayAnalysis(originalTotals, modifiedTotals, numberOfDays);
+    }
+    public void populatePerMealAnalysisPanel(List<Meal> changedMeals, Map<Meal, Nutrition> originalNutritions, Map<Meal, Nutrition> modifiedNutritions) {
+        perMealAnalysisPanel.displayAnalysis(changedMeals, originalNutritions, modifiedNutritions);
+    }
+
+    // --- Back button listeners for individual analysis panels ---
+    public void addAverageImpactBackButtonListener(ActionListener listener) {
+        averageImpactPanel.addBackButtonListener(listener);
+    }
+    public void addCumulativeAnalysisBackButtonListener(ActionListener listener) {
+        cumulativeAnalysisPanel.addBackButtonListener(listener);
+    }
+    public void addPerMealAnalysisBackButtonListener(ActionListener listener) {
+        perMealAnalysisPanel.addBackButtonListener(listener);
+    }
+// ==================  NEW CODE END  ==================
 }

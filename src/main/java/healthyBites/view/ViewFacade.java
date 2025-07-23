@@ -420,10 +420,6 @@ public class ViewFacade {
         homePanel.goalSwapButtonListener(listener);
     }
     
-    public void setNutrientTrendButtonListener(ActionListener listener) {
-        homePanel.dailyIntakeButtonListener(listener);
-    }
-    
     public void setmyPlateButtonListener(ActionListener listener) {
         homePanel.myPlateButtonListener(listener);
     }

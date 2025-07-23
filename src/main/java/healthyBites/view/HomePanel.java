@@ -6,7 +6,7 @@ import java.awt.event.*;
 
 public class HomePanel extends JPanel {
    
-    private JButton editButton, mealButton, goalSwapButton, dailyIntakeButton, myPlateButton, logoutButton;
+    private JButton editButton, mealButton, goalSwapButton, myPlateButton, logoutButton;
     
     public HomePanel(MealHistoryPanel mealHistoryPanel) {
                     
@@ -29,22 +29,19 @@ public class HomePanel extends JPanel {
         topPanel.add(historyScrollPane, BorderLayout.CENTER);
                 
         JPanel restPanel = new JPanel();
-        restPanel.setLayout(new GridLayout(6, 1, 5, 5));
+        restPanel.setLayout(new GridLayout(5, 1, 0, 0));
         
         // add buttons
-        editButton = new JButton("Edit profile");
+        editButton = new JButton("Edit Profile");
         restPanel.add(editButton);
         
-        mealButton = new JButton("Log Meal");
+        mealButton = new JButton("Log a Meal");
         restPanel.add(mealButton);
         
-        goalSwapButton = new JButton("Get Food Swaps");
+        goalSwapButton = new JButton("Get Food Swap Recommendations");
         restPanel.add(goalSwapButton);
         
-        dailyIntakeButton = new JButton("Nutrient Intake Trend");
-        restPanel.add(dailyIntakeButton);
-        
-        myPlateButton = new JButton("My Plate");
+        myPlateButton = new JButton("My Plate Analysis");
         restPanel.add(myPlateButton);
         
         logoutButton = new JButton("Logout");
@@ -65,9 +62,7 @@ public class HomePanel extends JPanel {
     	public void goalSwapButtonListener(ActionListener listener) {
     		goalSwapButton.addActionListener(listener);
     	}
-    	public void dailyIntakeButtonListener(ActionListener listener) {
-            dailyIntakeButton.addActionListener(listener);
-        }
+
     	public void myPlateButtonListener(ActionListener listener) {
     		myPlateButton.addActionListener(listener);
     	}
@@ -75,9 +70,4 @@ public class HomePanel extends JPanel {
             logoutButton.addActionListener(listener);
         }
     	    	
-        public void clearFields() {
-        	
-        }
-
-
 }

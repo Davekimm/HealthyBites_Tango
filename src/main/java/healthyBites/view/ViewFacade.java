@@ -33,13 +33,12 @@ public class ViewFacade {
     private GoalPanel2 goalPanel2;
     private NutrientAnalysisPanel nutrientAnalysisPanel;
     private CFGAnalysisPanel cfgAnalysisPanel;
-// ================== NEW CODE START ==================
     private AnalysisSelectionPanel analysisSelectionPanel;
     private AverageImpactPanel averageImpactPanel;
     private CumulativeAnalysisPanel cumulativeAnalysisPanel;
     private PerMealAnalysisPanel perMealAnalysisPanel;
-// ==================  NEW CODE END  ==================
-    
+    private SwapVisualizationPanel swapVisualizationPanel; // Declare the new panel
+
     // Panel name constants for card layout navigation
     public static final String LOGIN_PANEL = "LoginPanel";
     public static final String REGISTER_PANEL = "RegisterPanel";
@@ -51,12 +50,12 @@ public class ViewFacade {
     public static final String GOAL_PANEL2 = "GoalPanel2";
     public static final String NUTRIENT_ANALYSIS_PANEL = "NutrientAnalysisPanel";
     public static final String CFG_ANALYSIS_PANEL = "CFGAnalysisPanel";
-// ================== NEW CODE START ==================
     public static final String ANALYSIS_SELECTION_PANEL = "AnalysisSelectionPanel";
     public static final String AVERAGE_IMPACT_PANEL = "AverageImpactPanel";
     public static final String CUMULATIVE_ANALYSIS_PANEL = "CumulativeAnalysisPanel";
     public static final String PER_MEAL_ANALYSIS_PANEL = "PerMealAnalysisPanel";
-// ==================  NEW CODE END  ==================
+    public static final String SWAP_VISUALIZATION_PANEL = "SwapVisualizationPanel"; // Add constant for the new panel
+
 
     public ViewFacade() {
         initializeMainFrame();
@@ -97,12 +96,11 @@ public class ViewFacade {
         goalPanel2 = new GoalPanel2();
         nutrientAnalysisPanel = new NutrientAnalysisPanel();
         cfgAnalysisPanel = new CFGAnalysisPanel();
-// ================== NEW CODE START ==================
         analysisSelectionPanel = new AnalysisSelectionPanel();
         averageImpactPanel = new AverageImpactPanel();
         cumulativeAnalysisPanel = new CumulativeAnalysisPanel();
         perMealAnalysisPanel = new PerMealAnalysisPanel();
-// ==================  NEW CODE END  ==================
+        swapVisualizationPanel = new SwapVisualizationPanel(); // Instantiate the new panel
         
         cardPanel.add(loginPanel, LOGIN_PANEL);
         cardPanel.add(registerPanel, REGISTER_PANEL);
@@ -114,12 +112,11 @@ public class ViewFacade {
         cardPanel.add(goalPanel2, GOAL_PANEL2);
         cardPanel.add(nutrientAnalysisPanel, NUTRIENT_ANALYSIS_PANEL);
         cardPanel.add(cfgAnalysisPanel, CFG_ANALYSIS_PANEL);
-// ================== NEW CODE START ==================
         cardPanel.add(analysisSelectionPanel, ANALYSIS_SELECTION_PANEL);
         cardPanel.add(averageImpactPanel, AVERAGE_IMPACT_PANEL);
         cardPanel.add(cumulativeAnalysisPanel, CUMULATIVE_ANALYSIS_PANEL);
         cardPanel.add(perMealAnalysisPanel, PER_MEAL_ANALYSIS_PANEL);
-// ==================  NEW CODE END  ==================
+        cardPanel.add(swapVisualizationPanel, SWAP_VISUALIZATION_PANEL); // Add the new panel to the card layout
     }
     
     // ===========================================
@@ -155,11 +152,9 @@ public class ViewFacade {
         goalPanel2.addBackButtonListener(listener);
     }
 
-// ================== CHANGE START ==================
     public void setAnalyzeCumulativeButtonListener(ActionListener listener) {
         goalPanel2.addAnalyzeCumulativeButtonListener(listener);
     }
-// ==================  CHANGE END  ==================
 
     public void setTryAgainButtonListener(ActionListener listener) {
         goalPanel2.addTryAgainButtonListener(listener);
@@ -306,8 +301,7 @@ public class ViewFacade {
     public void showGoalPanel2() {
     	showPanel(GOAL_PANEL2);
     }
-    
-// ================== NEW CODE START ==================
+
     public void showAnalysisSelectionPanel() {
         showPanel(ANALYSIS_SELECTION_PANEL);
     }
@@ -323,7 +317,10 @@ public class ViewFacade {
     public void showPerMealAnalysisPanel() {
         showPanel(PER_MEAL_ANALYSIS_PANEL);
     }
-// ==================  NEW CODE END  ==================
+
+    public void showSwapVisualizationPanel() {
+        showPanel(SWAP_VISUALIZATION_PANEL);
+    }
 
     public void showFrame() {
         mainFrame.pack();
@@ -421,10 +418,6 @@ public class ViewFacade {
     
     public void setFoodSwapButtonListener(ActionListener listener) {
         homePanel.goalSwapButtonListener(listener);
-    }
-    
-    public void setNutrientTrendButtonListener(ActionListener listener) {
-        homePanel.dailyIntakeButtonListener(listener);
     }
     
     public void setmyPlateButtonListener(ActionListener listener) {
@@ -587,7 +580,6 @@ public class ViewFacade {
         nutrientAnalysisPanel.setDateRange(startDate, endDate);
     }
 
-// ================== NEW CODE START ==================
     // --- Analysis Selection Panel Methods ---
     public Date getAnalysisSelectionStartDate() {
         return analysisSelectionPanel.getStartDate();
@@ -626,5 +618,62 @@ public class ViewFacade {
     public void addPerMealAnalysisBackButtonListener(ActionListener listener) {
         perMealAnalysisPanel.addBackButtonListener(listener);
     }
-// ==================  NEW CODE END  ==================
+
+    // ===========================================
+    // VISUALIZATION METHODS
+    // ===========================================
+    
+    /**
+    * Prepares the visualization panel with the necessary data and displays it.
+    * This method acts as the primary command from the Controller to initiate
+    * a what-if visualization.
+    *
+    * @param originalData A map of the original nutrient or serving data.
+    * @param modifiedData A map of the modified nutrient or serving data.
+    * @param nutrientUnits A map of nutrient names to their units.
+    * @param title The title for the visualization.
+    * @param recommendedServings The CFG recommended servings, used by the CFG strategy.
+    */
+    public void displaySwapVisualization(
+        Map<String, Double> originalData, 
+        Map<String, Double> modifiedData, 
+        Map<String, String> nutrientUnits, 
+        String title,
+        CFGFoodGroup recommendedServings
+    ) {
+        swapVisualizationPanel.setVisualizationData(originalData, modifiedData, nutrientUnits, title, recommendedServings);
+        showPanel(SWAP_VISUALIZATION_PANEL);
+    }
+    
+    public void setVisualizationData(
+    	    Map<String, Double> originalData,
+    	    Map<String, Double> modifiedData,
+    	    Map<String, String> nutrientUnits,
+    	    String title,
+    	    CFGFoodGroup recommendedServings
+    	) {
+    	    // This method just sets the data, which will trigger the redraw
+    	    // on the already-visible SwapVisualizationPanel.
+    	    swapVisualizationPanel.setVisualizationData(originalData, modifiedData, nutrientUnits, title, recommendedServings);
+    	}
+
+    public void addSwapVisualizationBackButtonListener(ActionListener listener) {
+        swapVisualizationPanel.addBackButtonListener(listener);
+    }
+    
+    // These methods need to be implemented to connect the new "Visualize Data" buttons
+    // from the analysis panels to the Controller.
+    public void addCumulativeAnalysisVisualizeButtonListener(ActionListener listener) {
+        // This requires adding a button and listener method to CumulativeAnalysisPanel
+        cumulativeAnalysisPanel.addVisualizeButtonListener(listener);
+    }
+    
+    public void addAverageImpactVisualizeButtonListener(ActionListener listener) {
+        // This requires adding a button and listener method to AverageImpactPanel
+        averageImpactPanel.addVisualizeButtonListener(listener);
+    }
+    
+    public void setSwapVisualizationChartTypeListener(Consumer<String> listener) {
+        swapVisualizationPanel.setOnChartTypeChangeListener(listener);
+    }
 }

@@ -17,6 +17,7 @@ public class AverageImpactPanel extends JPanel {
     private JTable analysisTable;
     private DefaultTableModel tableModel;
     private JButton backButton;
+    private JButton visualizeButton;
     private JLabel titleLabel;
     
     // For color coding
@@ -48,7 +49,9 @@ public class AverageImpactPanel extends JPanel {
         
         JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
         backButton = new JButton("Back to Analysis Options");
+        visualizeButton = new JButton("Visualize Data");
         bottomPanel.add(backButton);
+        bottomPanel.add(visualizeButton); 
         add(bottomPanel, BorderLayout.SOUTH);
     }
 
@@ -81,6 +84,10 @@ public class AverageImpactPanel extends JPanel {
     
     public void addBackButtonListener(ActionListener listener) {
         backButton.addActionListener(listener);
+    }
+    
+    public void addVisualizeButtonListener(ActionListener listener) {
+        visualizeButton.addActionListener(listener);
     }
     
     /**

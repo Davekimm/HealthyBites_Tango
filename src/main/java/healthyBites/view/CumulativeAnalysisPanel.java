@@ -18,6 +18,7 @@ public class CumulativeAnalysisPanel extends JPanel {
     private DefaultTableModel tableModel;
     private JButton backButton;
     private JLabel titleLabel;
+    private JButton visualizeButton;
 
     private static final Color INCREASE_COLOR = new Color(0, 150, 0);
     private static final Color DECREASE_COLOR = new Color(200, 0, 0);
@@ -47,7 +48,10 @@ public class CumulativeAnalysisPanel extends JPanel {
         
         JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
         backButton = new JButton("Back to Analysis Options");
+        visualizeButton = new JButton("Visualize Data"); 
+
         bottomPanel.add(backButton);
+        bottomPanel.add(visualizeButton);
         add(bottomPanel, BorderLayout.SOUTH);
     }
     
@@ -79,6 +83,10 @@ public class CumulativeAnalysisPanel extends JPanel {
     
     public void addBackButtonListener(ActionListener listener) {
         backButton.addActionListener(listener);
+    }
+    
+    public void addVisualizeButtonListener(ActionListener listener) {
+        visualizeButton.addActionListener(listener);
     }
 
     /**

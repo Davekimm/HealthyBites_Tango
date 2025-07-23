@@ -9,32 +9,38 @@ import java.awt.*;
 import java.util.Map;
 
 /**
- * Strategy to visualize CFG adherence by comparing three pie charts:
- * Original Data, Swapped Data, and the CFG Recommended Plate.
+ * An implementation of {@link SwapVisualizationStrategy} that visualizes adherence to Canada's Food Guide (CFG).
+ * It creates a layout with three pie charts to compare the user's original daily servings,
+ * their simulated servings after a food swap, and the official CFG recommended servings.
+ * @author HealthyBites Team
  */
 public class CFGVisualizationStrategy implements SwapVisualizationStrategy {
 
-	// In CFGVisualizationStrategy.java
-
+	/**
+     * Creates a Swing component containing three pie charts for CFG comparison.
+     * The layout consists of two charts in a top row (Original vs. Swapped) and one
+     * centered chart in a bottom row (Recommended).
+     *
+     * @param originalData A map representing the original average daily servings per food group.
+     * @param modifiedData A map representing the modified average daily servings after the swap.
+     * @param config Configuration settings, primarily used here to get the recommended servings data.
+     * @return A JPanel containing the three-chart visualization.
+     */
 	@Override
 	public JComponent createVisualization(
 	    Map<String, Double> originalData,
 	    Map<String, Double> modifiedData,
 	    VisualizationConfig config
 	) {
-	    // ================== NEW LAYOUT LOGIC START ==================
-
-	    // 1. Create panels for the new layout structure
-	    //    - overallPanel holds the top and bottom rows vertically.
-	    //    - topPanel holds the first two charts side-by-side.
-	    //    - bottomPanel holds the single, centered bottom chart.
+	    // The main container panel with a vertical layout
 	    JPanel overallPanel = new JPanel();
 	    overallPanel.setLayout(new BoxLayout(overallPanel, BoxLayout.Y_AXIS));
 
+	    // Panels for the top (2 charts) and bottom (1 chart) rows
 	    JPanel topPanel = new JPanel(new GridLayout(1, 2, 10, 0));
-	    JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.CENTER)); // FlowLayout centers content
+	    JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.CENTER)); 
 
-	    // 2. Create the ChartPanels with a fixed size
+	    // Define a fixed size for all charts to ensure they are uniform
 	    Dimension chartSize = new Dimension(320, 260);
 
 	    ChartPanel originalChartPanel = new ChartPanel(createPieChart("Original Servings", mapToCFGGroup(originalData)));
@@ -46,29 +52,25 @@ public class CFGVisualizationStrategy implements SwapVisualizationStrategy {
 	    ChartPanel recommendedChartPanel = new ChartPanel(createPieChart("CFG Recommended", config.getRecommendedServings()));
 	    recommendedChartPanel.setPreferredSize(chartSize);
 
-	    // 3. Assemble the panels
-	    //    - Add the top two charts to the top panel.
+	    // Assemble the layout
 	    topPanel.add(originalChartPanel);
 	    topPanel.add(modifiedChartPanel);
-
-	    //    - Add the bottom chart to the bottom panel.
 	    bottomPanel.add(recommendedChartPanel);
-
-	    //    - Add the top and bottom rows to the overall vertical panel.
 	    overallPanel.add(topPanel);
 	    overallPanel.add(bottomPanel);
 	    
-	    // 4. Return the final panel inside a wrapper to prevent stretching
-	    //    by the parent BorderLayout.
+	    // Return the final panel inside a wrapper to prevent stretching
 	    JPanel wrapperPanel = new JPanel();
 	    wrapperPanel.add(overallPanel);
 	    return wrapperPanel;
-	    
-	    // ==================  NEW LAYOUT LOGIC END  ==================
 	}
 
     /**
-     * Helper method to convert the data map back into a CFGFoodGroup object.
+     * A helper method to convert a map of serving data into a {@link CFGFoodGroup} object.
+     * This is necessary because the chart creation logic is designed to work with CFGFoodGroup objects.
+     *
+     * @param data The map of food group names to their serving counts.
+     * @return A new CFGFoodGroup object populated with data from the map.
      */
     private CFGFoodGroup mapToCFGGroup(Map<String, Double> data) {
         return new CFGFoodGroup(
@@ -81,8 +83,12 @@ public class CFGVisualizationStrategy implements SwapVisualizationStrategy {
     }
 
     /**
-     * Creates a single pie chart. This logic is adapted from CFGAnalysisPanel
-     * to ensure visual consistency.
+     * Creates a single, styled pie chart to represent the proportions of different food groups.
+     * This method is adapted from {@code CFGAnalysisPanel} to ensure visual consistency across the application.
+     *
+     * @param title The title to be displayed above the pie chart.
+     * @param foodGroup The CFGFoodGroup data to be visualized.
+     * @return A JFreeChart object representing the styled pie chart.
      */
     private JFreeChart createPieChart(String title, CFGFoodGroup foodGroup) {
         DefaultPieDataset dataset = new DefaultPieDataset();
@@ -106,6 +112,10 @@ public class CFGVisualizationStrategy implements SwapVisualizationStrategy {
         return chart;
     }
 
+    /**
+     * Gets the user-friendly name of this strategy.
+     * @return The string "Canada Food Guide View".
+     */
     @Override
     public String getStrategyName() {
         return "Canada Food Guide View";

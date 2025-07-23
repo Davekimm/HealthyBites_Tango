@@ -9,15 +9,25 @@ import org.jfree.data.xy.XYSeriesCollection;
 import java.awt.*;
 import java.util.Map;
 import java.util.List;
-import java.util.ArrayList;
 
 /**
- * Strategy implementation for line chart visualization showing nutrient trends.
- * This is particularly useful for showing changes over time or comparing
- * multiple nutrients on the same scale.
+ * A strategy implementation of {@link SwapVisualizationStrategy} that creates a line chart.
+ * This visualization is effective for showing the trend or change of multiple nutrients from an
+ * "Original" state to a "Modified" state after a food swap.
+ * @author HealthyBites Team
  */
 public class LineChartVisualizationStrategy implements SwapVisualizationStrategy {
     
+    /**
+     * Creates a line chart visualization as a JComponent.
+     * The chart plots selected nutrients, showing their values before and after a swap.
+     * It can display either absolute values or the percentage change.
+     *
+     * @param originalData A map of nutrient names to their original values.
+     * @param modifiedData A map of nutrient names to their modified values.
+     * @param config Configuration settings for the visualization.
+     * @return A ChartPanel containing the generated line chart.
+     */
     @Override
     public JComponent createVisualization(
         Map<String, Double> originalData, 
@@ -26,8 +36,7 @@ public class LineChartVisualizationStrategy implements SwapVisualizationStrategy
     ) {
         XYSeriesCollection dataset = new XYSeriesCollection();
         
-        // Create series for each selected nutrient
-        int nutrientIndex = 0;
+        // Create a series for each selected nutrient, with points for "Original" and "Modified"
         for (String nutrient : config.getSelectedNutrients()) {
             if (originalData.containsKey(nutrient)) {
                 XYSeries series = new XYSeries(nutrient);
@@ -36,52 +45,43 @@ public class LineChartVisualizationStrategy implements SwapVisualizationStrategy
                 double modifiedValue = modifiedData.getOrDefault(nutrient, 0.0);
                 
                 if (config.isShowPercentageChange() && originalValue != 0) {
-                    // Show as percentage change from baseline
+                    // Plot percentage change: 0% at "Original", calculated % at "Modified"
                     series.add(0, 0); // Baseline
                     double percentChange = ((modifiedValue - originalValue) / originalValue) * 100;
                     series.add(1, percentChange);
                 } else {
-                    // Show absolute values
+                    // Plot absolute values
                     series.add(0, originalValue);
                     series.add(1, modifiedValue);
                 }
-                
                 dataset.addSeries(series);
-                nutrientIndex++;
             }
         }
         
-        // Create the chart
+        // Create the chart using JFreeChart factory
         JFreeChart chart = ChartFactory.createXYLineChart(
             config.getTitle(),
-            "State",
-            config.isShowPercentageChange() ? "Percentage Change (%)" : "Amount",
+            "State", // X-axis label
+            config.isShowPercentageChange() ? "Percentage Change (%)" : "Amount", // Y-axis label
             dataset,
             PlotOrientation.VERTICAL,
-            true,  // legend
-            true,  // tooltips
-            false  // URLs
+            true, true, false
         );
         
-        // Customize appearance
+        // Customize chart appearance
         XYPlot plot = chart.getXYPlot();
         plot.setBackgroundPaint(Color.WHITE);
         plot.setDomainGridlinePaint(Color.LIGHT_GRAY);
         plot.setRangeGridlinePaint(Color.LIGHT_GRAY);
         
-        // Customize renderer
         XYLineAndShapeRenderer renderer = new XYLineAndShapeRenderer();
         
-        // Set colors for different series
+        // Define a color palette for the different nutrient lines
         Color[] colors = {
-            new Color(100, 149, 237), // Cornflower blue
-            new Color(60, 179, 113),  // Medium sea green
-            new Color(255, 140, 0),   // Dark orange
-            new Color(220, 20, 60),   // Crimson
-            new Color(75, 0, 130),    // Indigo
-            new Color(255, 215, 0),   // Gold
-            new Color(0, 206, 209),   // Dark turquoise
-            new Color(255, 105, 180)  // Hot pink
+            new Color(100, 149, 237), new Color(60, 179, 113),
+            new Color(255, 140, 0), new Color(220, 20, 60),
+            new Color(75, 0, 130), new Color(255, 215, 0),
+            new Color(0, 206, 209), new Color(255, 105, 180)
         };
         
         for (int i = 0; i < dataset.getSeriesCount(); i++) {
@@ -89,17 +89,15 @@ public class LineChartVisualizationStrategy implements SwapVisualizationStrategy
             renderer.setSeriesStroke(i, new BasicStroke(2.0f));
             renderer.setSeriesShapesVisible(i, true);
         }
-        
         plot.setRenderer(renderer);
         
-        // Customize x-axis to show "Original" and "Modified"
+        // Customize the x-axis to use text labels "Original" and "Modified"
         org.jfree.chart.axis.SymbolAxis xAxis = new org.jfree.chart.axis.SymbolAxis(
-            "State", 
-            new String[]{"Original", "Modified"}
+            "State", new String[]{"Original", "Modified"}
         );
         plot.setDomainAxis(xAxis);
         
-        // Add zero line if showing percentage change
+        // Add a horizontal line at y=0 if showing percentage change
         if (config.isShowPercentageChange()) {
             plot.addRangeMarker(new org.jfree.chart.plot.ValueMarker(0.0, Color.BLACK, new BasicStroke(1.0f)));
         }
@@ -109,6 +107,10 @@ public class LineChartVisualizationStrategy implements SwapVisualizationStrategy
         return chartPanel;
     }
     
+    /**
+     * Gets the name of this strategy.
+     * @return The string "Line Chart Trend".
+     */
     @Override
     public String getStrategyName() {
         return "Line Chart Trend";

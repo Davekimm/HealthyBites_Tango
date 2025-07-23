@@ -89,6 +89,25 @@ public class MealHistoryPanel extends JPanel {
         rebuildMealCards();
     }
 
+    /**
+     * Clears the current meal selection, resetting the border and hiding the info panel.
+     */
+    public void clearSelection() {
+        if (selectedMeal != null) {
+            // Reset the border to the default (gray)
+            selectedMeal.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(Color.GRAY, 1),
+                BorderFactory.createEmptyBorder(10, 10, 10, 10)
+            ));
+        }
+        // Clear the reference and hide the nutrition panel
+        selectedMeal = null;
+        nutritionInfoPanel.setVisible(false);
+        
+        revalidate();
+        repaint();
+    }
+
     // to maintain display order starting from the most recent date
     private void rebuildMealCards() {
         mealCardsContainer.removeAll();

@@ -1,271 +1,165 @@
 package healthyBites.view;
 
 import javax.swing.*;
+import javax.swing.table.*;
 import java.awt.*;
-import java.awt.event.*;
-import java.awt.geom.Arc2D;
-import java.util.ArrayList;
-import java.util.List;
+import java.awt.event.ActionListener;
+import java.util.Map;
+import healthyBites.model.Meal;
+import healthyBites.model.FoodItem;
 
-/*
- * expose some methods so controller can set options / listen to change on combo boxes 
- * (public setter methods for each combo boxes, to generate options on each Goal)
- * also applied to units (SO IN SHORTS, list of nutrient and unitst setting and intensity will come from model
- * and all these has to be distinct objects from other goal's objects.
-*/
 public class GoalPanel2 extends JPanel {
-	
-    private JButton backButton, applyGoalButton, applyAcrossButton;
-        
-    private JPanel mealContainerPanel;
-    private List<JPanel> mealRowPanel, graphRowPanel;
     
-    private PieChartPanel originalMealChart, swappableMealChart;
-   
+    private JPanel originalMealPanel;
+    private JPanel modifiedMealPanel;
+    private JTable nutrientComparisonTable;
+    private DefaultTableModel tableModel;
+    private JButton backButton;
+
+    private JButton analyzeSwapButton;
+
+    private JButton tryAgainButton;
+    
+    private static final Color ADDED_ITEM_COLOR = new Color(200, 255, 200);
+    private static final Color REMOVED_ITEM_COLOR = new Color(255, 200, 200);
+    private static final Color INCREASE_COLOR = new Color(0, 150, 0);
+    private static final Color DECREASE_COLOR = new Color(200, 0, 0);
+
+    private enum HighlightState {
+        NORMAL, ADDED, REMOVED
+    }
+    
     public GoalPanel2() {
-    	
-    	this.mealRowPanel = new ArrayList<>();
-    	this.graphRowPanel = new ArrayList<>();
+        setLayout(new BorderLayout(10, 10));
+        setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        add(createMealComparisonPanel(), BorderLayout.NORTH);
+        add(createNutrientComparisonPanel(), BorderLayout.CENTER);
+        add(createButtonPanel(), BorderLayout.SOUTH);
+    }
+    
+    private JPanel createMealComparisonPanel() {
+        JPanel mainPanel = new JPanel(new GridLayout(1, 2, 20, 0));
+        mainPanel.setBorder(BorderFactory.createTitledBorder("Meal Comparison"));
+        mainPanel.setPreferredSize(new Dimension(0, 200));
+        
+        originalMealPanel = new JPanel();
+        originalMealPanel.setLayout(new BoxLayout(originalMealPanel, BoxLayout.Y_AXIS));
+        originalMealPanel.setBorder(BorderFactory.createTitledBorder("Original Meal"));
+        JScrollPane originalScrollPane = new JScrollPane(originalMealPanel);
+        
+        modifiedMealPanel = new JPanel();
+        modifiedMealPanel.setLayout(new BoxLayout(modifiedMealPanel, BoxLayout.Y_AXIS));
+        modifiedMealPanel.setBorder(BorderFactory.createTitledBorder("Modified Meal"));
+        JScrollPane modifiedScrollPane = new JScrollPane(modifiedMealPanel);
+        
+        mainPanel.add(originalScrollPane);
+        mainPanel.add(modifiedScrollPane);
+        return mainPanel;
+    }
+    
+    private JPanel createNutrientComparisonPanel() {
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.setBorder(BorderFactory.createTitledBorder("Nutrient Changes"));
+        String[] columnHeaders = {"Nutrient", "Original", "Modified", "Change", "% Change"};
+        tableModel = new DefaultTableModel(columnHeaders, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) { return false; }
+        };
+        nutrientComparisonTable = new JTable(tableModel);
+        nutrientComparisonTable.setRowHeight(25);
+        nutrientComparisonTable.setDefaultRenderer(Object.class, new NutrientTableCellRenderer());
+        JScrollPane scrollPane = new JScrollPane(nutrientComparisonTable);
+        scrollPane.setPreferredSize(new Dimension(400, 200)); // test
+        panel.add(scrollPane, BorderLayout.CENTER);
+        return panel;
+    }
+    
+    private JPanel createButtonPanel() {
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 10));
+        backButton = new JButton("Back to Goals");
+        analyzeSwapButton = new JButton("Analyze Swap Impact");
+        tryAgainButton = new JButton("Try Different Swap");
+        
+        buttonPanel.add(backButton);
+        buttonPanel.add(tryAgainButton);
+        buttonPanel.add(analyzeSwapButton);
+        return buttonPanel;
+    }
+    
+    public void displayMealComparison(Meal originalMeal, Meal modifiedMeal, Map<FoodItem, FoodItem> replacements) {
+        originalMealPanel.removeAll();
+        modifiedMealPanel.removeAll();
+        
+        for (FoodItem item : originalMeal.getFoodItems()) {
+            originalMealPanel.add(createFoodItemPanel(item, replacements.containsKey(item) ? HighlightState.REMOVED : HighlightState.NORMAL));
+            originalMealPanel.add(Box.createVerticalStrut(5));
+        }
+        
+        for (FoodItem item : modifiedMeal.getFoodItems()) {
+            modifiedMealPanel.add(createFoodItemPanel(item, replacements.containsValue(item) ? HighlightState.ADDED : HighlightState.NORMAL));
+            modifiedMealPanel.add(Box.createVerticalStrut(5));
+        }
+        
+        originalMealPanel.revalidate();
+        originalMealPanel.repaint();
+        modifiedMealPanel.revalidate();
+        modifiedMealPanel.repaint();
+    }
+    
+    private JPanel createFoodItemPanel(FoodItem item, HighlightState state) {
+        JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        panel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 35));
+        panel.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY));
+        
+        switch (state) {
+            case ADDED -> panel.setBackground(ADDED_ITEM_COLOR);
+            case REMOVED -> panel.setBackground(REMOVED_ITEM_COLOR);
+            default -> panel.setBackground(Color.WHITE);
+        }
+        
+        panel.add(new JLabel(String.format("%.1f %s %s", item.getQuantity(), item.getUnit(), item.getName())));
+        return panel;
+    }
+    
+    public void displayNutrientComparison(Map<String, Double> originalNutrients, Map<String, Double> modifiedNutrients, Map<String, String> nutrientUnits) {
+        tableModel.setRowCount(0);
+        for (Map.Entry<String, Double> entry : originalNutrients.entrySet()) {
+            String nutrientName = entry.getKey();
+            Double originalValue = entry.getValue();
+            Double modifiedValue = modifiedNutrients.getOrDefault(nutrientName, 0.0);
+            Double change = modifiedValue - originalValue;
+            Double percentChange = (originalValue != 0) ? (change / originalValue) * 100 : 0.0;
+            String unit = nutrientUnits.getOrDefault(nutrientName, "");
+            
+            Object[] rowData = {
+                nutrientName, String.format("%.2f %s", originalValue, unit),
+                String.format("%.2f %s", modifiedValue, unit),
+                String.format("%+.2f %s", change, unit), String.format("%+.1f%%", percentChange)
+            };
+            tableModel.addRow(rowData);
+        }
+    }
+    
+    private class NutrientTableCellRenderer extends DefaultTableCellRenderer {
+        @Override
+        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+            Component cell = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+            if (column >= 3) {
+                String textValue = value.toString();
+                if (textValue.startsWith("+")) cell.setForeground(INCREASE_COLOR);
+                else if (textValue.startsWith("-")) cell.setForeground(DECREASE_COLOR);
+                else cell.setForeground(Color.BLACK);
+            } else {
+                cell.setForeground(Color.BLACK);
+            }
+            setHorizontalAlignment(column == 0 ? SwingConstants.LEFT : SwingConstants.CENTER);
+            return cell;
+        }
+    }
+    
+    public void addBackButtonListener(ActionListener listener) { backButton.addActionListener(listener); }
 
-      // set BorderLayout to split area
-        setLayout(new BorderLayout());
-        
-      //top area with 
-        JPanel topPanel = new JPanel();
-        topPanel.setPreferredSize(new Dimension(0,150));
-        
-        mealContainerPanel = new JPanel();
-        mealContainerPanel.setLayout(new BoxLayout(mealContainerPanel, BoxLayout.Y_AXIS));
-       
-     //   mealContainerPanel.add(mealSelected, BorderLayout.CENTER);
-        
-      //middle
-        JPanel middlePanel = new JPanel(new GridLayout(1,2,10,10));
-        
-        JPanel originalPanel = new JPanel(new BorderLayout());
-        originalMealChart = new PieChartPanel();
-        originalPanel.add(originalMealChart);
-        
-        JPanel swappablePanel = new JPanel(new BorderLayout());
-        swappableMealChart = new PieChartPanel();
-        swappablePanel.add(swappableMealChart);
-        
-        middlePanel.add(originalMealChart);
-        middlePanel.add(swappablePanel);
-        
-      //bottom
-        JPanel bottomPanel = new JPanel();
-        bottomPanel.setPreferredSize(new Dimension(0,50));
-        
-        backButton = new JButton("Back");
-        bottomPanel.add(backButton);
-        applyGoalButton = new JButton("Apply Goal");
-        bottomPanel.add(applyGoalButton);
-        applyAcrossButton = new JButton("Apply Across Time");
-        bottomPanel.add(applyAcrossButton);
-        
-        
-        // add above sections
-        add(topPanel, BorderLayout.NORTH);       
-        add(middlePanel, BorderLayout.CENTER);
-        add(bottomPanel, BorderLayout.SOUTH);
-        
- /*       setupGoalButton();
-        addGoalRow();*/
-        
-    }
- /*   
- // internal methods for setting goal(s)
-    private JPanel createNewGoal() {
-    	JPanel rowPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 5));
-    	
-    	JComboBox<String> nutrientList = new JComboBox<>(this.nutrientList);
-    	JComboBox<String> actionList = new JComboBox<>(this.actionList);
-    	JComboBox<String> intensityArbiList = new JComboBox<>(this.intensityArbiList);
-    	JComboBox<String> unitList = new JComboBox<>(this.unitList);
-    	JTextField preciseText = new JTextField(5);
-    	
-    	preciseText.setText(intensityPreciseList[0]);
-    	    	
-    	intensityArbiList.addActionListener(e -> {
-    		int selected =  intensityArbiList.getSelectedIndex();
-    		preciseText.setText(intensityPreciseList[selected].toString());
-    		unitList.setSelectedIndex(0);
-    	});
-    	
-    	rowPanel.add(new JLabel("Nutrient"));
-    	rowPanel.add(nutrientList);
-    	rowPanel.add(new JLabel("Action:"));
-    	rowPanel.add(actionList);
-    	rowPanel.add(new JLabel("Intensity (Arbi):"));
-    	rowPanel.add(intensityArbiList);
-       	rowPanel.add(new JLabel(" OR "));
-    	rowPanel.add(new JLabel("Intensity (Precise):"));
-    	rowPanel.add(preciseText);
-    	rowPanel.add(unitList);
-        
-        nutrientComboBox.add(nutrientList);
-        actionComboBox.add(actionList);
-        intensityArbiComboBox.add(intensityArbiList);
-        preciseField.add(preciseText);
-        unitCombo.add(unitList);
-        
-        return rowPanel;
-    }
-    
-    
-    private void addGoalRow() {
-    	if(nutrientComboBox.size() < MAX_OPTIONS) {
-    		JPanel newRow = createNewGoal();
-    		goalRowPanel.add(newRow);
-    		goalContainerPanel.add(newRow);
-    		
-    		updateButtonState();
-    		revalidate();
-    		repaint();
-    	}
-    }
-    
-    private void removeGoalRow() {
-    	if(nutrientComboBox.size() > MIN_OPTIONS) {
-    		int lastIndex = nutrientComboBox.size() - 1;
-    		
-    		goalContainerPanel.remove(goalRowPanel.remove(lastIndex));
-    		
-    		nutrientComboBox.remove(lastIndex);
-    		actionComboBox.remove(lastIndex);
-    		intensityArbiComboBox.remove(lastIndex);
-    		unitCombo.remove(lastIndex);
-    		preciseField.remove(lastIndex);
-    		
-    		updateButtonState();
-    		revalidate();
-    		repaint();
-    		
-    	}
-    }
-*/ 
- // setter methods
-    public void setOriginalMeal(String meal, List<PieSlice> slices) {
-    	originalMealChart.setSlices(slices);
-    }
-    
-    public void setSwappableMeal(String meal, List<PieSlice> slices) {
-    	originalMealChart.setSlices(slices);
-    }
-    
- /*   
- // getter methods to be utilized by a facade
-       	
-    public List<String> getSelectedNutrient() {
-    	List<String> nutrient = new ArrayList<>();
-    	for(JComboBox<String> list : nutrientComboBox)
-    		nutrient.add((String) list.getSelectedItem());
-    	
-    	return nutrient;
-    }
-    public List<String> getSelectedAction() {
-    	List<String> action = new ArrayList<>();
-    	for(JComboBox<String> list : actionComboBox)
-    		action.add((String) list.getSelectedItem());
-    	
-    	return action;
-    }    	
-    public List<String> getSelectedIntensityPrecise() {
-    	List<String> intensity = new ArrayList<>();
-    	for(JTextField list : preciseField)
-    		intensity.add((String) list.getText());
-    	
-    	return intensity;
-    }
-    
-    public List<String> getSelectedUnit() {
-    	List<String> unit = new ArrayList<>();
-    	for(JComboBox<String> list : unitCombo)
-    		unit.add((String) list.getSelectedItem());
-    	
-    	return unit;
-    }
-    
-    public MealHistoryPanel getMealHistorySelection() {
-    	return this.forMealSelection;
-    }
-*/    
-  // Action Listeners
-    public void backButtonListener(ActionListener listener) {
-    	backButton.addActionListener(listener);
-    }
-    
-    public void applyGoalButtonListener(ActionListener listener) {
-        applyGoalButton.addActionListener(listener);
-    }
-    
-    public void applyAcrossButtonListener(ActionListener listener) {
-        applyAcrossButton.addActionListener(listener);
-    }
-    
-    
-  //Pie Chart drawings    
-    private class PieChartPanel extends JPanel {
-		private List<PieSlice> slices = new ArrayList<>();
-		
-		public PieChartPanel() {
-			setPreferredSize(new Dimension(200,200));
-		}
-		
-		public void setSlices(List<PieSlice> slices) {
-			this.slices = slices;
-			repaint();
-		}
-		@Override
-		protected void paintComponent(Graphics g) {
-			super.paintComponent(g);
-			if(slices == null || slices.isEmpty())
-				return;
-			
-			Graphics2D g2d = (Graphics2D) g.create();
-			g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-			
-			double total = 0;
-			for(PieSlice slice : slices)
-				total += slice.getValue();
-			
-			if(total == 0)
-				return;
-			int diameter = Math.min(getWidth()-20, getHeight()-20);
-			int x = (getWidth() - diameter) / 2;
-			int y = (getHeight() - diameter) / 2;
-			double currentAngle = 0.0;
-			
-			for (PieSlice slice : slices) {
-				double arcAngle = (slice.getValue() / total) * 360.0;
-				g2d.setColor(slice.getColor());
-				g2d.fill(new Arc2D.Double(x, y, diameter, diameter, currentAngle, arcAngle, Arc2D.PIE));
-				currentAngle += arcAngle;
-			}
-			g2d.dispose();		
-		}	
-	}
-}
+    public void addAnalyzeCumulativeButtonListener(ActionListener listener) { analyzeSwapButton.addActionListener(listener); }
 
-class PieSlice{
-	private String name;
-	private double value;
-	private Color color;
-
-	public PieSlice(String name, double value, Color color) {
-		this.name = name;
-		this.value = value;
-		this.color = color;
-	}
-	
-	public String getName() {
-		return name;
-	}
-	public double getValue() {
-		return value;
-	}
-	public Color getColor() {
-		return color;
-	}
+    public void addTryAgainButtonListener(ActionListener listener) { tryAgainButton.addActionListener(listener); }
 }

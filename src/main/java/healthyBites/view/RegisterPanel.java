@@ -35,7 +35,7 @@ public class RegisterPanel extends JPanel {
         add(dobField);
         
         add(new JLabel("Sex:"));
-        sexComboBox = new JComboBox<>(new String[] {"Male", "Female", "Other"});
+        sexComboBox = new JComboBox<>(new String[] {"Male", "Female"});
         add(sexComboBox);
         
         

@@ -38,7 +38,7 @@ public class EditPanel extends JPanel {
         add(dobField);
         
         add(new JLabel("Sex:"));
-        sexComboBox = new JComboBox<>(new String[] {"Male", "Female", "Other"});
+        sexComboBox = new JComboBox<>(new String[] {"Male", "Female"});
         add(sexComboBox);
         
         hUnit = new JLabel("Height (cm)"); //default is metric

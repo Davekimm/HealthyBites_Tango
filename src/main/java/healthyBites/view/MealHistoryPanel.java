@@ -10,23 +10,39 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.AbstractMap;
 import java.util.Iterator;
-import java.util.function.Consumer;	// for selection of meal to swap
-import java.awt.event.MouseAdapter;	// for selection of meal to swap
-import java.awt.event.MouseEvent;	// for selection of meal to swap
+import java.util.function.Consumer;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
+/**
+ * A JPanel that displays a scrollable history of meals. Each meal is presented as a "card"
+ * showing basic information. Users can select a meal, which highlights it and displays its
+ * detailed nutritional information in a separate panel at the bottom.
+ * This panel can be configured to lay out meal cards either vertically or horizontally.
+ * @author HealthyBites Team
+ */
 public class MealHistoryPanel extends JPanel {
 
+    /** The container that holds the individual meal card JPanels. */
     private final JPanel mealCardsContainer;
+    /** A list to store meal entries, where each entry is a pair of a Meal object and its corresponding Nutrition object. */
     private final List<Map.Entry<Meal, Nutrition>> mealEntries = new ArrayList<>();
+    /** The layout orientation for the meal cards (BoxLayout.Y_AXIS or BoxLayout.X_AXIS). */
     private final int layoutAxis;
     
-    // Panel to display nutrition info
+    /** A panel at the bottom to display detailed nutrition info for the selected meal. */
     private JPanel nutritionInfoPanel;
 
-    // selection of meal to swap
+    /** A callback function to execute when a meal is selected by the user. */
     private Consumer<Meal> mealSelectionCallback;
+    /** A reference to the currently selected meal card panel, used for highlighting. */
     private JPanel selectedMeal = null;
 
+    /**
+     * Constructs a MealHistoryPanel with a specified layout orientation.
+     *
+     * @param layoutAxis The axis for the BoxLayout (e.g., BoxLayout.Y_AXIS for vertical).
+     */
     public MealHistoryPanel(int layoutAxis) {
         setLayout(new BorderLayout());
         setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 0));
@@ -55,33 +71,34 @@ public class MealHistoryPanel extends JPanel {
         add(nutritionInfoPanel, BorderLayout.SOUTH);
     }
     
+    /**
+     * Initializes the nutrition information panel. This panel is initially hidden and
+     * becomes visible when a meal is selected.
+     */
     private void createNutritionInfoPanel() {
-        // create the panel
         nutritionInfoPanel = new JPanel();
-
-        // FlowLayout: arrange components left to right
         nutritionInfoPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
-
-        //draw a box around the components
         nutritionInfoPanel.setBorder(BorderFactory.createTitledBorder("Nutritional Information"));
-
-        // set the background color
         nutritionInfoPanel.setBackground(Color.WHITE);        
-
-        // Hide the panel until a meal is selected
         nutritionInfoPanel.setVisible(false);
     }
     
+    /**
+     * Adds a new meal and its nutrition data to the history, then rebuilds the UI to reflect the change.
+     * The meal list is sorted by date in descending order.
+     *
+     * @param m The Meal object to add.
+     * @param n The corresponding Nutrition object.
+     */
     public void addMealToHistory(Meal m, Nutrition n) {
         mealEntries.add(new AbstractMap.SimpleEntry<>(m, n));
-
-        // Sort meal entries based on date, starting with the most recent
         mealEntries.sort((entry1, entry2) -> entry2.getKey().getDate().compareTo(entry1.getKey().getDate()));
-
         rebuildMealCards();
     }
     
-    // clear panel
+    /**
+     * Clears all meal entries from the history and resets the view.
+     */
     public void clearHistory() {
         mealEntries.clear();
         selectedMeal = null;
@@ -90,17 +107,15 @@ public class MealHistoryPanel extends JPanel {
     }
 
     /**
-     * Clears the current meal selection, resetting the border and hiding the info panel.
+     * Clears the current meal selection, resetting the highlighted border and hiding the nutrition info panel.
      */
     public void clearSelection() {
         if (selectedMeal != null) {
-            // Reset the border to the default (gray)
             selectedMeal.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(Color.GRAY, 1),
                 BorderFactory.createEmptyBorder(10, 10, 10, 10)
             ));
         }
-        // Clear the reference and hide the nutrition panel
         selectedMeal = null;
         nutritionInfoPanel.setVisible(false);
         
@@ -108,7 +123,10 @@ public class MealHistoryPanel extends JPanel {
         repaint();
     }
 
-    // to maintain display order starting from the most recent date
+    /**
+     * Rebuilds the meal card display from the current list of meal entries. This is called
+     * whenever the meal data changes.
+     */
     private void rebuildMealCards() {
         mealCardsContainer.removeAll();
         Iterator<Map.Entry<Meal, Nutrition>> iterator = mealEntries.iterator();
@@ -127,10 +145,23 @@ public class MealHistoryPanel extends JPanel {
         mealCardsContainer.repaint();
     }
     
+    /**
+     * Sets a callback function to be executed when a meal is selected.
+     *
+     * @param callback The Consumer function that accepts the selected Meal.
+     */
     public void setOnMealSelectedListener(Consumer<Meal> callback) {
         this.mealSelectionCallback = callback;
     }
     
+    /**
+     * Creates a JPanel that serves as a "card" to display summary information for a single meal.
+     * It includes mouse listeners to handle selection events.
+     *
+     * @param meal The meal to display.
+     * @param nutrition The nutrition data for the meal.
+     * @return A JPanel representing the meal card.
+     */
     private JPanel createMealCard(Meal meal, Nutrition nutrition) {
         JPanel card = new JPanel();
         card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
@@ -141,13 +172,10 @@ public class MealHistoryPanel extends JPanel {
         card.setBackground(new Color(255, 255, 255));
         card.setMaximumSize(new Dimension(Integer.MAX_VALUE, 80));
 
-        card.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)); //for selection of meal to swap
+        card.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
-        //for selection of meal to swap
-        //show selection with border box when card is clicked
         card.addMouseListener(new MouseAdapter() {
             @Override
-            //clear the previous selected border (so user has one selection only)
             public void mouseClicked(MouseEvent e) {
                 if(selectedMeal != null) {
                     selectedMeal.setBorder(BorderFactory.createCompoundBorder(
@@ -162,7 +190,6 @@ public class MealHistoryPanel extends JPanel {
                     BorderFactory.createEmptyBorder(1,1,1,1)
                 ));
                 
-                // Update nutrition info panel
                 updateNutritionInfoPanel(meal, nutrition);
 
                 if(mealSelectionCallback != null) {
@@ -171,13 +198,11 @@ public class MealHistoryPanel extends JPanel {
             }
         });
                         
-        // Calories
         int calories = 0;
         if (nutrition != null && nutrition.getNutrients() != null) {
             calories = nutrition.getNutrients().getOrDefault("ENERGY (KILOCALORIES)", 0.0).intValue();
         }
 
-        // Meal card contents
         card.add(new JLabel("Date: " + new SimpleDateFormat("yyyy-MM-dd").format(meal.getDate())));
         card.add(new JLabel("Type: " + meal.getType()));
         card.add(new JLabel("Calories: " + calories));
@@ -185,11 +210,16 @@ public class MealHistoryPanel extends JPanel {
         return card;
     }
     
+    /**
+     * Updates the nutrition information panel with data from the selected meal.
+     *
+     * @param meal The selected meal.
+     * @param nutrition The nutrition data for the selected meal.
+     */
     private void updateNutritionInfoPanel(Meal meal, Nutrition nutrition) {
         nutritionInfoPanel.setVisible(true);
         nutritionInfoPanel.removeAll();
         
-        // Get nutrition values
         Map<String, Double> nutrients = (nutrition != null && nutrition.getNutrients() != null) ? nutrition.getNutrients() : null;
         double protein = nutrients != null ? nutrients.getOrDefault("PROTEIN", 0.0) : 0.0;
         double carbs = nutrients != null ? nutrients.getOrDefault("CARBOHYDRATE, TOTAL (BY DIFFERENCE)", 0.0) : 0.0;
@@ -197,7 +227,6 @@ public class MealHistoryPanel extends JPanel {
         double fiber = nutrients != null ? nutrients.getOrDefault("FIBRE, TOTAL DIETARY", 0.0) : 0.0;
         double iron = nutrients != null ? nutrients.getOrDefault("IRON", 0.0) : 0.0;
         
-         // Display meal info and nutrition breakdown
         String date = new SimpleDateFormat("yyyy-MM-dd").format(meal.getDate());
         nutritionInfoPanel.add(new JLabel(String.format("<html><b>%s - %s</b></html>", date, meal.getType())));
         nutritionInfoPanel.add(new JLabel("|"));
@@ -215,7 +244,12 @@ public class MealHistoryPanel extends JPanel {
         nutritionInfoPanel.repaint();
     }
     
-    // Store meal history to be used during Nutrition Analysis
+    /**
+     * Returns the list of all meal entries currently in the history.
+     * This is used to provide cached meal data for other analysis features.
+     *
+     * @return A list of Map.Entry objects, each containing a Meal and its Nutrition.
+     */
     public List<Map.Entry<Meal, Nutrition>> getMealHistoryEntries() {
         return mealEntries;
     }

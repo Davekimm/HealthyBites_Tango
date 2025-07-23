@@ -12,22 +12,32 @@ import org.jfree.data.general.DefaultPieDataset;
 import healthyBites.model.CFGFoodGroup;
 
 /**
- * This panel allows users to select a date range and view their average daily intake 
- * of food groups based on Canada's Food Guide. It features a side-by-side pie chart
- * comparison and a summary list at the bottom for a clear, comprehensive analysis.
+ * A JPanel for analyzing a user's diet against Canada's Food Guide (CFG) recommendations.
+ * It provides a visual comparison using two side-by-side pie charts ("Your Plate" vs. "Recommended Plate")
+ * and a detailed summary panel that gives color-coded feedback on the intake of each food group.
+ * @author HealthyBites Team
  */
 public class CFGAnalysisPanel extends JPanel {
     
+    /** Spinner for selecting the analysis start date. */
     private JSpinner startDateSpinner;
+    /** Spinner for selecting the analysis end date. */
     private JSpinner endDateSpinner;
+    /** Button to trigger the CFG analysis. */
     private JButton analyzeButton;
+    /** Button to navigate back to the home screen. */
     private JButton backButton;
+    /** Button to switch to the nutrient-level analysis view. */
     private JButton viewNutrientsButton;
     
-    // UI components
+    /** Panel that holds the side-by-side pie chart comparison. */
     private JPanel comparisonChartPanel;
+    /** Panel that displays the detailed summary of food group intake. */
     private JPanel summaryPanel;
     
+    /**
+     * Constructs the CFGAnalysisPanel, initializing all UI components.
+     */
     public CFGAnalysisPanel() {
         setLayout(new BorderLayout());
         setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
@@ -35,31 +45,26 @@ public class CFGAnalysisPanel extends JPanel {
         limitDatesToToday();
     }
     
+    /**
+     * Initializes and lays out all the UI components for the panel.
+     */
     private void initializeComponents() {
-        // Main title for the panel
         JLabel titleLabel = new JLabel("Canada Food Guide Alignment", SwingConstants.CENTER);
         titleLabel.setFont(new Font("Arial", Font.BOLD, 16));
         titleLabel.setBorder(BorderFactory.createEmptyBorder(0, 0, 10, 0));
         add(titleLabel, BorderLayout.NORTH);
         
-        // Main content panel
         JPanel mainPanel = new JPanel(new BorderLayout(10, 10));
         
-        // Date selection panel
         JPanel datePanel = createDateSelectionPanel();
         mainPanel.add(datePanel, BorderLayout.NORTH);
         
-        // Panel to hold the two comparison charts
         comparisonChartPanel = new JPanel(new GridLayout(1, 2, 10, 0));
-        
-        // set a preferred size to control the panel's dimensions.
         comparisonChartPanel.setPreferredSize(new Dimension(400, 200));
         mainPanel.add(comparisonChartPanel, BorderLayout.CENTER);
         
-        // Summary panel on the south side
         summaryPanel = new JPanel();
         summaryPanel.setLayout(new BoxLayout(summaryPanel, BoxLayout.X_AXIS));
-        
         JScrollPane summaryScrollPane = new JScrollPane(summaryPanel);
         summaryScrollPane.setBorder(BorderFactory.createTitledBorder("Analysis Summary"));
         summaryScrollPane.setPreferredSize(new Dimension(0, 120)); 
@@ -67,17 +72,19 @@ public class CFGAnalysisPanel extends JPanel {
         
         add(mainPanel, BorderLayout.CENTER);
 
-        // Bottom button panel for navigation
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
         backButton = new JButton("Back to Home");
         viewNutrientsButton = new JButton("View Nutrient Analysis");
-                
         buttonPanel.add(backButton);
         buttonPanel.add(Box.createHorizontalStrut(20));
         buttonPanel.add(viewNutrientsButton);
         add(buttonPanel, BorderLayout.SOUTH);
     }
     
+    /**
+     * Creates the date selection panel with start/end date spinners and an analyze button.
+     * @return A JPanel containing the date selection controls.
+     */
     private JPanel createDateSelectionPanel() {
         JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 10));
         panel.setBorder(BorderFactory.createTitledBorder("Select Time Period"));
@@ -85,16 +92,13 @@ public class CFGAnalysisPanel extends JPanel {
         panel.add(new JLabel("Start Date:"));
         startDateSpinner = new JSpinner(new SpinnerDateModel());
         startDateSpinner.setEditor(new JSpinner.DateEditor(startDateSpinner, "yyyy-MM-dd"));
-        JComponent startEditor = startDateSpinner.getEditor();
-        Dimension dateSize = new Dimension(120, 25);
-        startEditor.setPreferredSize(dateSize);
+        startDateSpinner.getEditor().setPreferredSize(new Dimension(120, 25));
         panel.add(startDateSpinner);
         
         panel.add(new JLabel("End Date:"));
         endDateSpinner = new JSpinner(new SpinnerDateModel());
         endDateSpinner.setEditor(new JSpinner.DateEditor(endDateSpinner, "yyyy-MM-dd"));
-        JComponent endEditor = endDateSpinner.getEditor();
-        endEditor.setPreferredSize(dateSize);
+        endDateSpinner.getEditor().setPreferredSize(new Dimension(120, 25));
         panel.add(endDateSpinner);
         
         analyzeButton = new JButton("Analyze");
@@ -104,47 +108,47 @@ public class CFGAnalysisPanel extends JPanel {
         return panel;
     }
     
+    /**
+     * Displays the results of the CFG analysis, populating the charts and summary panel.
+     * @param userAverage The user's average daily food group intake.
+     * @param recommended The recommended daily food group intake.
+     * @param numberOfDays The number of days included in the analysis.
+     */
     public void displayCFGAnalysis(CFGFoodGroup userAverage, CFGFoodGroup recommended, int numberOfDays) {
-        // Clear previous results
         comparisonChartPanel.removeAll();
         summaryPanel.removeAll();
 
-        // Create and add user's plate chart
         JFreeChart userChart = createPieChart("Your Average Plate", userAverage);
-        ChartPanel userChartPanel = new ChartPanel(userChart);
-        
         JPanel userChartContainer = new JPanel(new BorderLayout());
         userChartContainer.setBorder(BorderFactory.createTitledBorder("Your Plate"));
-        userChartContainer.add(userChartPanel, BorderLayout.CENTER);
+        userChartContainer.add(new ChartPanel(userChart), BorderLayout.CENTER);
 
-        // Create and add recommended plate chart
         JFreeChart recommendedChart = createPieChart("CFG Recommended Plate", recommended);
-        ChartPanel recommendedChartPanel = new ChartPanel(recommendedChart);
-        
         JPanel recommendedChartContainer = new JPanel(new BorderLayout());
         recommendedChartContainer.setBorder(BorderFactory.createTitledBorder("Recommended Plate"));
-        recommendedChartContainer.add(recommendedChartPanel, BorderLayout.CENTER);
+        recommendedChartContainer.add(new ChartPanel(recommendedChart), BorderLayout.CENTER);
         
         comparisonChartPanel.add(userChartContainer);
         comparisonChartPanel.add(recommendedChartContainer);
         
-        // Add detailed analysis to the summary panel
         addDetailedAnalysis(userAverage, recommended);
         
-        // Refresh the UI
         comparisonChartPanel.revalidate();
         comparisonChartPanel.repaint();
         summaryPanel.revalidate();
         summaryPanel.repaint();
     }
     
+    /**
+     * Creates a single pie chart for displaying food group proportions.
+     * @param title The title for the chart.
+     * @param foodGroup The food group data to display.
+     * @return A JFreeChart object representing the pie chart.
+     */
     private JFreeChart createPieChart(String title, CFGFoodGroup foodGroup) {
         DefaultPieDataset dataset = new DefaultPieDataset();
-        
-        double total = foodGroup.getVegtablesAndFruits() + 
-                      foodGroup.getGrainProducts() + 
-                      foodGroup.getMilkAndAlternatives() + 
-                      foodGroup.getMeatAndAlternatives();
+        double total = foodGroup.getVegtablesAndFruits() + foodGroup.getGrainProducts() + 
+                       foodGroup.getMilkAndAlternatives() + foodGroup.getMeatAndAlternatives();
         
         if (total > 0) {
             dataset.setValue("Vegetables & Fruits", foodGroup.getVegtablesAndFruits());
@@ -153,44 +157,38 @@ public class CFGAnalysisPanel extends JPanel {
             dataset.setValue("Meat & Alternatives", foodGroup.getMeatAndAlternatives());
         }
         
-        JFreeChart chart = ChartFactory.createPieChart(
-            null, dataset, true, true, false
-        );
-        
+        JFreeChart chart = ChartFactory.createPieChart(null, dataset, true, true, false);
         PiePlot plot = (PiePlot) chart.getPlot();
-        plot.setBackgroundPaint(new Color(255,255,255));
-        plot.setSectionPaint("Vegetables & Fruits", new Color(0, 128, 0)); // green
-        plot.setSectionPaint("Grain Products", new Color(255, 165, 0)); // yellow
-        plot.setSectionPaint("Milk & Alternatives", new Color(0, 0, 255)); // blue
-        plot.setSectionPaint("Meat & Alternatives", new Color(255, 0, 0)); // red
+        plot.setBackgroundPaint(Color.WHITE);
+        plot.setSectionPaint("Vegetables & Fruits", new Color(0, 128, 0));
+        plot.setSectionPaint("Grain Products", new Color(255, 165, 0));
+        plot.setSectionPaint("Milk & Alternatives", new Color(0, 0, 255));
+        plot.setSectionPaint("Meat & Alternatives", new Color(255, 0, 0));
         plot.setNoDataMessage("No data available");
         plot.setLabelGap(0.02);
         
         return chart;
     }
     
+    /**
+     * Populates the summary panel with detailed analysis for each food group.
+     * @param userAverage The user's average intake.
+     * @param recommended The recommended intake.
+     */
     private void addDetailedAnalysis(CFGFoodGroup userAverage, CFGFoodGroup recommended) {
-        addSummaryItem("Vegetables & Fruits", 
-            userAverage.getVegtablesAndFruits(), 
-            recommended.getVegtablesAndFruits());
-        
-        addSummaryItem("Grain Products", 
-            userAverage.getGrainProducts(), 
-            recommended.getGrainProducts());
-        
-        addSummaryItem("Milk & Alternatives", 
-            userAverage.getMilkAndAlternatives(), 
-            recommended.getMilkAndAlternatives());
-            
-        addSummaryItem("Meat & Alternatives", 
-            userAverage.getMeatAndAlternatives(), 
-            recommended.getMeatAndAlternatives());
-
-        addSummaryItem("Oil & Fats", 
-                userAverage.getOilsAndFat(), 
-                recommended.getOilsAndFat());
+        addSummaryItem("Vegetables & Fruits", userAverage.getVegtablesAndFruits(), recommended.getVegtablesAndFruits());
+        addSummaryItem("Grain Products", userAverage.getGrainProducts(), recommended.getGrainProducts());
+        addSummaryItem("Milk & Alternatives", userAverage.getMilkAndAlternatives(), recommended.getMilkAndAlternatives());
+        addSummaryItem("Meat & Alternatives", userAverage.getMeatAndAlternatives(), recommended.getMeatAndAlternatives());
+        addSummaryItem("Oil & Fats", userAverage.getOilsAndFat(), recommended.getOilsAndFat());
     }
 
+    /**
+     * Adds a single item to the summary panel, with color-coded feedback.
+     * @param name The name of the food group.
+     * @param actual The user's average number of servings.
+     * @param recommended The recommended number of servings.
+     */
     private void addSummaryItem(String name, double actual, double recommended) {
         JPanel itemPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         itemPanel.setOpaque(true);
@@ -198,76 +196,49 @@ public class CFGAnalysisPanel extends JPanel {
         itemPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         DecimalFormat df = new DecimalFormat("#.##");
-        String actualStr = df.format(actual);
-        String recStr = df.format(recommended);
-        
         double percentage = (recommended > 0) ? (actual / recommended) * 100 : 0;
-        String percStr = df.format(percentage);
 
         JLabel label = new JLabel(
             "<html><b>" + name + ":</b><br>" +
-            "Your Average: " + actualStr + " servings<br>" +
-            "Recommended: " + recStr + " servings<br>" +
-            "(" + percStr + "% of recommendation)</html>"
+            "Your Average: " + df.format(actual) + " servings<br>" +
+            "Recommended: " + df.format(recommended) + " servings<br>" +
+            "(" + df.format(percentage) + "% of recommendation)</html>"
         );
         itemPanel.add(label);
 
-        if (percentage >= 80 && percentage <= 120) {
-            itemPanel.setBackground(Color.GREEN); 
-        } else if (percentage < 80) {
-            itemPanel.setBackground(Color.ORANGE);
-        } else {
-            itemPanel.setBackground(Color.RED);
-        }
+        if (percentage >= 80 && percentage <= 120) itemPanel.setBackground(Color.GREEN);
+        else if (percentage < 80) itemPanel.setBackground(Color.ORANGE);
+        else itemPanel.setBackground(Color.RED);
 
         summaryPanel.add(itemPanel);
         summaryPanel.add(Box.createHorizontalStrut(5));
     }
     
+    /** Clears all analysis results from the panel. */
     public void clearAnalysis() {
         comparisonChartPanel.removeAll();
         summaryPanel.removeAll();
-        comparisonChartPanel.revalidate();
-        comparisonChartPanel.repaint();
-        summaryPanel.revalidate();
-        summaryPanel.repaint();
+        revalidate();
+        repaint();
     }
     
+    /** Sets the default date range and prevents selection of future dates. */
     public void limitDatesToToday() {
         Date today = new Date();
-        SpinnerDateModel startModel = (SpinnerDateModel) startDateSpinner.getModel();
-        SpinnerDateModel endModel = (SpinnerDateModel) endDateSpinner.getModel();
-        
-        startModel.setEnd(today);
-        endModel.setEnd(today);
-        endModel.setValue(today);
+        ((SpinnerDateModel) startDateSpinner.getModel()).setEnd(today);
+        ((SpinnerDateModel) endDateSpinner.getModel()).setEnd(today);
+        endDateSpinner.setValue(today);
         
         Calendar cal = Calendar.getInstance();
-        cal.setTime(today);
         cal.add(Calendar.DAY_OF_MONTH, -7);
-        startModel.setValue(cal.getTime());
+        startDateSpinner.setValue(cal.getTime());
     }
     
-    public Date getStartDate() {
-        return (Date) startDateSpinner.getValue();
-    }
-    
-    public Date getEndDate() {
-        return (Date) endDateSpinner.getValue();
-    }
-    
-    public void addAnalyzeButtonListener(ActionListener listener) {
-        analyzeButton.addActionListener(listener);
-    }
-    
-    public void addBackButtonListener(ActionListener listener) {
-        backButton.addActionListener(listener);
-    }
-    
-    public void addViewNutrientsButtonListener(ActionListener listener) {
-        viewNutrientsButton.addActionListener(listener);
-    }
-    
+    public Date getStartDate() { return (Date) startDateSpinner.getValue(); }
+    public Date getEndDate() { return (Date) endDateSpinner.getValue(); }
+    public void addAnalyzeButtonListener(ActionListener listener) { analyzeButton.addActionListener(listener); }
+    public void addBackButtonListener(ActionListener listener) { backButton.addActionListener(listener); }
+    public void addViewNutrientsButtonListener(ActionListener listener) { viewNutrientsButton.addActionListener(listener); }
     public void setDateRange(Date startDate, Date endDate) {
         if (startDate != null) startDateSpinner.setValue(startDate);
         if (endDate != null) endDateSpinner.setValue(endDate);

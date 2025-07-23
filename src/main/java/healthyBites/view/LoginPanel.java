@@ -4,13 +4,26 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 
+/**
+ * A JPanel that provides the user login interface.
+ * It features the application name, a tagline, an email input field, 
+ * and buttons for logging in or navigating to the registration panel.
+ * @author HealthyBites Team
+ */
 public class LoginPanel extends JPanel {
    
+    /** Text field for the user's email address. */
     private JTextField emailField;
+    /** Button to initiate the login process. */
     private JButton loginButton;
+    /** Button to navigate to the user registration panel. */
     private JButton createProfileButton;
     
         
+    /**
+     * Constructs the LoginPanel, initializing all UI components and their layout.
+     * Components are stacked vertically using a BoxLayout.
+     */
     public LoginPanel() {
         // stack components vertically
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
@@ -58,20 +71,34 @@ public class LoginPanel extends JPanel {
     }
 
     
- // getter methods to be utilized by facade
-       
-    	public void loginButtonListener(ActionListener listener) {
-    		loginButton.addActionListener(listener);
-    	}
-    	public void createProfileButtonListener(ActionListener listener) {
-            createProfileButton.addActionListener(listener);
-      }
+    /**
+     * Adds an ActionListener to the 'Login' button.
+     * @param listener The ActionListener to be added.
+     */
+	public void loginButtonListener(ActionListener listener) {
+		loginButton.addActionListener(listener);
+	}
+    
+    /**
+     * Adds an ActionListener to the 'Create a profile' button.
+     * @param listener The ActionListener to be added.
+     */
+	public void createProfileButtonListener(ActionListener listener) {
+        createProfileButton.addActionListener(listener);
+    }
 
-      public String getEmail() {
-    		return emailField.getText();
-    	}
+    /**
+     * Retrieves the email address entered by the user.
+     * @return The email address as a String.
+     */
+    public String getEmail() {
+		return emailField.getText();
+	}
     	    	
-      public void clearFields() {
-        emailField.setText("");
-      }
+    /**
+     * Clears the email input field.
+     */
+    public void clearFields() {
+      emailField.setText("");
+    }
 }

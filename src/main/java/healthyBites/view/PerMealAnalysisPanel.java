@@ -15,26 +15,41 @@ import java.util.Map;
 import java.util.TreeMap;
 
 /**
- * A redesigned panel to display a per-meal breakdown using a master-detail view.
+ * A JPanel that provides a detailed, per-meal breakdown of the nutritional impact of a food swap.
+ * It uses a master-detail layout where a list of affected meals is displayed, and selecting a meal
+ * shows a detailed table of nutrient changes for that specific meal.
+ * @author HealthyBites Team
  */
 public class PerMealAnalysisPanel extends JPanel {
 
+    /** The list component to display the meals that were affected by the swap. */
     private JList<Meal> mealList;
+    /** The model for the mealList, managing the list's data. */
     private DefaultListModel<Meal> listModel;
+    /** The table to display detailed nutrient changes for the selected meal. */
     private JTable detailTable;
+    /** The model for the detailTable, managing the table's data and columns. */
     private DefaultTableModel tableModel;
+    /** A button to navigate back to the previous analysis options screen. */
     private JButton backButton;
     
+    /** A list of meals that have been changed by the food swap. */
     private List<Meal> changedMeals;
+    /** A map storing the original nutritional information for each meal before the swap. */
     private Map<Meal, Nutrition> originalNutritions;
+    /** A map storing the modified nutritional information for each meal after the swap. */
     private Map<Meal, Nutrition> modifiedNutritions;
     
   
-    // color constants for the renderer
+    /** Color constant for representing an increase in a nutrient's value. */
     private static final Color INCREASE_COLOR = new Color(0, 150, 0);
+    /** Color constant for representing a decrease in a nutrient's value. */
     private static final Color DECREASE_COLOR = new Color(200, 0, 0);
-    // 
 
+    /**
+     * Constructs the PerMealAnalysisPanel, initializing all UI components and their layouts.
+     * It sets up the master-detail view with a JList and a JTable inside a JSplitPane.
+     */
     public PerMealAnalysisPanel() {
         setLayout(new BorderLayout(10, 10));
         setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
@@ -90,6 +105,14 @@ public class PerMealAnalysisPanel extends JPanel {
         });
     }
     
+    /**
+     * Populates the panel with analysis data and updates the view.
+     * It clears any existing data and fills the list of affected meals.
+     *
+     * @param changedMeals A list of meals modified by the swap.
+     * @param originalNutritions A map of original nutrition data, keyed by Meal.
+     * @param modifiedNutritions A map of new nutrition data, keyed by Meal.
+     */
     public void displayAnalysis(List<Meal> changedMeals, Map<Meal, Nutrition> originalNutritions, Map<Meal, Nutrition> modifiedNutritions) {
         this.changedMeals = changedMeals;
         this.originalNutritions = originalNutritions;
@@ -106,6 +129,12 @@ public class PerMealAnalysisPanel extends JPanel {
         }
     }
 
+    /**
+     * Updates the detail table with the nutritional information for a specific meal.
+     * It compares the original and modified nutrient values and displays only those that have changed.
+     *
+     * @param meal The meal for which to display nutrient details.
+     */
     private void updateDetailTable(Meal meal) {
         tableModel.setRowCount(0);
         Nutrition original = originalNutritions.get(meal);
@@ -127,12 +156,18 @@ public class PerMealAnalysisPanel extends JPanel {
         }
     }
     
+    /**
+     * Adds an ActionListener to the 'Back' button.
+     *
+     * @param listener The ActionListener to be added.
+     */
     public void addBackButtonListener(ActionListener listener) {
         backButton.addActionListener(listener);
     }
 
     /**
-     * Custom renderer to display meal information nicely in the JList.
+     * A custom cell renderer for displaying Meal objects within the JList.
+     * Formats the meal's date and type for a clean and readable presentation.
      */
     private static class MealListCellRenderer extends DefaultListCellRenderer {
         private final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
@@ -147,7 +182,9 @@ public class PerMealAnalysisPanel extends JPanel {
     }
     
     /**
-     * Custom cell renderer to apply colors to the change column.
+     * A custom cell renderer for the nutrient details table.
+     * It color-codes the "Change" column to visually indicate increases (green) or decreases (red) in nutrient values.
+     * It also handles text alignment for better readability.
      */
     private class NutrientTableCellRenderer extends DefaultTableCellRenderer {
         @Override

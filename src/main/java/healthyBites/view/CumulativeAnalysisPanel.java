@@ -10,19 +10,33 @@ import java.util.Map;
 import java.util.TreeMap;
 
 /**
- * Panel to display the cumulative impact of a food swap using a table.
+ * A JPanel that displays the cumulative nutritional impact of a simulated food swap
+ * over a specified period. The results are presented in a table showing the original
+ * total, the new total, and the absolute and percentage change for each nutrient.
+ * @author HealthyBites Team
  */
 public class CumulativeAnalysisPanel extends JPanel {
 
+    /** The table used to display the analysis data. */
     private JTable analysisTable;
+    /** The data model for the analysis table. */
     private DefaultTableModel tableModel;
+    /** A button to navigate back to the analysis options screen. */
     private JButton backButton;
+    /** A label for the panel's title, which is updated dynamically. */
     private JLabel titleLabel;
+    /** A button to switch to a graphical visualization of the data. */
     private JButton visualizeButton;
 
+    /** Color constant for representing an increase in a nutrient's value. */
     private static final Color INCREASE_COLOR = new Color(0, 150, 0);
+    /** Color constant for representing a decrease in a nutrient's value. */
     private static final Color DECREASE_COLOR = new Color(200, 0, 0);
 
+    /**
+     * Constructs the CumulativeAnalysisPanel, initializing the UI components
+     * including the table and navigation buttons.
+     */
     public CumulativeAnalysisPanel() {
         setLayout(new BorderLayout(10, 10));
         setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
@@ -43,7 +57,6 @@ public class CumulativeAnalysisPanel extends JPanel {
         analysisTable.setDefaultRenderer(Object.class, new NutrientTableCellRenderer());
         
         JScrollPane scrollPane = new JScrollPane(analysisTable);
-        scrollPane.setPreferredSize(new Dimension(400, 200)); // test
         add(scrollPane, BorderLayout.CENTER);
         
         JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
@@ -55,12 +68,20 @@ public class CumulativeAnalysisPanel extends JPanel {
         add(bottomPanel, BorderLayout.SOUTH);
     }
     
+    /**
+     * Populates the analysis table with the cumulative swap data.
+     *
+     * @param originalTotals A map of nutrient names to their original total values.
+     * @param modifiedTotals A map of nutrient names to their new total values after the swap.
+     * @param numberOfDays The number of days the analysis covers.
+     */
     public void displayAnalysis(Map<String, Double> originalTotals, Map<String, Double> modifiedTotals, int numberOfDays) {
         tableModel.setRowCount(0);
         titleLabel.setText("Cumulative Swap Analysis (Over " + numberOfDays + " Logged Days)");
         
         DecimalFormat df = new DecimalFormat("#.##");
 
+        // Use a TreeMap to ensure nutrients are displayed in alphabetical order
         for (String nutrientName : new TreeMap<>(originalTotals).keySet()) {
             double originalValue = originalTotals.getOrDefault(nutrientName, 0.0);
             double modifiedValue = modifiedTotals.getOrDefault(nutrientName, 0.0);
@@ -81,16 +102,25 @@ public class CumulativeAnalysisPanel extends JPanel {
         }
     }
     
+    /**
+     * Adds an ActionListener to the 'Back' button.
+     * @param listener The ActionListener to add.
+     */
     public void addBackButtonListener(ActionListener listener) {
         backButton.addActionListener(listener);
     }
     
+    /**
+     * Adds an ActionListener to the 'Visualize Data' button.
+     * @param listener The ActionListener to add.
+     */
     public void addVisualizeButtonListener(ActionListener listener) {
         visualizeButton.addActionListener(listener);
     }
 
     /**
-     * Custom cell renderer to apply colors to the change columns.
+     * A custom table cell renderer to apply color coding to the change columns.
+     * Increases are colored green, and decreases are colored red, providing a quick visual cue.
      */
     private class NutrientTableCellRenderer extends DefaultTableCellRenderer {
         @Override
@@ -99,7 +129,7 @@ public class CumulativeAnalysisPanel extends JPanel {
                                                      int row, int column) {
             Component cell = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
             
-            if (column >= 3) { // Change and % Change columns
+            if (column >= 3) { // Target "Change" and "% Change" columns
                 String textValue = value.toString();
                 if (textValue.startsWith("+")) {
                     cell.setForeground(INCREASE_COLOR);

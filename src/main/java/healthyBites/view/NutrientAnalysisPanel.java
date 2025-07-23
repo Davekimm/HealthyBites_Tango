@@ -13,36 +13,39 @@ import org.jfree.data.general.DefaultPieDataset;
 import org.jfree.data.general.PieDataset;
 
 /**
- * This panel allows users to select a date range and view their average nutrient-intake 
- * compared to recommended daily values (RDV) with color coded feedback
+ * A JPanel that allows users to select a date range and view an analysis of their average
+ * nutrient intake. The analysis is presented as a pie chart showing nutrient proportions
+ * and a summary panel that compares actual intake to recommended daily values (RDV)
+ * with color-coded feedback.
+ * @author HealthyBites Team
  */
 public class NutrientAnalysisPanel extends JPanel {
     
-    /** Spinner for selecting the start date of the analysis period */
+    /** Spinner for selecting the start date of the analysis period. */
     private JSpinner startDateSpinner;
     
-    /** Spinner for selecting the end date of the analysis period */
+    /** Spinner for selecting the end date of the analysis period. */
     private JSpinner endDateSpinner;
     
-    /** Button to trigger the nutrient analysis */
+    /** Button to trigger the nutrient analysis. */
     private JButton analyzeButton;
     
-    /** Button to navigate back to the previous screen */
+    /** Button to navigate back to the previous screen. */
     private JButton backButton;
     
-    /** Panel containing the JFreeChart pie chart */
+    /** Panel to hold the JFreeChart pie chart. */
     private JPanel chartPanel;
     
-    /** Panel containing the nutrient comparison summary */
+    /** Panel to display the nutrient comparison summary. */
     private JPanel summaryPanel;
     
-    /** Button to launch CFG analysis panel*/
+    /** Button to launch the Canada Food Guide analysis panel. */
     private JButton viewCFGButton;
     
     /**
-     * Map containing recommended daily values for tracked nutrients.
-     * Key: Nutrient name
-     * Value: Recommended amount (in grams for macronutrients, in milligrams for micronutrients)
+     * A map containing recommended daily values (RDV) for key nutrients.
+     * The key is the nutrient name (String) and the value is the recommended amount.
+     * Units are grams for macronutrients and milligrams for micronutrients.
      */
     private static final Map<String, Double> RECOMMENDED_DAILY = new HashMap<>();
     static {
@@ -58,33 +61,28 @@ public class NutrientAnalysisPanel extends JPanel {
     }
     
     /**
-     * Constructs a new NutrientAnalysisPanel with all necessary UI components.
-     * Initializes the layout, date selection controls, chart panel, and summary panel
+     * Constructs a new NutrientAnalysisPanel, initializing the layout, date selection controls,
+     * chart panel, summary panel, and navigation buttons.
      */
     public NutrientAnalysisPanel() {
         setLayout(new BorderLayout());
         setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         
-        // Title label
         JLabel titleLabel = new JLabel("Nutrient Intake Analysis", SwingConstants.CENTER);
         titleLabel.setFont(new Font("Arial", Font.BOLD, 16));
         titleLabel.setBorder(BorderFactory.createEmptyBorder(0, 0, 10, 0));
         add(titleLabel, BorderLayout.NORTH);
         
-        // Main content panel
         JPanel mainPanel = new JPanel(new BorderLayout());
         
-        // Date selection panel
         JPanel datePanel = createDateSelectionPanel();
         mainPanel.add(datePanel, BorderLayout.NORTH);
         
-        // Chart panel setup
         chartPanel = new JPanel(new BorderLayout());
         chartPanel.setBorder(BorderFactory.createTitledBorder("Nutrient Proportions Chart"));
         chartPanel.setPreferredSize(new Dimension(600, 400));
         chartPanel.setBackground(Color.WHITE);
         
-        // Summary panel setup with scroll capability
         summaryPanel = new JPanel();
         summaryPanel.setLayout(new BoxLayout(summaryPanel, BoxLayout.Y_AXIS));
         summaryPanel.setBackground(Color.WHITE);
@@ -96,14 +94,11 @@ public class NutrientAnalysisPanel extends JPanel {
         summaryScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
         summaryScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
 
-        // Add components to main panel
         mainPanel.add(chartPanel, BorderLayout.CENTER);
         mainPanel.add(summaryScrollPane, BorderLayout.EAST);
         
         add(mainPanel, BorderLayout.CENTER);
         
-        // Bottom button panel
-     // Bottom button panel
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
         backButton = new JButton("Back to Home");
         viewCFGButton = new JButton("View Food Guide Analysis");
@@ -113,7 +108,6 @@ public class NutrientAnalysisPanel extends JPanel {
         buttonPanel.add(viewCFGButton);
         add(buttonPanel, BorderLayout.SOUTH);
         
-        // Add date validation to analyze button
         analyzeButton.addActionListener(e -> {
             Date startDate = (Date) startDateSpinner.getValue();
             Date endDate = (Date) endDateSpinner.getValue();
@@ -130,16 +124,13 @@ public class NutrientAnalysisPanel extends JPanel {
     }
     
     /**
-     * Creates and configures the date selection panel.
-     * This panel contains start/end date spinners and the analyze button.
-     * 
-     * @return JPanel containing date selection controls
+     * Creates and configures the date selection panel containing start/end date spinners and the analyze button.
+     * * @return A JPanel containing the date selection controls.
      */
     private JPanel createDateSelectionPanel() {
         JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 10));
         panel.setBorder(BorderFactory.createTitledBorder("Select Time Period"));
         
-        // Start date components
         panel.add(new JLabel("Start Date:"));
         startDateSpinner = new JSpinner(new SpinnerDateModel());
         startDateSpinner.setEditor(new JSpinner.DateEditor(startDateSpinner, "yyyy-MM-dd"));
@@ -149,7 +140,6 @@ public class NutrientAnalysisPanel extends JPanel {
         startEditor.setPreferredSize(dateSize);
         panel.add(startDateSpinner);
         
-        // End date components
         panel.add(new JLabel("End Date:"));
         endDateSpinner = new JSpinner(new SpinnerDateModel());
         endDateSpinner.setEditor(new JSpinner.DateEditor(endDateSpinner, "yyyy-MM-dd"));
@@ -157,7 +147,6 @@ public class NutrientAnalysisPanel extends JPanel {
         endEditor.setPreferredSize(dateSize);
         panel.add(endDateSpinner);
         
-        // Analyze button
         analyzeButton = new JButton("Analyze");
         analyzeButton.setPreferredSize(new Dimension(100, 25));
         panel.add(analyzeButton);
@@ -166,12 +155,11 @@ public class NutrientAnalysisPanel extends JPanel {
     }
 
     /**
-     * Converts nutrient values from various units to grams.
-     * Used to standardize all nutrient masses for pie chart display.
-     * 
-     * @param value The numeric value to convert
-     * @param unit The unit of measurement (g, mg, µg)
-     * @return The value converted to grams, or 0 if unit is null or (not a mass unit)
+     * Converts a nutrient value from its given unit (mg, µg) to grams.
+     * This is used to standardize all nutrient masses for the pie chart display.
+     * * @param value The numeric value to convert.
+     * @param unit The unit of measurement (e.g., "g", "mg", "µg").
+     * @return The value converted to grams, or 0 if the unit is not a recognized mass unit.
      */
     private double convertToGrams(double value, String unit) {
         if (unit == null) {
@@ -190,22 +178,17 @@ public class NutrientAnalysisPanel extends JPanel {
     }
 
     /**
-     * Displays the nutrient analysis results in both chart and summary formats.
-     * Creates a pie chart showing nutrient mass proportions and 
-     * a summary panel - comparing actual intake against recommended daily values.
-     * 
-     * @param averageDailyNutrients Map of nutrient names to their average daily values
-     * @param numberOfDays The number of days included in the analysis - days on which no meals are recorded are not included
-     * @param nutrientUnits Map of nutrient names to their units of measurement
+     * Displays the nutrient analysis results, populating the pie chart and summary panel.
+     * * @param averageDailyNutrients A map of nutrient names to their average daily intake values.
+     * @param numberOfDays The number of days included in the analysis.
+     * @param nutrientUnits A map of nutrient names to their units of measurement.
      */
     public void displayNutrientAnalysis(Map<String, Double> averageDailyNutrients, int numberOfDays, Map<String, String> nutrientUnits) {
-        // Clear previous results
         chartPanel.removeAll();
         summaryPanel.removeAll();
         
         DefaultPieDataset dataset = new DefaultPieDataset();
         
-        // Define main nutrients that get individual pie slices
         String[] mainNutrients = {
             "PROTEIN", "CARBOHYDRATE, TOTAL (BY DIFFERENCE)", "FAT (TOTAL LIPIDS)", 
             "FIBRE, TOTAL DIETARY", "IRON", "SODIUM", "CALCIUM", 
@@ -215,48 +198,35 @@ public class NutrientAnalysisPanel extends JPanel {
         
         double otherNutrientsTotalInGrams = 0;
 
-        // Process all nutrients
         for (Map.Entry<String, Double> entry : averageDailyNutrients.entrySet()) {
             String nutrientName = entry.getKey();
             double value = entry.getValue();
             String unit = nutrientUnits.get(nutrientName);
             
-            // Convert to grams for consistent pie chart display
             double valueInGrams = convertToGrams(value, unit);
 
             if (mainNutrientSet.contains(nutrientName)) {
-                // Add main nutrients as individual slices
                 dataset.setValue(getDisplayName(nutrientName) + " (g)", valueInGrams);
             } else {
-                // Aggregate other nutrients
                 otherNutrientsTotalInGrams += valueInGrams;
             }
         }
         
-        // Add "Other Nutrients" slice if applicable
         if (otherNutrientsTotalInGrams > 0) {
             dataset.setValue("Other Nutrients (g)", otherNutrientsTotalInGrams);
         }
         
-        // Create pie chart
         JFreeChart chart = ChartFactory.createPieChart(
             "Daily Nutrient Distribution", 
-            dataset, 
-            true,   // legend
-            true,   // tooltips
-            false   // URLs
-        );
+            dataset, true, true, false);
         
-        // Configure pie chart appearance
         PiePlot plot = (PiePlot) chart.getPlot();
         plot.setBackgroundPaint(Color.WHITE);
         plot.setLabelGenerator(new StandardPieSectionLabelGenerator("{0} ({2})"));
         
-        // Add chart to panel
         ChartPanel jfreeChartPanel = new ChartPanel(chart);
         chartPanel.add(jfreeChartPanel, BorderLayout.CENTER);
         
-        // Populate summary panel with RDV comparisons
         for (String nutrientName : mainNutrients) {
              if (averageDailyNutrients.containsKey(nutrientName)) {
                 Double recommended = RECOMMENDED_DAILY.get(nutrientName);
@@ -264,7 +234,6 @@ public class NutrientAnalysisPanel extends JPanel {
              }
         }
 
-        // Refresh UI components
         chartPanel.revalidate();
         chartPanel.repaint();
         summaryPanel.revalidate();
@@ -272,47 +241,34 @@ public class NutrientAnalysisPanel extends JPanel {
     }
     
     /**
-     * Converts database nutrient names to user-friendly display names.
-     * 
-     * @param nutrient The database nutrient name
-     * @return The user-friendly display name
+     * Converts technical nutrient names from the database to more user-friendly display names.
+     * * @param nutrient The technical nutrient name.
+     * @return The user-friendly display name.
      */
     private String getDisplayName(String nutrient) {
-        switch (nutrient) {
-            case "PROTEIN":
-                return "Protein";
-            case "CARBOHYDRATE, TOTAL (BY DIFFERENCE)":
-                return "Carbohydrates";
-            case "FAT (TOTAL LIPIDS)":
-                return "Fat";
-            case "FIBRE, TOTAL DIETARY":
-                return "Fiber";
-            case "IRON":
-                return "Iron";
-            case "SODIUM":
-                return "Sodium";
-            case "CALCIUM":
-                return "Calcium";
-            case "POTASSIUM":
-                return "Potassium";
-            case "CHOLESTEROL":
-                return "Cholesterol";
-            default:
-                return nutrient;
-        }
+        return switch (nutrient) {
+            case "PROTEIN" -> "Protein";
+            case "CARBOHYDRATE, TOTAL (BY DIFFERENCE)" -> "Carbohydrates";
+            case "FAT (TOTAL LIPIDS)" -> "Fat";
+            case "FIBRE, TOTAL DIETARY" -> "Fiber";
+            case "IRON" -> "Iron";
+            case "SODIUM" -> "Sodium";
+            case "CALCIUM" -> "Calcium";
+            case "POTASSIUM" -> "Potassium";
+            case "CHOLESTEROL" -> "Cholesterol";
+            default -> nutrient;
+        };
     }
     
     /**
-     * Adds a nutrient summary item to the summary panel.
-     * Creates a colored panel showing actual vs recommended intake with percentage of RDV.
-     * Color coding: Green (80-120% RDV), Orange (<80% RDV), Red (>120% RDV)
-     * 
-     * @param nutrient The display name of the nutrient
-     * @param actual The actual daily intake value
-     * @param recommended The recommended daily value (null if not tracked)
+     * Adds a single nutrient summary item to the summary panel.
+     * The item is color-coded based on how the actual intake compares to the recommended daily value (RDV).
+     * Green: 80-120% of RDV. Orange: <80% of RDV. Red: >120% of RDV.
+     * * @param nutrient The display name of the nutrient.
+     * @param actual The user's average daily intake of the nutrient.
+     * @param recommended The recommended daily value for the nutrient.
      */
     private void addSummaryItem(String nutrient, double actual, Double recommended) {
-        // Create item panel with layout
         JPanel itemPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         itemPanel.setMinimumSize(new Dimension(180, 80));
         itemPanel.setPreferredSize(new Dimension(180, 80));
@@ -320,54 +276,28 @@ public class NutrientAnalysisPanel extends JPanel {
         itemPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
         
         DecimalFormat df = new DecimalFormat("#.##");
-        String actualStr = df.format(actual);
-        
         JLabel label = new JLabel();
         label.setVerticalAlignment(SwingConstants.TOP);
         
         if (recommended != null) {
-            // Determine if nutrient should be displayed in milligrams
-            if (nutrient.equals("Iron") || nutrient.equals("Sodium") || 
-                nutrient.equals("Calcium") || nutrient.equals("Potassium") || 
-                nutrient.equals("Cholesterol")) {
-                // Micronutrients: actual already in mg, recommended in mg
-                double actualMg = actual;
-                double recMg = recommended;
-                String actualMgStr = df.format(actualMg);
-                String recMgStr = df.format(recMg);
-                double percentage = (actualMg / recMg) * 100;
-                String percStr = df.format(percentage);
-                
-                label.setText("<html><b>" + nutrient + " (mg):</b><br>" +
-                              "Actual: " + actualMgStr + "mg<br>" +
-                              "Recommended: " + recMgStr + "mg<br>" +
-                              "(" + percStr + "% of RDV)</html>");
-            } else {
-                // Macronutrients: display in grams
-                String recStr = df.format(recommended);
-                double percentage = (actual / recommended) * 100;
-                String percStr = df.format(percentage);
-                
-                label.setText("<html><b>" + nutrient + " (g):</b><br>" +
-                              "Actual: " + actualStr + "g<br>" +
-                              "Recommended: " + recStr + "g<br>" +
-                              "(" + percStr + "% of RDV)</html>");
-            }
-
-            // Set background color based on RDV percentage
             double percentage = (actual / recommended) * 100;
-            if (percentage < 80) {
-                itemPanel.setBackground(Color.ORANGE);  // Below target
-            } else if (percentage > 120) {
-                itemPanel.setBackground(Color.RED);     // Above target
+            String text;
+            if (Set.of("Iron", "Sodium", "Calcium", "Potassium", "Cholesterol").contains(nutrient)) {
+                text = String.format("<html><b>%s (mg):</b><br>Actual: %smg<br>Recommended: %smg<br>(%s%% of RDV)</html>",
+                                     nutrient, df.format(actual), df.format(recommended), df.format(percentage));
             } else {
-                itemPanel.setBackground(Color.GREEN);   // Within healthy range
+                text = String.format("<html><b>%s (g):</b><br>Actual: %sg<br>Recommended: %sg<br>(%s%% of RDV)</html>",
+                                     nutrient, df.format(actual), df.format(recommended), df.format(percentage));
             }
+            label.setText(text);
+
+            if (percentage < 80) itemPanel.setBackground(Color.ORANGE);
+            else if (percentage > 120) itemPanel.setBackground(Color.RED);
+            else itemPanel.setBackground(Color.GREEN);
             
-            label.setForeground(Color.BLACK);			// for read-abillty
+            label.setForeground(Color.BLACK);
         }
         
-        // Ensure background color is visible
         itemPanel.setOpaque(true);
         itemPanel.add(label);
         summaryPanel.add(itemPanel);
@@ -375,36 +305,32 @@ public class NutrientAnalysisPanel extends JPanel {
     }
     
     /**
-     * Gets the currently selected start date.
-     * 
-     * @return The start date selected in the date spinner
+     * Gets the currently selected start date from the date spinner.
+     * @return The selected start date.
      */
     public Date getStartDate() {
         return (Date) startDateSpinner.getValue();
     }
     
     /**
-     * Gets the currently selected end date.
-     * 
-     * @return The end date selected in the date spinner
+     * Gets the currently selected end date from the date spinner.
+     * @return The selected end date.
      */
     public Date getEndDate() {
         return (Date) endDateSpinner.getValue();
     }
     
     /**
-     * Adds an ActionListener to the analyze button.
-     * 
-     * @param listener The ActionListener to be notified when analyze is clicked
+     * Adds an ActionListener to the 'Analyze' button.
+     * @param listener The ActionListener to add.
      */
     public void addAnalyzeButtonListener(ActionListener listener) {
         analyzeButton.addActionListener(listener);
     }
     
     /**
-     * Adds an ActionListener to the back button.
-     * 
-     * @param listener The ActionListener to be notified when back is clicked
+     * Adds an ActionListener to the 'Back' button.
+     * @param listener The ActionListener to add.
      */
     public void addBackButtonListener(ActionListener listener) {
         backButton.addActionListener(listener);
@@ -412,7 +338,6 @@ public class NutrientAnalysisPanel extends JPanel {
     
     /**
      * Clears all content from the chart and summary panels.
-     * Called when navigating away or when no data is available.
      */
     public void clearChart() {
         chartPanel.removeAll();
@@ -424,25 +349,20 @@ public class NutrientAnalysisPanel extends JPanel {
     }
 
     /**
-     * Restricts date spinners to today's date or earlier.
-     * Sets default date range to the past 7 days (start: 7 days ago, end: today).
-     * Prevents users from selecting future dates for analysis.
+     * Configures the date spinners to prevent selection of future dates and sets a default range.
+     * The default range is the last 7 days.
      */
     public void limitDatesToToday() {
         Date today = new Date();
         
-        // Get spinner models
         SpinnerDateModel startModel = (SpinnerDateModel) startDateSpinner.getModel();
         SpinnerDateModel endModel = (SpinnerDateModel) endDateSpinner.getModel();
         
-        // Set maximum date to today
         startModel.setEnd(today);
         endModel.setEnd(today);
         
-        // Set default end date to today
         endModel.setValue(today);
         
-        // Set default start date to 7 days ago
         Calendar cal = Calendar.getInstance();
         cal.setTime(today);
         cal.add(Calendar.DAY_OF_MONTH, -7);
@@ -450,17 +370,20 @@ public class NutrientAnalysisPanel extends JPanel {
         startModel.setValue(weekAgo);
     }
     
-    /** methods for CFG analysis panel launch
-     * the date range in CFG analysis will be the same as nutrient analysis panel
-     * to utilize stored cache of meal history items during nutrient analysis
-     * this will improve responsiveness by reducing calls to database
-     * 
-     * After initial analysis the user can then select different date range as desired  */
+    /**
+     * Adds an ActionListener to the 'View Food Guide Analysis' button. This allows navigation
+     * to the CFG analysis panel while preserving the selected date range.
+     * @param listener The ActionListener to add.
+     */
     public void addViewCFGButtonListener(ActionListener listener) {
         viewCFGButton.addActionListener(listener);
     }
 
-    // Set dates programmatically (for navigation from CFG panel)
+    /**
+     * Sets the date range for the start and end date spinners programmatically.
+     * @param startDate The start date to set.
+     * @param endDate The end date to set.
+     */
     public void setDateRange(Date startDate, Date endDate) {
         if (startDate != null) {
             startDateSpinner.setValue(startDate);

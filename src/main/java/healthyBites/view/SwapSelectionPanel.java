@@ -7,15 +7,30 @@ import java.util.List;
 import java.util.function.Consumer;
 import healthyBites.model.FoodItem;
 
+/**
+ * A JPanel that displays a list of suggested food items for a swap.
+ * Users can select one item from the list and confirm their choice to apply the swap.
+ * @author HealthyBites Team
+ */
 public class SwapSelectionPanel extends JPanel {
 
+    /** The JList component to display the swap options. */
     private JList<String> swapOptionsList;
+    /** The data model for the swapOptionsList. */
     private DefaultListModel<String> listModel;
+    /** The button to confirm the selection and apply the swap. */
     private JButton selectButton;
+    /** The button to navigate back to the previous screen without making a selection. */
     private JButton backButton;
+    /** A list of FoodItem objects that correspond to the options displayed in the JList. */
     private List<FoodItem> foodItemOptions;
+    /** A callback function to be executed when a food item is selected. */
     private Consumer<FoodItem> onSelectConsumer;
 
+    /**
+     * Constructs the SwapSelectionPanel, initializing the UI components,
+     * including the list for swap options and the navigation buttons.
+     */
     public SwapSelectionPanel() {
         setLayout(new BorderLayout(10, 10));
         setBorder(BorderFactory.createTitledBorder("Select a Food Item to Swap"));
@@ -29,7 +44,6 @@ public class SwapSelectionPanel extends JPanel {
 
        
         // This prevents the panel from becoming too large when there are many items in the list.
-        // The main window (JFrame) will no longer resize itself to fit this panel.
         scrollPane.setPreferredSize(new Dimension(400, 200));
 
         add(scrollPane, BorderLayout.CENTER);
@@ -56,7 +70,7 @@ public class SwapSelectionPanel extends JPanel {
     }
 
     /**
-     * Populates the list with food item suggestions.
+     * Populates the list with food item suggestions for the swap.
      * @param options A list of FoodItem objects to display as swap options.
      */
     public void setSwapOptions(List<FoodItem> options) {
@@ -72,8 +86,8 @@ public class SwapSelectionPanel extends JPanel {
     }
 
     /**
-     * Sets the listener that will be called when the user clicks the "Select Swap" button.
-     * @param onSelect The consumer that will handle the selected FoodItem.
+     * Sets the listener that will be called when the user clicks the "Apply Swap" button.
+     * @param onSelect The consumer function that will handle the selected FoodItem.
      */
     public void setOnSelectListener(Consumer<FoodItem> onSelect) {
         this.onSelectConsumer = onSelect;

@@ -6,22 +6,36 @@ import org.jfree.chart.*;
 import org.jfree.chart.plot.*;
 import org.jfree.data.category.*;
 
+/**
+ * A simple demonstration panel that displays a JFreeChart bar chart.
+ * This panel is intended to show a comparison between a user's nutrient intake
+ * and the recommended daily allowances, using hardcoded dummy data for illustrative purposes.
+ * @author HealthyBites Team
+ */
 public class ChartVisualizationPanel extends JPanel {
         
+    /**
+     * Constructs the ChartVisualizationPanel, creating and displaying a combined bar chart.
+     */
     public ChartVisualizationPanel() {
         setLayout(new BorderLayout());
               
-        // Main chart
+        // Create the main chart using dummy data and add it to the panel
         JFreeChart chart = createCombinedChart();
         ChartPanel chartPanel = new ChartPanel(chart);
         add(chartPanel, BorderLayout.CENTER);
         
     }
     
+    /**
+     * Creates a JFreeChart bar chart populated with hardcoded dummy data for demonstration.
+     * The chart compares "Your Intake" vs. "Recommended" for several nutrients.
+     * @return A JFreeChart object representing the bar chart.
+     */
     private JFreeChart createCombinedChart() {
         DefaultCategoryDataset dataset = new DefaultCategoryDataset();
         
-        // dummy data - user's actual intake
+        // Dummy data for the user's actual intake
         dataset.addValue(45, "Your Intake", "Protein (g)");
         dataset.addValue(250, "Your Intake", "Carbohydrate (g)");
         dataset.addValue(70, "Your Intake", "Fat (g)");
@@ -29,7 +43,7 @@ public class ChartVisualizationPanel extends JPanel {
         dataset.addValue(80, "Your Intake", "Calcium (mg)");
         dataset.addValue(20, "Your Intake", "Other (mg)");
         
-        // dummy recommended daily allowance
+        // Dummy data for the recommended daily allowance
         dataset.addValue(50, "Recommended", "Protein (g)");
         dataset.addValue(300, "Recommended", "Carbohydrate (g)");
         dataset.addValue(65, "Recommended", "Fat (g)");
@@ -37,16 +51,16 @@ public class ChartVisualizationPanel extends JPanel {
         dataset.addValue(100, "Recommended", "Calcium (mg)");
         dataset.addValue(30, "Recommended", "Other (mg)");
         
-        // JFree chart factory method
+        // Use JFreeChart's factory method to create the bar chart
         JFreeChart chart = ChartFactory.createBarChart(
             "Average vs Recommended Intake - 7 days", // chart title
-            "Nutrients", // X-axis
-            "Amount", // Y - axis
+            "Nutrients", // X-axis label
+            "Amount",    // Y-axis label
             dataset,
             PlotOrientation.VERTICAL,
-            true,   // legend
-            true,   // mouse tool tip
-            false   // not a web application
+            true,   // include legend
+            true,   // generate tooltips
+            false   // no URLs
         );
                
         return chart;

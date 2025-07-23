@@ -10,20 +10,33 @@ import java.util.Map;
 import java.util.TreeMap;
 
 /**
- * A dedicated panel to show the simulated average daily nutrient intake after a swap using a table.
+ * A JPanel that displays the impact of a simulated food swap on the user's *average daily*
+ * nutrient intake. The results are shown in a table comparing the original average,
+ * the new average, and the resulting changes for each nutrient.
+ * @author HealthyBites Team
  */
 public class AverageImpactPanel extends JPanel {
 
+    /** The table used to display the analysis data. */
     private JTable analysisTable;
+    /** The data model for the analysis table. */
     private DefaultTableModel tableModel;
+    /** A button to navigate back to the analysis options screen. */
     private JButton backButton;
+    /** A button to switch to a graphical visualization of the data. */
     private JButton visualizeButton;
+    /** A label for the panel's title, which is updated dynamically. */
     private JLabel titleLabel;
     
-    // For color coding
+    /** Color constant for representing an increase in a nutrient's value. */
     private static final Color INCREASE_COLOR = new Color(0, 150, 0);
+    /** Color constant for representing a decrease in a nutrient's value. */
     private static final Color DECREASE_COLOR = new Color(200, 0, 0);
 
+    /**
+     * Constructs the AverageImpactPanel, initializing the UI components
+     * including the table and navigation buttons.
+     */
     public AverageImpactPanel() {
         setLayout(new BorderLayout(10, 10));
         setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
@@ -43,7 +56,6 @@ public class AverageImpactPanel extends JPanel {
         analysisTable.setRowHeight(25);
         analysisTable.setDefaultRenderer(Object.class, new NutrientTableCellRenderer());
         JScrollPane scrollPane = new JScrollPane(analysisTable);
-        scrollPane.setPreferredSize(new Dimension(400, 200));
         add(scrollPane, BorderLayout.CENTER);
         
         
@@ -55,13 +67,20 @@ public class AverageImpactPanel extends JPanel {
         add(bottomPanel, BorderLayout.SOUTH);
     }
 
+    /**
+     * Populates the analysis table with the average daily swap impact data.
+     *
+     * @param originalAverages A map of nutrient names to their original average daily values.
+     * @param modifiedAverages A map of nutrient names to their new average daily values after the swap.
+     * @param numberOfDays The number of days the analysis covers.
+     */
     public void displayAnalysis(Map<String, Double> originalAverages, Map<String, Double> modifiedAverages, int numberOfDays) {
         tableModel.setRowCount(0);
         titleLabel.setText("Average Daily Impact of Swap (Over " + numberOfDays + " Logged Days)");
 
         DecimalFormat df = new DecimalFormat("#.##");
 
-        // Using a TreeMap to ensure nutrients are displayed in alphabetical order
+        // Use a TreeMap to ensure nutrients are displayed in alphabetical order
         for (String nutrientName : new TreeMap<>(originalAverages).keySet()) {
             double originalValue = originalAverages.getOrDefault(nutrientName, 0.0);
             double modifiedValue = modifiedAverages.getOrDefault(nutrientName, 0.0);
@@ -82,16 +101,25 @@ public class AverageImpactPanel extends JPanel {
         }
     }
     
+    /**
+     * Adds an ActionListener to the 'Back' button.
+     * @param listener The ActionListener to add.
+     */
     public void addBackButtonListener(ActionListener listener) {
         backButton.addActionListener(listener);
     }
     
+    /**
+     * Adds an ActionListener to the 'Visualize Data' button.
+     * @param listener The ActionListener to add.
+     */
     public void addVisualizeButtonListener(ActionListener listener) {
         visualizeButton.addActionListener(listener);
     }
     
     /**
-     * Custom cell renderer to apply colors to the change columns.
+     * A custom table cell renderer to apply color coding to the change columns.
+     * Increases are colored green, and decreases are colored red for quick visual feedback.
      */
     private class NutrientTableCellRenderer extends DefaultTableCellRenderer {
         @Override
@@ -100,7 +128,7 @@ public class AverageImpactPanel extends JPanel {
                                                      int row, int column) {
             Component cell = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
             
-            if (column >= 3) { // Change and % Change columns
+            if (column >= 3) { // Target "Change" and "% Change" columns
                 String textValue = value.toString();
                 if (textValue.startsWith("+")) {
                     cell.setForeground(INCREASE_COLOR);

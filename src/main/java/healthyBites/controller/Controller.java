@@ -62,6 +62,10 @@ public class Controller {
     private FoodItem itemToSwap;
     private FoodItem selectedReplacementItem;
     private Meal modifiedMealForSwap;
+    
+    // New cache fields for CFG servings data for the what-if analysis.
+    private Map<String, Double> cachedOriginalCFGServings;
+    private Map<String, Double> cachedModifiedCFGServings;
 
     // Cache for the "what-if" analysis results to avoid recalculation
     private Map<String, Double> cachedOriginalTotals;
@@ -240,6 +244,19 @@ public class Controller {
         view.addCumulativeAnalysisBackButtonListener(backToAnalysisSelection);
         view.addPerMealAnalysisBackButtonListener(backToAnalysisSelection);
 		
+        // Add listeners for the new "Visualize Data" buttons on the analysis panels.
+        view.addCumulativeAnalysisVisualizeButtonListener(e -> handleVisualizeRequest("CUMULATIVE_IMPACT"));
+        view.addAverageImpactVisualizeButtonListener(e -> handleVisualizeRequest("AVERAGE_IMPACT"));
+
+        // Add listener for the back button on the new visualization panel.
+        view.addSwapVisualizationBackButtonListener(e -> {
+            view.showAnalysisSelectionPanel(); 
+            this.currentPage = "AnalysisSelectionPanel";
+        });
+        
+        // Add listener for the chart type change request from the visualization panel.
+        view.setSwapVisualizationChartTypeListener(chartType -> provideDataForVisualization(chartType));
+        
 		//===========================================================
     	// My Plate page - Nutrient and CFG Analysis
     	//===========================================================
@@ -363,7 +380,7 @@ public class Controller {
     }
     
     private void deleteProfile() {
-    	model.deleteProfile(this.currentUser.getEmail()); // Calling Model method
+    	model.deleteProfile(this.currentUser.getEmail());  
     	JOptionPane.showMessageDialog(null, "Successfully deleted your profile!", "Success", JOptionPane.INFORMATION_MESSAGE);
     	view.clearMealHistory();
     	this.currentUser = null;
@@ -515,7 +532,7 @@ public class Controller {
     }
     
     private boolean mealTypeExist(Date date, String type) {
-        List<Meal> meals = model.getMeals(this.currentUser.getEmail()); // Calling Model method
+        List<Meal> meals = model.getMeals(this.currentUser.getEmail()); 
         Calendar targetDate = Calendar.getInstance();
         targetDate.setTime(date);
     	for(Meal m : meals) {
@@ -532,7 +549,7 @@ public class Controller {
     }
     
     private void getAvailableIngredients() {
-    	List<String> availableIngredients = model.getFoodNames(); // Calling Model method
+    	List<String> availableIngredients = model.getFoodNames(); 
     	String[] foodNameAry = new String[availableIngredients.size()];
     	availableIngredients.toArray(foodNameAry);
     	view.setMealIngredients(foodNameAry);
@@ -540,7 +557,7 @@ public class Controller {
     
     private void addMealPanelIngredientComboBoxListeners() {
         view.setIngredientSelectionListener((rowIndex, foodName) -> {
-            List<String> unitList = model.getAvailableUnits(foodName); // Calling Model method
+            List<String> unitList = model.getAvailableUnits(foodName);
             List<String> filteredUnits = new ArrayList<>();
             Pattern unitPattern = Pattern.compile("\\b(\\d+)(ml|g)\\b", Pattern.CASE_INSENSITIVE);
 
@@ -592,7 +609,7 @@ public class Controller {
 
     private void addGoalSwapPanelNutrientComboBoxListeners() {
         view.setNutrientSelectionListener4GoalPanel1((rowIndex, nutrientName) -> {
-        	String[] unitList = {"%", model.getNutrientUnit(nutrientName)}; // Calling Model method
+        	String[] unitList = {"%", model.getNutrientUnit(nutrientName)}; 
         	view.setGoalSwapUnitsForRow4GoalPanel1(rowIndex, unitList);
         });
     }
@@ -603,13 +620,13 @@ public class Controller {
     }
     
     private void getAvailableNutrients() {
-    	List<String> availableNutrients = model.getNutrientNames(); // Calling Model method
+    	List<String> availableNutrients = model.getNutrientNames();
     	String[] foodNutrientAry = new String[Math.min(50, availableNutrients.size())];
     	for(int i = 0; i < foodNutrientAry.length; i++) {
     		foodNutrientAry[i] = availableNutrients.get(i);
     	}
     	view.setNutrientList4GoalPanel1(foodNutrientAry);
-    	String[] unitList = {"%", model.getNutrientUnit("PROTEIN")}; // Calling Model method
+    	String[] unitList = {"%", model.getNutrientUnit("PROTEIN")}; 
     	view.setGoalSwapUnitsForRow4GoalPanel1(0, unitList);
     }
     
@@ -637,7 +654,7 @@ public class Controller {
 
         List<Goal> goals = new ArrayList<>();
         List<String> selectedNutrients = view.getSelectedNutrient4GoalPanel1();
-        Nutrition originalMealNutrition = model.getMealNutrtionalValue(meal); // Calling Model method
+        Nutrition originalMealNutrition = model.getMealNutrtionalValue(meal);  
 
         try {
 	        for (int i = 0; i < selectedNutrients.size(); i++) {
@@ -667,7 +684,7 @@ public class Controller {
             return; 
         }
         
-        List<FoodItem> alternativeOptions = model.getAlternativeFoodOptions(meal, this.itemToSwap, goals); // Calling Model method
+        List<FoodItem> alternativeOptions = model.getAlternativeFoodOptions(meal, this.itemToSwap, goals);  
 
         if (alternativeOptions == null || alternativeOptions.isEmpty()) {
             JOptionPane.showMessageDialog(null, "No suitable food swaps found for the specified goals.", "No Results", JOptionPane.INFORMATION_MESSAGE);
@@ -693,8 +710,8 @@ public class Controller {
         }
         this.modifiedMealForSwap = new Meal(originalMealForSwap.getDate(), modifiedFoodItems, originalMealForSwap.getType());
 
-        Nutrition originalNutrition = model.getMealNutrtionalValue(originalMealForSwap); // Calling Model method
-        Nutrition modifiedNutrition = model.getMealNutrtionalValue(modifiedMealForSwap); // Calling Model method
+        Nutrition originalNutrition = model.getMealNutrtionalValue(originalMealForSwap);  
+        Nutrition modifiedNutrition = model.getMealNutrtionalValue(modifiedMealForSwap);  
         
         Map<String, Double> sortedOriginalNutrients = new TreeMap<>(originalNutrition.getNutrients());
         Map<String, Double> sortedModifiedNutrients = new TreeMap<>(modifiedNutrition.getNutrients());
@@ -702,7 +719,7 @@ public class Controller {
         Map<String, String> nutrientUnits = new HashMap<>();
         for (String nutrientName : originalNutrition.getNutrients().keySet()) {
             try {
-                nutrientUnits.put(nutrientName, model.getNutrientUnit(nutrientName)); // Calling Model method
+                nutrientUnits.put(nutrientName, model.getNutrientUnit(nutrientName));  
             } catch (IllegalArgumentException e) {
                 nutrientUnits.put(nutrientName, "");
             }
@@ -722,7 +739,6 @@ public class Controller {
         this.currentPage = "GoalPage2";
     }
 
-// ================== CHANGE START ==================
     /**
      * Clears the cached results of a "what-if" analysis. This is called when
      * the user navigates away from the analysis workflow to ensure stale data isn't used.
@@ -740,6 +756,8 @@ public class Controller {
         this.cachedReplacementItem = null;
         this.cachedAnalysisStartDate = null;
         this.cachedAnalysisEndDate = null;
+        this.cachedOriginalCFGServings = null;
+        this.cachedModifiedCFGServings = null;
     }
 
     /**
@@ -803,14 +821,16 @@ public class Controller {
             end = cal.getTime();
         }
 
-        List<Meal> originalMeals = model.getMealsByTimeFrame(this.currentUser.getEmail(), start, end); // Calling Model method
+        List<Meal> originalMeals = model.getMealsByTimeFrame(this.currentUser.getEmail(), start, end);
         if (originalMeals.isEmpty()) {
             JOptionPane.showMessageDialog(null, "No meals found in the selected time period.", "No Data", JOptionPane.INFORMATION_MESSAGE);
             return false;
         }
-
+        
         cachedOriginalTotals = new HashMap<>();
         cachedModifiedTotals = new HashMap<>();
+        cachedOriginalCFGServings = new HashMap<>();
+        cachedModifiedCFGServings = new HashMap<>();
         cachedChangedMeals = new ArrayList<>();
         cachedOriginalMealNutritions = new HashMap<>();
         cachedModifiedMealNutritions = new HashMap<>();
@@ -830,20 +850,27 @@ public class Controller {
                 }
             }
             
-            Nutrition originalNutrition = model.getMealNutrtionalValue(meal); // Calling Model method
+            Nutrition originalNutrition = model.getMealNutrtionalValue(meal);
             originalNutrition.getNutrients().forEach((k, v) -> cachedOriginalTotals.merge(k, v, Double::sum));
+
+            CFGFoodGroup originalServings = model.getUserMealCFGServings(meal);
+            mergeCFGServings(cachedOriginalCFGServings, originalServings);
 
             if (mealModified) {
                 Meal modifiedMeal = new Meal(meal.getDate(), newFoodItems, meal.getType());
                 cachedChangedMeals.add(meal);
                 
-                Nutrition modifiedNutrition = model.getMealNutrtionalValue(modifiedMeal); // Calling Model method
+                Nutrition modifiedNutrition = model.getMealNutrtionalValue(modifiedMeal);
                 modifiedNutrition.getNutrients().forEach((k, v) -> cachedModifiedTotals.merge(k, v, Double::sum));
+                
+                CFGFoodGroup modifiedServings = model.getUserMealCFGServings(modifiedMeal);
+                mergeCFGServings(cachedModifiedCFGServings, modifiedServings);
                 
                 cachedOriginalMealNutritions.put(meal, originalNutrition);
                 cachedModifiedMealNutritions.put(meal, modifiedNutrition);
             } else {
                 originalNutrition.getNutrients().forEach((k, v) -> cachedModifiedTotals.merge(k, v, Double::sum));
+                mergeCFGServings(cachedModifiedCFGServings, originalServings);
             }
         }
         
@@ -890,7 +917,66 @@ public class Controller {
                 break;
         }
     }
-// ==================  CHANGE END  ==================
+    
+    /**
+     * This method is called when the user first clicks "Visualize Data".
+     * It loads the visualization panel with a default dataset (nutrients).
+     */
+    private void handleVisualizeRequest(String analysisType) {
+        Map<String, Double> originalData = "CUMULATIVE_IMPACT".equals(analysisType) ? cachedOriginalTotals : cachedOriginalAverages;
+        Map<String, Double> modifiedData = "CUMULATIVE_IMPACT".equals(analysisType) ? cachedModifiedTotals : cachedModifiedAverages;
+        
+        if (originalData == null) {
+            JOptionPane.showMessageDialog(null, "Analysis data is not available. Please run an analysis first.", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        CFGFoodGroup recommended = model.getDailyRecommendedServingsFromCFG(currentUser);
+        
+        view.displaySwapVisualization(originalData, modifiedData, cachedNutrientUnits, "Nutrient Impact", recommended);
+        this.currentPage = "SwapVisualizationPanel";
+    }
+
+    /**
+     * This method is called by the SwapVisualizationPanel when the user changes the chart type.
+     * It provides the correct dataset (nutrients or servings) based on the request.
+     */
+    private void provideDataForVisualization(String chartType) {
+        Map<String, Double> originalData;
+        Map<String, Double> modifiedData;
+        String title;
+
+        if ("Canada Food Guide View".equals(chartType)) {
+            originalData = cachedOriginalCFGServings;
+            modifiedData = cachedModifiedCFGServings;
+            title = "CFG Servings Impact";
+        } else {
+            originalData = cachedOriginalTotals;
+            modifiedData = cachedModifiedTotals;
+            title = "Nutrient Impact";
+        }
+
+        if (originalData == null || modifiedData == null) {
+            JOptionPane.showMessageDialog(null, "Cached analysis data is not available.", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        CFGFoodGroup recommended = model.getDailyRecommendedServingsFromCFG(currentUser);
+        
+        // This call only updates the data on the already visible panel
+        view.setVisualizationData(originalData, modifiedData, cachedNutrientUnits, title, recommended);
+    }
+    
+    /**
+     * New helper method to aggregate CFG servings into a map.
+     */
+    private void mergeCFGServings(Map<String, Double> totalServings, CFGFoodGroup newServings) {
+        totalServings.merge("Vegetables & Fruits", newServings.getVegtablesAndFruits(), Double::sum);
+        totalServings.merge("Grain Products", newServings.getGrainProducts(), Double::sum);
+        totalServings.merge("Milk & Alternatives", newServings.getMilkAndAlternatives(), Double::sum);
+        totalServings.merge("Meat & Alternatives", newServings.getMeatAndAlternatives(), Double::sum);
+        totalServings.merge("Oils & Fats", newServings.getOilsAndFat(), Double::sum);
+    }
 
     //===========================================================
     // Nutrient & CFG Analysis Methods
@@ -911,7 +997,7 @@ public class Controller {
             cachedStartDate.equals(startDate) && cachedEndDate.equals(endDate)) {
             return cachedMeals;
         }
-        cachedMeals = model.getMealsByTimeFrame(this.currentUser.getEmail(), startDate, endDate); // Calling Model method
+        cachedMeals = model.getMealsByTimeFrame(this.currentUser.getEmail(), startDate, endDate);  
         cachedStartDate = startDate;
         cachedEndDate = endDate;
         cachedTotalNutrients = null;
@@ -944,7 +1030,7 @@ public class Controller {
             
             for (Meal meal : mealsInRange) {
                 uniqueMealDays.add(sdf.format(meal.getDate()));
-                Nutrition nutrition = model.getMealNutrtionalValue(meal); // Calling Model method
+                Nutrition nutrition = model.getMealNutrtionalValue(meal); 
                 if (nutrition != null && nutrition.getNutrients() != null) {
                     for (Map.Entry<String, Double> nutrientEntry : nutrition.getNutrients().entrySet()) {
                         cachedTotalNutrients.merge(nutrientEntry.getKey(), nutrientEntry.getValue(), Double::sum);
@@ -958,7 +1044,7 @@ public class Controller {
                 cachedNutrientUnits = new HashMap<>();
                 for (String nutrientName : cachedTotalNutrients.keySet()) {
                     try {
-                        cachedNutrientUnits.put(nutrientName, model.getNutrientUnit(nutrientName)); // Calling Model method
+                        cachedNutrientUnits.put(nutrientName, model.getNutrientUnit(nutrientName));  
                     } catch (IllegalArgumentException e) {
                         cachedNutrientUnits.put(nutrientName, null);
                     }

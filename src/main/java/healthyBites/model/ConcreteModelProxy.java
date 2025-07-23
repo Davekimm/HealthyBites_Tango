@@ -3,7 +3,7 @@ package healthyBites.model;
 import java.util.Date;
 import java.util.List;
 
-public class ConcreteModelProxy implements Model, MealSubject {
+public class ConcreteModelProxy implements Model {
     private static ConcreteModelProxy instance;
     private final ConcreteModel model;
 
@@ -162,30 +162,6 @@ public class ConcreteModelProxy implements Model, MealSubject {
         log("getFoodNamesWithSameFoodCategoryAs", System.currentTimeMillis() - start);
         
         return result;
-    }
-
-    @Override
-    public void addObserver(MealObserver observer) {
-        long start = System.currentTimeMillis();
-        model.addObserver(observer);
-        
-        log("addObserver", System.currentTimeMillis() - start);
-    }
-
-    @Override
-    public void removeObserver(MealObserver observer) {
-        long start = System.currentTimeMillis();
-        model.removeObserver(observer);
-        
-        log("removeObserver", System.currentTimeMillis() - start);
-    }
-
-    @Override
-    public void notifyObservers(Meal meal, Nutrition nutrition) {
-        long start = System.currentTimeMillis();
-        model.notifyObservers(meal, nutrition);
-        
-        log("notifyObservers", System.currentTimeMillis() - start);
     }
 
     @Override

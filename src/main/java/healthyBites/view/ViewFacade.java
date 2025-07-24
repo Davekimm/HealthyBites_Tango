@@ -177,6 +177,7 @@ public class ViewFacade {
 	public List<String> getSelectedAction4GoalPanel1() { return goalPanel.getSelectedAction(); }
 	public List<String> getSelectedIntensityPrecise4GoalPanel1() { return goalPanel.getSelectedIntensityPrecise(); }
 	public List<String> getSelectedUnit4GoalPanel1() { return goalPanel.getSelectedUnit(); }
+	public void setIntensityPreciseToDefault() { goalPanel.setIntensityPreciseToDefault(); }
 	public MealHistoryPanel getMealHistorySelection4GoalPanel1() { return goalPanel.getMealHistorySelection(); }
 	public String getSelectedIngredient4GoalPanel1() { return goalPanel.getSelectedIngredient(); }
 	public void setMealSelectionListener4GoalPanel1(Consumer<Meal> listener) { goalPanel.getMealHistorySelection().setOnMealSelectedListener(listener);	}

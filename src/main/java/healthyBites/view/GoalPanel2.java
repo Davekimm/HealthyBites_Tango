@@ -25,6 +25,9 @@ public class GoalPanel2 extends JPanel {
     private JTable nutrientComparisonTable;
     /** The data model for the nutrient comparison table. */
     private DefaultTableModel tableModel;
+    
+    /** Button to navigate back to the Home Panel. */
+    private JButton backToHomeButton;
     /** Button to navigate back to the goal setting panel. */
     private JButton backButton;
     /** Button to proceed to the swap impact analysis options. */
@@ -110,10 +113,12 @@ public class GoalPanel2 extends JPanel {
      */
     private JPanel createButtonPanel() {
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 10));
+        backToHomeButton = new JButton("Back to Home");
         backButton = new JButton("Back to Goals");
         analyzeSwapButton = new JButton("Analyze Swap Impact");
         tryAgainButton = new JButton("Try Different Swap");
         
+        buttonPanel.add(backToHomeButton);
         buttonPanel.add(backButton);
         buttonPanel.add(tryAgainButton);
         buttonPanel.add(analyzeSwapButton);
@@ -212,6 +217,12 @@ public class GoalPanel2 extends JPanel {
             return cell;
         }
     }
+    
+    /**
+     * Adds an ActionListener to the 'Back to Home' button.
+     * @param listener The ActionListener to add.
+     */
+    public void addBackToHomeButtonListener(ActionListener listener) { backToHomeButton.addActionListener(listener); }
     
     /**
      * Adds an ActionListener to the 'Back to Goals' button.

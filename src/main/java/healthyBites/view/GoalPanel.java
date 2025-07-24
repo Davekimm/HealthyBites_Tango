@@ -272,6 +272,13 @@ public class GoalPanel extends JPanel {
     	for(JComboBox<String> list : actionComboBox) action.add((String) list.getSelectedItem());
     	return action;
     }
+    
+    public void setIntensityPreciseToDefault() {
+    	for(JTextField list : preciseField) {
+    		list.setText("5");
+    	}
+    }
+    
     public List<String> getSelectedIntensityPrecise() {
     	List<String> intensity = new ArrayList<>();
     	for(JTextField list : preciseField) intensity.add((String) list.getText());

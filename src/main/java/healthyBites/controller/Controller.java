@@ -133,6 +133,7 @@ public class Controller {
 		view.setEditProfileButtonListener(e -> { 
 			view.showEditPanel(); 
 			updateUserInfoInEditPage();
+			view.getHomePanelMealHistorySelection().clearSelection();
 			this.currentPage = "EditPage";
 		});
 		
@@ -140,12 +141,14 @@ public class Controller {
 			view.showMealPanel();
 			getAvailableIngredients();
 			view.limitMealDateToToday();
+			view.getHomePanelMealHistorySelection().clearSelection();
 			this.currentPage = "MealPage";
 		});
 		
 		view.setFoodSwapButtonListener(e -> {
 			view.showGoalPanel();
 			getAvailableNutrients();
+			view.getHomePanelMealHistorySelection().clearSelection();
 			this.currentPage = "GoalPage";
 		});
 
@@ -183,6 +186,7 @@ public class Controller {
 		view.setMealBackButtonListener(e -> {
 			view.showHomePanel();
 			view.clearMealFields();
+			view.getMealPanelMealHistorySelection().clearSelection();
 			clearAnalysisCache();
 			this.currentPage = "HomePage";
 		});		
@@ -222,6 +226,12 @@ public class Controller {
         //===========================================================
     	// Food Swaps Result page (GoalPanel2)
     	//===========================================================
+        view.setGoalPanel2BackToHomeButtonListener(e -> {
+            view.showHomePanel(); 
+            clearGoalPanelField();
+            view.getMealHistorySelection4GoalPanel1().clearSelection();
+            this.currentPage = "HomePage";
+        });
         view.setGoalPanel2BackButtonListener(e -> {
             view.showGoalPanel(); 
             this.currentPage = "GoalPage";
@@ -239,6 +249,13 @@ public class Controller {
         //===========================================================
     	// New Analysis Panels and Selection Screen
     	//===========================================================
+        view.addAnalysisSelectionBackToHomeButtonListener(e -> {
+            clearSwapAnalysisCache();  
+            view.showHomePanel();
+            clearGoalPanelField();
+            view.getMealHistorySelection4GoalPanel1().clearSelection();
+            this.currentPage = "HomePage";
+        });
         view.addAnalysisSelectionBackButtonListener(e -> {
             clearSwapAnalysisCache();  
             view.showGoalPanel2();
@@ -273,6 +290,7 @@ public class Controller {
     	//===========================================================
 		view.setmyPlateButtonListener(e -> {
 		    view.showCFGAnalysisPanel();
+		    view.getHomePanelMealHistorySelection().clearSelection();
 		    this.currentPage = "CFGAnalysisPage";
 		});
 		view.setNutrientAnalyzeButtonListener(e -> analyzeNutrientIntake());
@@ -551,7 +569,7 @@ public class Controller {
      * If success, it creates a new {@code Meal} object, saves the meal to 
      * the model and resets the view.
      */
-    private void logMealHandler() {
+    private void logMealHandler() {    	
     	List<String> foodNames = view.getMealIngredients();
 		List<String> foodQuantities = view.getMealQuantities();
 		
@@ -559,6 +577,12 @@ public class Controller {
             JOptionPane.showMessageDialog(null, "Need to select at least one valid ingredient.", "Input Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
+		
+		if(foodNames.size() < view.getMealPanelNumberOfIngredientRows() ||
+				foodQuantities.size() < view.getMealPanelNumberOfIngredientRows()) {
+			JOptionPane.showMessageDialog(null, "Please enter all the information of each ingredient.", "Input Error", JOptionPane.ERROR_MESSAGE);
+            return;
+		}
 		
 		List<Double> convertedFoodQuantities = new ArrayList<>();
 		
@@ -723,6 +747,7 @@ public class Controller {
     private void clearGoalPanelField() {
     	List<FoodItem> emptyFoodItems = new ArrayList<>();
     	view.setIngredientList4GoalPanel1(emptyFoodItems);
+    	view.setIntensityPreciseToDefault();
     }
     
     /**

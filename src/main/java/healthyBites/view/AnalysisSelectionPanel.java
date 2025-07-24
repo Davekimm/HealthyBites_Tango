@@ -36,6 +36,8 @@ public class AnalysisSelectionPanel extends JPanel {
     private JButton analyzeButton;
     /** Button to navigate back to the previous screen. */
     private JButton backButton;
+    /** Button to navigate back to Home page. */
+    private JButton backToHomeButton;
 
     /**
      * Constructs the AnalysisSelectionPanel, setting up the UI for selecting analysis options.
@@ -87,6 +89,8 @@ public class AnalysisSelectionPanel extends JPanel {
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
         analyzeButton = new JButton("Analyze");
         backButton = new JButton("Back to Swap Comparison");
+        backToHomeButton = new JButton("Back to Home");
+        buttonPanel.add(backToHomeButton);
         buttonPanel.add(backButton);
         buttonPanel.add(analyzeButton);
         buttonPanel.setMaximumSize(buttonPanel.getPreferredSize());
@@ -146,7 +150,15 @@ public class AnalysisSelectionPanel extends JPanel {
     public void addBackButtonListener(ActionListener listener) {
         backButton.addActionListener(listener);
     }
-
+    
+    /**
+     * Adds an ActionListener to the 'Back to Home' button.
+     * @param listener The ActionListener to add.
+     */
+    public void addBackToHomeButtonListener(ActionListener listener) {
+    	backToHomeButton.addActionListener(listener);
+    }
+    
     /**
      * Sets the default date range in the spinners and prevents selection of future dates.
      */

@@ -203,6 +203,7 @@ public class ViewFacade {
     public void setMealBackButtonListener(ActionListener listener) { mealPanel.addBackButtonListener(listener); }
     public MealHistoryPanel getMealPanelMealHistorySelection() { return mealPanel.getMealHistorySelection(); }
     public int getMealPanelNumberOfIngredientRows() { return mealPanel.getNumberOfIngredientRows(); }
+    
     // ===========================================
     // NAVIGATION METHODS
     // ===========================================
@@ -337,6 +338,7 @@ public class ViewFacade {
     public AnalysisSelectionPanel.AnalysisType getSelectedAnalysisType() { return analysisSelectionPanel.getSelectedAnalysisType(); }
     public void addAnalysisSelectionAnalyzeButtonListener(ActionListener listener) { analysisSelectionPanel.addAnalyzeButtonListener(listener); }
     public void addAnalysisSelectionBackButtonListener(ActionListener listener) { analysisSelectionPanel.addBackButtonListener(listener); }
+    public void addAnalysisSelectionBackToHomeButtonListener(ActionListener listener) { analysisSelectionPanel.addBackToHomeButtonListener(listener); }
     
     // --- Population methods for the individual analysis panels ---
     public void populateAverageImpactPanel(Map<String, Double> originalAverages, Map<String, Double> modifiedAverages, int numberOfDays) { averageImpactPanel.displayAnalysis(originalAverages, modifiedAverages, numberOfDays); }

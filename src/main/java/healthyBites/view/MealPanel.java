@@ -504,6 +504,7 @@ public class MealPanel extends JPanel {
     
     /**
      * Returns the total number of ingredient rows that user created.
+     * 
      * @return the number of ingredient rows.
      */
     public int getNumberOfIngredientRows() {

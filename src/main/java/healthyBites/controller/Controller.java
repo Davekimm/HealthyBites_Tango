@@ -88,10 +88,21 @@ public class Controller {
     	this.view = view;
     	this.currentPage = "LoginPage";
     	this.initialLoadObservers = initialLoadObservers;
+    	
     	view.clearMealHistory();
+    	
     	registerActionListeners();
     }
     
+    /**
+     * Initializes and registers all action listeners for the the UI components.
+     * <p>
+     * This method is called from the constructor to connect all the application's event handling.
+     * It connects user interactions from the {@code ViewFacade} (e.g., button clicks, 
+     * item selections) to their corresponding handler methods in {@code Controller}.
+     *
+     * @see healthyBites.view.ViewFacade
+     */
     private void registerActionListeners() {
     	
     	//===========================================================
@@ -306,6 +317,15 @@ public class Controller {
     // Login & Profile Management Methods
     //===========================================================
 
+    /**
+     * Handles the user login attempt from the Login page.
+     * <p>
+     * This method retrieves the email address from the Login page and validates. 
+     * It queries the model for a corresponding {@code UserProfile}. 
+     * If a profile is found, it sets the active {@code currentUser}, notifies
+     * observers to load initial data, and navigates to the home panel. 
+     * If the email is empty or no profile is found, it displays an error message to the user.
+     */
     private void loginHandler() {
     	String email = view.getLoginEmail();
     	if(email.length() < 1) {
@@ -326,6 +346,19 @@ public class Controller {
         }
     }
     
+    /**
+     * Handles the registration process for the new user profile.
+     * <p>
+     * This method gets all user info from the Registration page and executes
+     * a series of validations. It checks for mandatory fields, valid age
+     * (19-50), valid date of birth, valid height and weight, correct email
+     * format, and ensures the email does not already exist in the system.
+     * <p>
+     * If any validation fails, an appropriate error message is displayed, and
+     * the process is halted. On successful validation, a new {@code UserProfile}
+     * is created and saved to the model, the user is logged in, and navigates 
+     * to the home panel.
+     */
     private void registerProfile() {
     	String email = view.getRegisterEmail();
     	String name = view.getRegisterName();
@@ -379,6 +412,13 @@ public class Controller {
 	    this.currentPage = "HomePage";
     }
     
+    /**
+     * Deletes the currently logged-in user's profile from the system.
+     * <p>
+     * This method asks the model to remove the user's profile from the UserInfo DB. 
+     * It then logs the user out by clearing the current session, clears any relevant
+     * UI data, and navigates back to the Login page.
+     */
     private void deleteProfile() {
     	model.deleteProfile(this.currentUser.getEmail());  
     	JOptionPane.showMessageDialog(null, "Successfully deleted your profile!", "Success", JOptionPane.INFORMATION_MESSAGE);
@@ -389,12 +429,27 @@ public class Controller {
     	this.currentPage = "LoginPage";
     }
     
+    /**
+     * Populates the current user's data on the Edit Profile panel.
+     * <p>
+     * This method retrieves information from the active {@code currentUser}
+     * object and passes it to the view to display in the Edit Profile page.
+     */
     private void updateUserInfoInEditPage() {
     	view.populateEditPanel(
     			this.currentUser.getName(), this.currentUser.getSex(), this.currentUser.getUnitOfMeasurement(), 
     			this.currentUser.getWeight(), this.currentUser.getHeight(), this.currentUser.getDob(), this.currentUser.getEmail());
     }
     
+    /**
+     * Retrieves the updated user info from the Edit Profile page and save in the UserInfo DB.
+     * <p>
+     * This method retrieves the changed user info data from the view and performs
+     * validation on the name, date of birth, age range, height, and weight.
+     * If validation fails, it displays an error message. Otherwise, it
+     * updates the active {@code currentUser} object with the new information,
+     * pass the changes to the model, and navigates the user back to the home panel.
+     */
     private void saveEditProfile() {
     	
     	String name = view.getEditName();
@@ -445,6 +500,14 @@ public class Controller {
     	this.currentPage = "HomePage";
     }
     
+    /**
+     * Converts the height and weight on the Edit Profile page between metric and imperial units.
+     * <p>
+     * This method is triggered when the user selects a new preferred unit (metric or imperial)
+     * on the edit profile page. It converts the currently displayed height and weight values,
+     * rounds them to one decimal place, and updates the view to show the converted values.
+     * It also updates the unit preference on the {@code currentUser} object.
+     */
     private void convertUnitInEditPanel() {
         String fromUnit = this.currentUser.getUnitOfMeasurement();
         String toUnit = view.getEditUnit();
@@ -480,6 +543,14 @@ public class Controller {
     // Meal Logging Methods
     //===========================================================
 
+    /**
+     * Validates and stores a new meal entered by the user.
+     * <p>
+     * This method retrieves ingredients and quantities from the view, validates
+     * the input, prevents duplicate meal types for the given day.
+     * If success, it creates a new {@code Meal} object, saves the meal to 
+     * the model and resets the view.
+     */
     private void logMealHandler() {
     	List<String> foodNames = view.getMealIngredients();
 		List<String> foodQuantities = view.getMealQuantities();
@@ -531,6 +602,16 @@ public class Controller {
 		view.clearMealFields();
     }
     
+    /**
+     * Checks if a given meal type already exists on a specific date.
+     * <p>
+     * This method iterates through all meals of the current user to find if the 
+     * same meal type exists on the provided date (day, month, and year).
+     *
+     * @param date  The date to check for an existing meal.
+     * @param type  The type of meal to check (e.g., "Breakfast", "Lunch").
+     * @return      {@code true} if a matching meal exists, {@code false} otherwise.
+     */
     private boolean mealTypeExist(Date date, String type) {
         List<Meal> meals = model.getMeals(this.currentUser.getEmail()); 
         Calendar targetDate = Calendar.getInstance();
@@ -548,6 +629,12 @@ public class Controller {
     	return false;
     }
     
+    /**
+     * Fetches all available food names from the Nutrient DB and present in the view.
+     * <p>
+     * This method sets the ingredient options available to the user when logging 
+     * a meal in Log Meal page.
+     */
     private void getAvailableIngredients() {
     	List<String> availableIngredients = model.getFoodNames(); 
     	String[] foodNameAry = new String[availableIngredients.size()];
@@ -555,6 +642,15 @@ public class Controller {
     	view.setMealIngredients(foodNameAry);
     }
     
+    /**
+     * Sets up a listener for the ingredient combo box in the Log Meal page.
+     * <p>
+     * This listener updates the measurement unit options whenever a user
+     * selects an ingredient. It fetches an available unit from the model,
+     * filters for 'g' or 'ml' units, and sets the smallest available unit
+     * as the base unit for that ingredient. This base unit is then stored in
+     * a cached map for quantity conversions.
+     */
     private void addMealPanelIngredientComboBoxListeners() {
         view.setIngredientSelectionListener((rowIndex, foodName) -> {
             List<String> unitList = model.getAvailableUnits(foodName);
@@ -607,6 +703,13 @@ public class Controller {
     // Food Swap & Goal Methods
     //===========================================================
 
+    /**
+     * Sets a listener that updates the unit options when a nutrient is selected in the Goal Swap page.
+     * <p>
+     * When a user chooses a nutrient on the Goal Swap panel, this listener populates
+     * the corresponding unit dropdown options with '%' and the nutrient's specific unit
+     * (e.g., 'g', 'mg') fetched from the model.
+     */
     private void addGoalSwapPanelNutrientComboBoxListeners() {
         view.setNutrientSelectionListener4GoalPanel1((rowIndex, nutrientName) -> {
         	String[] unitList = {"%", model.getNutrientUnit(nutrientName)}; 
@@ -614,11 +717,20 @@ public class Controller {
         });
     }
     
+    /**
+     * Clears the list of food items of the selected meal displayed on the Goal Swap page.
+     */
     private void clearGoalPanelField() {
     	List<FoodItem> emptyFoodItems = new ArrayList<>();
     	view.setIngredientList4GoalPanel1(emptyFoodItems);
     }
     
+    /**
+     * Fetches and populates the list of available nutrients for the Goal Swap panel.
+     * <p>
+     * This method retrieves all nutrient names from the Nutrient DB and uses them to
+     * populate the nutrient dropdown options, limiting the list to a maximum of 50.
+     */
     private void getAvailableNutrients() {
     	List<String> availableNutrients = model.getNutrientNames();
     	String[] foodNutrientAry = new String[Math.min(50, availableNutrients.size())];
@@ -630,6 +742,17 @@ public class Controller {
     	view.setGoalSwapUnitsForRow4GoalPanel1(0, unitList);
     }
     
+    /**
+     * Finds alternative food items to be replaced with based on user's goals.
+     * <p>
+     * This method creates a {@code Goal} after retrieving user's desired goal options,
+     * then asks the model to fetch suitable food item replacements. 
+     * It navigates to the swap selection panel if options are found.
+     * If no alternative food items are found, it displays a message that there are
+     * no available food items to be replaced with.
+     *
+     * @param meal The meal containing the item to be swapped.
+     */
     private void getAlternativeFoodItems(Meal meal) {
         this.originalMealForSwap = meal;
         String selectedFoodItemName = view.getSelectedIngredient4GoalPanel1();
@@ -695,6 +818,13 @@ public class Controller {
         }
     }
     
+    /**
+     * Displays a nutritional comparison for a selected food swap.
+     * <p>
+     * After a user chooses a replacement item for the swap, this method creates 
+     * a temporary meal and calculates the nutrition for both the original and
+     * swapped meals, and sends the comparison data to the view.
+     */
     private void displayComparisonForSelectedItem() {
         if (selectedReplacementItem == null) {
             return;
@@ -740,8 +870,11 @@ public class Controller {
     }
 
     /**
-     * Clears the cached results of a "what-if" analysis. This is called when
-     * the user navigates away from the analysis workflow to ensure stale data isn't used.
+     * Clears all cached results of a food swap analysis.
+     * <p>
+     * This method resets all fields related to the swap analysis to their
+     * default values to ensure that previous data does not
+     * interfere with a new one.
      */
     private void clearSwapAnalysisCache() {
         this.cachedOriginalTotals = null;
@@ -761,8 +894,15 @@ public class Controller {
     }
 
     /**
-     * Checks if the currently cached analysis data is valid for the requested parameters.
-     * @return true if the cache is valid, false otherwise.
+     * Checks if the cached analysis data is valid for the given parameters.
+     * <p>
+     * The cache is considered invalid if the food items being swapped or the
+     * date range of the analysis have changed since the cache was last populated.
+     *
+     * @param startDate The start date of the new analysis request.
+     * @param endDate   The end date of the new analysis request.
+     * @return          {@code true} if the cache is valid and can be reused,
+     * {@code false} otherwise.
      */
     private boolean isAnalysisCacheValid(Date startDate, Date endDate) {
         if (cachedOriginalTotals == null) {
@@ -777,8 +917,9 @@ public class Controller {
     }
 
     /**
-     * Handles the request from the AnalysisSelectionPanel. It either uses cached data
-     * or triggers a new calculation before showing the appropriate view.
+     * Handles the request from the {@code AnalysisSelectionPanel}. 
+     * It either uses cached data or triggers a new calculation before showing
+     * the appropriate view.
      */
     private void handleAnalysisRequest() {
         Date startDate = view.getAnalysisSelectionStartDate();
@@ -805,8 +946,14 @@ public class Controller {
     }
 
     /**
-     * Performs the "what-if" calculation and stores the results in the controller's cache.
-     * @return true if the analysis was successful, false otherwise.
+     * Calculates and caches the nutritional impact of a food swap over the period of time.
+     * <p>
+     * This simulates the swap across all meals in the period, caching the original
+     * and modified totals for nutrients and CFG servings.
+     *
+     * @param startDate The analysis start date, or null for all-time.
+     * @param endDate   The analysis end date, or null for all-time.
+     * @return          {@code true} on success, {@code false} if no meals were affected.
      */
     private boolean performAndCacheAnalysis(Date startDate, Date endDate) {
         clearSwapAnalysisCache();
@@ -894,8 +1041,12 @@ public class Controller {
     }
 
     /**
-     * Navigates to and populates the correct analysis view based on user selection,
-     * using data from the cache.
+     * Displays the appropriate analysis results view based on the user's choice.
+     * <p>
+     * This method uses the provided analysis type to show the correct panel
+     * upon the user's chart selection.
+     *
+     * @param A type representing the chosen analysis view.
      */
     private void showAnalysisView(AnalysisSelectionPanel.AnalysisType type) {
         switch (type) {
@@ -919,8 +1070,12 @@ public class Controller {
     }
     
     /**
-     * This method is called when the user first clicks "Visualize Data".
-     * It loads the visualization panel with a default dataset (nutrients).
+     * Prepares and displays the swap analysis data in the Visualization page.
+     * <p>
+     * This method selects the appropriate cached dataset (cumulative totals or daily
+     * averages) and passes it to the view for the visualization.
+     *
+     * @param analysisType A string indicating which data to visualize.
      */
     private void handleVisualizeRequest(String analysisType) {
         Map<String, Double> originalData = "CUMULATIVE_IMPACT".equals(analysisType) ? cachedOriginalTotals : cachedOriginalAverages;
@@ -938,8 +1093,13 @@ public class Controller {
     }
 
     /**
-     * This method is called by the SwapVisualizationPanel when the user changes the chart type.
-     * It provides the correct dataset (nutrients or servings) based on the request.
+     * Updates the data on the visualization panel based on the selected chart type.
+     * <p>
+     * This method is called when the user toggles the chart view. It selects
+     * the correct cached dataset and sends it to the view to update the chart.
+     * 
+     * @param chartType A string indicating the desired data view, either
+     * "CFG Servings Impact" or "Nutrient Impact".
      */
     private void provideDataForVisualization(String chartType) {
         Map<String, Double> originalData;
@@ -968,7 +1128,13 @@ public class Controller {
     }
     
     /**
-     * New helper method to aggregate CFG servings into a map.
+     * A method to aggregate Canada Food Guide (CFG) servings into a total.
+     * <p>
+     * This method takes the servings from a {@code CFGFoodGroup} object and adds
+     * them to the totals.
+     *
+     * @param totalServings The map holding the cumulative CFG serving totals.
+     * @param newServings   A {@code CFGFoodGroup} object with the servings to add.
      */
     private void mergeCFGServings(Map<String, Double> totalServings, CFGFoodGroup newServings) {
         totalServings.merge("Vegetables & Fruits", newServings.getVegtablesAndFruits(), Double::sum);
@@ -982,6 +1148,12 @@ public class Controller {
     // Nutrient & CFG Analysis Methods
     //===========================================================
     
+    /**
+     * Resets the cache for the main nutrient and CFG analysis.
+     * <p>
+     * This method clears previous data, ensuring that new calculations
+     * for nutrient intake or CFG alignment are not affected by previous results.
+     */
     private void clearAnalysisCache() {
         cachedMeals = null;
         cachedStartDate = null;
@@ -992,11 +1164,23 @@ public class Controller {
         cachedNumberOfDays = 0;
     }
     
+    /**
+     * Retrieves a list of meals for a given date range and stores in cached map.
+     * <p>
+     * This method returns a cached list if the requested date range matches the
+     * cached one. Otherwise, it fetches new data from the model, updates the
+     * cache, and clears other dependent analysis caches.
+     *
+     * @param startDate The start date of the desired period.
+     * @param endDate   The end date of the desired period.
+     * @return          A list of {@code Meal} objects for the specified date range.
+     */
     private List<Meal> getCachedMealsForDateRange(Date startDate, Date endDate) {
         if (cachedMeals != null && cachedStartDate != null && cachedEndDate != null &&
             cachedStartDate.equals(startDate) && cachedEndDate.equals(endDate)) {
             return cachedMeals;
         }
+        
         cachedMeals = model.getMealsByTimeFrame(this.currentUser.getEmail(), startDate, endDate);  
         cachedStartDate = startDate;
         cachedEndDate = endDate;
@@ -1007,6 +1191,13 @@ public class Controller {
         return cachedMeals;
     }
     
+    /**
+     * Calculates and displays the user's average daily nutrient intake for a selected period.
+     * <p>
+     * This method aggregates total nutrient data from all meals in the date range.
+     * It then calculates the daily average for each nutrient and updates
+     * the view with the analysis.
+     */
     private void analyzeNutrientIntake() {
         Date startDate = view.getNutrientAnalysisStartDate();
         Date endDate = view.getNutrientAnalysisEndDate();
@@ -1059,6 +1250,13 @@ public class Controller {
         view.displayNutrientAnalysis(averageDailyNutrients, cachedNumberOfDays, cachedNutrientUnits);
     }
     
+    /**
+     * Analyzes and displays the user's alignment with Canada Food Guide (CFG) recommendations.
+     * <p>
+     * This method aggregates CFG servings from all meals in a selected date range,
+     * calculates the user's average daily intake per food group, and displays a
+     * comparison with the recommended daily servings.
+     */
     private void analyzeCFGAlignment() {
         Date startDate = view.getCFGAnalysisStartDate();
         Date endDate = view.getCFGAnalysisEndDate();

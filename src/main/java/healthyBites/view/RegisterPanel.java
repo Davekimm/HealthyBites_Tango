@@ -147,7 +147,7 @@ public class RegisterPanel extends JPanel {
      * @return The user's weight as a double.
      */
     public double getUserWeight() {
-        return  (double) weight.getValue();
+        return ((Number) weight.getValue()).doubleValue();
     }
     
     /**
@@ -155,7 +155,7 @@ public class RegisterPanel extends JPanel {
      * @return The user's height as a double.
      */
     public double getUserHeight() {
-        return (double) height.getValue();
+        return ((Number) height.getValue()).doubleValue();
     }
 
     /**

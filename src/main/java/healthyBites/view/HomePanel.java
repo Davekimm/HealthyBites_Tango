@@ -4,29 +4,22 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 
-/**
- * The main dashboard or home screen panel for a logged-in user.
- * It displays a recent meal history at the top and provides navigation buttons 
- * for the application's core features, such as logging a new meal, editing the user's profile,
- * getting food swap recommendations, and viewing nutritional analysis.
- * @author HealthyBites Team
- */
 public class HomePanel extends JPanel {
    
-    /** Buttons for navigating to different features of the application. */
     private JButton editButton, mealButton, goalSwapButton, myPlateButton, logoutButton;
+    private MealHistoryPanel forMealSelection;
     
-    /**
-     * Constructs the HomePanel.
-     * * @param mealHistoryPanel A pre-configured MealHistoryPanel instance to be displayed
-     * at the top of this panel, showing the user's recent meals.
-     */
     public HomePanel(MealHistoryPanel mealHistoryPanel) {
+    	
+    	this.forMealSelection = mealHistoryPanel;
                     
+      // top panel for input - rows, column, horizontal gap, vertical gap
         setLayout(new BorderLayout());
+        
+      // a border around the parameter so labels and fields are not stuck to the edges of the panel
         setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         
-        // Top area with meal history
+     // Top area with meal history
         JPanel topPanel = new JPanel(new BorderLayout());
         topPanel.setBorder(BorderFactory.createTitledBorder("Meal History"));
         topPanel.setPreferredSize(new Dimension(0, 200));
@@ -39,7 +32,7 @@ public class HomePanel extends JPanel {
         topPanel.add(historyScrollPane, BorderLayout.CENTER);
                 
         JPanel restPanel = new JPanel();
-        restPanel.setLayout(new GridLayout(5, 1, 0, 10)); // Added vertical gap
+        restPanel.setLayout(new GridLayout(5, 1, 0, 0));
         
         // add buttons
         editButton = new JButton("Edit Profile");
@@ -58,46 +51,29 @@ public class HomePanel extends JPanel {
         restPanel.add(logoutButton);
         
         add(topPanel, BorderLayout.NORTH);
-        add(restPanel, BorderLayout.CENTER); // Changed to CENTER
+        add(restPanel);
     }
     
-    /**
-     * Adds an ActionListener to the 'Edit Profile' button.
-     * @param listener The ActionListener to be added.
-     */
+    public MealHistoryPanel getMealHistorySelection() {
+    	return this.forMealSelection;
+    }
+    
+    // getter methods to be utilized by a facade
 	public void editButtonListener(ActionListener listener) {
 		editButton.addActionListener(listener);
 	}
-    
-    /**
-     * Adds an ActionListener to the 'Log a Meal' button.
-     * @param listener The ActionListener to be added.
-     */
 	public void mealButtonListener(ActionListener listener) {
         mealButton.addActionListener(listener);
     }
-    
-    /**
-     * Adds an ActionListener to the 'Get Food Swap Recommendations' button.
-     * @param listener The ActionListener to be added.
-     */
 	public void goalSwapButtonListener(ActionListener listener) {
 		goalSwapButton.addActionListener(listener);
 	}
 
-    /**
-     * Adds an ActionListener to the 'My Plate Analysis' button.
-     * @param listener The ActionListener to be added.
-     */
 	public void myPlateButtonListener(ActionListener listener) {
 		myPlateButton.addActionListener(listener);
 	}
-    
-    /**
-     * Adds an ActionListener to the 'Logout' button.
-     * @param listener The ActionListener to be added.
-     */
 	public void logoutButtonListener(ActionListener listener) {
         logoutButton.addActionListener(listener);
-    }	    	
+    }
+    	    	
 }

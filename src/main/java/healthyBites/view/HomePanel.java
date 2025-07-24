@@ -16,12 +16,16 @@ public class HomePanel extends JPanel {
     /** Buttons for navigating to different features of the application. */
     private JButton editButton, mealButton, goalSwapButton, myPlateButton, logoutButton;
     
+    /** MealHistoryPanel object in the Home page  */
+    private MealHistoryPanel forMealSelection;
+    
     /**
      * Constructs the HomePanel.
      * * @param mealHistoryPanel A pre-configured MealHistoryPanel instance to be displayed
      * at the top of this panel, showing the user's recent meals.
      */
     public HomePanel(MealHistoryPanel mealHistoryPanel) {
+    	this.forMealSelection = mealHistoryPanel;
                     
         setLayout(new BorderLayout());
         setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
@@ -99,5 +103,14 @@ public class HomePanel extends JPanel {
      */
 	public void logoutButtonListener(ActionListener listener) {
         logoutButton.addActionListener(listener);
-    }	    	
+    }	    
+	
+	/**
+     * Returns the MealHistory Panel object of the Home Page.
+     * 
+     * @return MealHistoryPanel object.
+     */
+	public MealHistoryPanel getMealHistorySelection() {
+    	return this.forMealSelection;
+    }
 }

@@ -47,6 +47,9 @@ public class MealPanel extends JPanel {
     /** The maximum number of characters to display in the ingredient combo box before truncating with "...". */
     private final int MAX_INGREDIENT_DISPLAY_LENGTH = 20;
 
+    /** MealHistoryPanel object in Log Meal page */
+    private MealHistoryPanel forMealSelection;
+    
     /** A callback function to execute when an ingredient is selected from a combo box. */
     private BiConsumer<Integer, String> ingredientSelectionAction;
 
@@ -95,6 +98,7 @@ public class MealPanel extends JPanel {
         quantityFields = new ArrayList<>();
         unitCombos = new ArrayList<>();
         ingredientRowPanels = new ArrayList<>();
+        this.forMealSelection = mealHistoryPanel;
         
         setLayout(new BorderLayout());
         
@@ -487,5 +491,22 @@ public class MealPanel extends JPanel {
             unitCombos.get(0).removeAllItems();
             unitCombos.get(0).addItem("<pick one>");
         }
+    }
+    
+    /**
+     *  Returns the MealHistoryPanel object in the Log Meal page.
+     *  
+     *  @return MealHistoryPanel object
+     */
+    public MealHistoryPanel getMealHistorySelection() {
+    	return this.forMealSelection;
+    }
+    
+    /**
+     * Returns the total number of ingredient rows that user created.
+     * @return the number of ingredient rows.
+     */
+    public int getNumberOfIngredientRows() {
+        return ingredientCombos.size();
     }
 }

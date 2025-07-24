@@ -166,7 +166,8 @@ public class ViewFacade {
     public void setGoalPanel2BackButtonListener(ActionListener listener) { goalPanel2.addBackButtonListener(listener); }
     public void setAnalyzeCumulativeButtonListener(ActionListener listener) { goalPanel2.addAnalyzeCumulativeButtonListener(listener); }
     public void setTryAgainButtonListener(ActionListener listener) { goalPanel2.addTryAgainButtonListener(listener); }
-	
+    public void setGoalPanel2BackToHomeButtonListener(ActionListener listener) { goalPanel2.addBackToHomeButtonListener(listener); }
+    
     // ===========================================
     // Goal PANEL METHODS (Swap Setup)
     // ===========================================
@@ -200,7 +201,8 @@ public class ViewFacade {
     public void clearMealFields() { mealPanel.clearFields(); }
     public void setAddToMealButtonListener(ActionListener listener) { mealPanel.addToMealButtonListener(listener); }
     public void setMealBackButtonListener(ActionListener listener) { mealPanel.addBackButtonListener(listener); }
-
+    public MealHistoryPanel getMealPanelMealHistorySelection() { return mealPanel.getMealHistorySelection(); }
+    public int getMealPanelNumberOfIngredientRows() { return mealPanel.getNumberOfIngredientRows(); }
     // ===========================================
     // NAVIGATION METHODS
     // ===========================================
@@ -271,6 +273,7 @@ public class ViewFacade {
     public void setFoodSwapButtonListener(ActionListener listener) { homePanel.goalSwapButtonListener(listener); }
     public void setmyPlateButtonListener(ActionListener listener) { homePanel.myPlateButtonListener(listener); }
     public void setLogoutButtonListener(ActionListener listener) { homePanel.logoutButtonListener(listener); }
+    public MealHistoryPanel getHomePanelMealHistorySelection() { return homePanel.getMealHistorySelection(); }
     
     // ===========================================
     // EDIT PANEL METHODS

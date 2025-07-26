@@ -17,11 +17,6 @@ import java.util.Map;
  */
 public class BarChartVisualizationStrategy implements SwapVisualizationStrategy {
     
-    /** Color used for bars representing the original nutrient values. */
-    private static final Color ORIGINAL_COLOR = new Color(100, 149, 237); // Cornflower blue
-    /** Color used for bars representing the modified nutrient values after the swap. */
-    private static final Color MODIFIED_COLOR = new Color(60, 179, 113);  // Medium sea green
-    
     /**
      * Creates a bar chart visualization as a JComponent.
      * The chart displays bars for each selected nutrient, allowing for a direct comparison
@@ -46,15 +41,18 @@ public class BarChartVisualizationStrategy implements SwapVisualizationStrategy 
                 double originalValue = originalData.getOrDefault(nutrient, 0.0);
                 double modifiedValue = modifiedData.getOrDefault(nutrient, 0.0);
                 
+                String unit = config.getNutrientUnits().getOrDefault(nutrient, "");
+                String nutrientLabel = unit.isEmpty() ? nutrient : String.format("%s (%s)", nutrient, unit);
+                
                 if (config.isShowPercentageChange() && originalValue != 0) {
                     // Create bars for percentage change relative to a zero baseline
                     double percentChange = ((modifiedValue - originalValue) / originalValue) * 100;
-                    dataset.addValue(0, "Baseline", nutrient);
-                    dataset.addValue(percentChange, "% Change", nutrient);
+                    dataset.addValue(0, "Baseline", nutrientLabel);
+                    dataset.addValue(percentChange, "% Change", nutrientLabel);
                 } else {
                     // Create paired bars for absolute original and modified values
-                    dataset.addValue(originalValue, "Original", nutrient);
-                    dataset.addValue(modifiedValue, "Modified", nutrient);
+                    dataset.addValue(originalValue, "Original", nutrientLabel);
+                    dataset.addValue(modifiedValue, "Modified", nutrientLabel);
                 }
             }
         }
@@ -75,15 +73,8 @@ public class BarChartVisualizationStrategy implements SwapVisualizationStrategy 
         plot.setDomainGridlinePaint(Color.LIGHT_GRAY);
         plot.setRangeGridlinePaint(Color.LIGHT_GRAY);
         
-        // Customize the bar colors based on the display mode
+        // Get the renderer to customize labels
         BarRenderer renderer = (BarRenderer) plot.getRenderer();
-        if (config.isShowPercentageChange()) {
-            renderer.setSeriesPaint(0, Color.GRAY); // Baseline bar
-            renderer.setSeriesPaint(1, new Color(255, 140, 0)); // Orange for change
-        } else {
-            renderer.setSeriesPaint(0, ORIGINAL_COLOR);
-            renderer.setSeriesPaint(1, MODIFIED_COLOR);
-        }
         
         // Add value labels on top of each bar for clarity
         renderer.setDefaultItemLabelGenerator(new org.jfree.chart.labels.StandardCategoryItemLabelGenerator());

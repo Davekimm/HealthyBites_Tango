@@ -15,7 +15,7 @@ public interface SwapVisualizationStrategy {
     
     /**
      * Creates a Swing component that visually represents the comparison between original and modified data.
-     * * @param originalData A map of item names to their original values.
+     * @param originalData A map of item names to their original values.
      * @param modifiedData A map of item names to their modified values after the swap.
      * @param config An object containing configuration settings for the visualization, such as title and selected nutrients.
      * @return A JComponent containing the generated visualization (e.g., a ChartPanel).
@@ -29,7 +29,7 @@ public interface SwapVisualizationStrategy {
     /**
      * Returns the user-friendly name of this visualization strategy.
      * This name is typically displayed in a UI component like a JComboBox.
-     * * @return The name of the strategy as a String.
+     * @return The name of the strategy as a String.
      */
     String getStrategyName();
     
@@ -77,11 +77,17 @@ public interface SwapVisualizationStrategy {
             this.recommendedServings = recommendedServings;
         }
 
+        /** @return The list of selected nutrients. */
         public List<String> getSelectedNutrients() { return selectedNutrients; }
+        /** @return The title for the visualization. */
         public String getTitle() { return title; }
+        /** @return True if the chart should display percentage change. */
         public boolean isShowPercentageChange() { return showPercentageChange; }
+        /** @return True if the chart should display absolute values. */
         public boolean isShowAbsoluteValues() { return showAbsoluteValues; }
+        /** @return The map of nutrient names to their units. */
         public Map<String, String> getNutrientUnits() { return nutrientUnits; }
+        /** @return The recommended CFG servings data. */
         public CFGFoodGroup getRecommendedServings() { return recommendedServings; }
     }
 }

@@ -90,7 +90,8 @@ public class CFGVisualizationStrategy implements SwapVisualizationStrategy {
      * @param foodGroup The CFGFoodGroup data to be visualized.
      * @return A JFreeChart object representing the styled pie chart.
      */
-    private JFreeChart createPieChart(String title, CFGFoodGroup foodGroup) {
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+	private JFreeChart createPieChart(String title, CFGFoodGroup foodGroup) {
         DefaultPieDataset dataset = new DefaultPieDataset();
         if (foodGroup != null) {
             dataset.setValue("Vegetables & Fruits", foodGroup.getVegtablesAndFruits());

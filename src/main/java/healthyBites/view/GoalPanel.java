@@ -5,6 +5,7 @@ import healthyBites.model.FoodItem;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.function.BiConsumer;
 
@@ -17,41 +18,74 @@ import java.util.function.BiConsumer;
 @SuppressWarnings("serial")
 public class GoalPanel extends JPanel {
 
-    /** Buttons for navigation and actions like canceling or getting recommendations. */
-    private JButton cancelButton, getReplaceButton, addGoalButton, removeGoalButton;
+    /** Button to cancel the goal setting process. */
+    private JButton cancelButton;
+    /** Button to trigger the search for replaceable food items based on the defined goals. */
+    private JButton getReplaceButton;
+    /** Button to add a new goal definition row to the panel. */
+    private JButton addGoalButton;
+    /** Button to remove the last added goal definition row. */
+    private JButton removeGoalButton;
     /** A container for the dynamically added goal definition rows. */
     private JPanel goalContainerPanel;
-    /** A list of JPanels, each representing a single goal row. */
+    /** A list of JPanels, each representing a single goal row's UI. */
     private List<JPanel> goalRowPanel;
-    /** Lists of combo boxes for selecting nutrient, action, intensity, and unit for each goal row. */
-    private List<JComboBox<String>> nutrientComboBox, actionComboBox, intensityArbiComboBox, unitCombo;
-    /** A combo box for selecting the ingredient to be swapped. */
+    /** A list of combo boxes for selecting a nutrient in each goal row. */
+    private List<JComboBox<String>> nutrientComboBox;
+    /** A list of combo boxes for selecting an action (increase/decrease) in each goal row. */
+    private List<JComboBox<String>> actionComboBox;
+    /** A list of combo boxes for selecting an arbitrary intensity (e.g., "by a little bit") in each goal row. */
+    private List<JComboBox<String>> intensityArbiComboBox;
+    /** A list of combo boxes for selecting the unit for a precise goal in each goal row. */
+    private List<JComboBox<String>> unitCombo;
+    /** A combo box for selecting the ingredient from the chosen meal to be swapped. */
     private JComboBox<String> ingredientComboBox;
     /** The maximum number of goal rows a user can add. */
     private final int MAX_OPTIONS = 2;
     /** The minimum number of goal rows required. */
     private final int MIN_OPTIONS = 1;
 
-    /** Default and placeholder lists for various combo boxes. */
-    private String[] nutrientList = {"N","U","T"}, actionList = {"increase" , "decrease"},
-    				intensityPreciseList = {"5", "10", "15"}, unitList = {"%", "g", "mg"},
-    				intensityArbiList = {"by a little bit", "more than normal", "significantly"};
+    /** An array to hold the list of available nutrients for the dropdowns. */
+    private String[] nutrientList = {"N","U","T"};
+    /** An array of available actions for the goal. */
+    private String[] actionList = {"increase" , "decrease"};
+    /** An array of string representations for precise intensity values, linked to the arbitrary list. */
+    private String[] intensityPreciseList = {"5", "10", "15"};
+    /** An array of available units for precise goals. */
+    private String[] unitList = {"%", "g", "mg"};
+    /** An array of user-friendly strings for arbitrary goal intensity. */
+    private String[] intensityArbiList = {"by a little bit", "more than normal", "significantly"};
 
-    /** The list of food items available for swapping in the selected meal. */
+    /** A list of FoodItem objects from the selected meal, available for swapping. */
 	private List<FoodItem> ingredientList;
-    /** The meal history panel used for meal selection. */
+    /** The embedded meal history panel used for meal selection. */
     private MealHistoryPanel forMealSelection;
-    /** A list of text fields for specifying a precise goal intensity. */
+    /** A list of text fields for specifying a precise goal intensity value. */
     private List<JTextField> preciseField;
-    /** A callback action to be executed when a nutrient is selected. */
+    /** A callback action to be executed when a nutrient is selected, used to update available units. */
     private BiConsumer<Integer, String> nutrientSelectionAction;
+
+    /**
+     * A private inner class to render items in the nutrient JComboBox.
+     * It sets a tooltip for each item to display the full nutrient name,
+     * which is helpful if the name is too long to be fully visible in the dropdown.
+     */
+    private class NutrientComboBoxRenderer extends DefaultListCellRenderer {
+        @Override
+        public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+            JComponent component = (JComponent) super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+            if (value != null) {
+                component.setToolTipText(value.toString());
+            }
+            return component;
+        }
+    }
 
     /**
      * Constructs the GoalPanel.
      * @param mealHistoryPanel A MealHistoryPanel instance for selecting the meal to modify.
      */
     public GoalPanel(MealHistoryPanel mealHistoryPanel) {
-        // Initialization
     	this.goalRowPanel = new ArrayList<>();
     	this.nutrientComboBox = new ArrayList<>();
     	this.actionComboBox = new ArrayList<>();
@@ -95,7 +129,9 @@ public class GoalPanel extends JPanel {
         JPanel goalHeaderPanel = new JPanel(new BorderLayout());
         JPanel goalButtonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
         addGoalButton = new JButton("+");
+        addGoalButton.setToolTipText("Add another nutritional goal");
         removeGoalButton = new JButton("-");
+        removeGoalButton.setToolTipText("Remove the last nutritional goal");
         goalButtonPanel.add(addGoalButton);
         goalButtonPanel.add(removeGoalButton);
         goalHeaderPanel.add(goalButtonPanel, BorderLayout.CENTER);
@@ -142,11 +178,14 @@ public class GoalPanel extends JPanel {
         // Top line for Nutrient and Action
         JPanel topLine = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 5));
         JComboBox<String> nutrientList = new JComboBox<>(this.nutrientList);
-        nutrientList.setPreferredSize(new Dimension(100, 25));
+        nutrientList.setRenderer(new NutrientComboBoxRenderer());
+        nutrientList.setPreferredSize(new Dimension(150, 25));
         JComboBox<String> actionList = new JComboBox<>(this.actionList);
         actionList.setPreferredSize(new Dimension(100, 25));
-        topLine.add(new JLabel("Nutrient")); topLine.add(nutrientList);
-        topLine.add(new JLabel("Action:")); topLine.add(actionList);
+        topLine.add(new JLabel("Nutrient"));
+        topLine.add(nutrientList);
+        topLine.add(new JLabel("Action:"));
+        topLine.add(actionList);
         
         // Bottom line for Intensity
         JPanel bottomLine = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 5));
@@ -156,27 +195,32 @@ public class GoalPanel extends JPanel {
         unitList.setPreferredSize(new Dimension(60, 25));
         JTextField preciseText = new JTextField(5);
         preciseText.setText(intensityPreciseList[0]);
-        intensityArbiList.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                int selected = intensityArbiList.getSelectedIndex();
-                preciseText.setText(intensityPreciseList[selected].toString());
-                unitList.setSelectedIndex(0);
-            }
+        intensityArbiList.addActionListener(e -> {
+    		int selected =  intensityArbiList.getSelectedIndex();
+    		preciseText.setText(intensityPreciseList[selected].toString());
+    		unitList.setSelectedIndex(0);
         });
-        bottomLine.add(new JLabel("Intensity (Arbi):")); bottomLine.add(intensityArbiList);
-        bottomLine.add(new JLabel(" OR ")); bottomLine.add(new JLabel("Intensity (Precise):"));
-        bottomLine.add(preciseText); bottomLine.add(unitList);
+        bottomLine.add(new JLabel("Intensity (Arbi):"));
+        bottomLine.add(intensityArbiList);
+        bottomLine.add(new JLabel(" OR "));
+        bottomLine.add(new JLabel("Intensity (Precise):"));
+        bottomLine.add(preciseText);
+        bottomLine.add(unitList);
         
-        rowPanel.add(topLine); rowPanel.add(bottomLine);
-        nutrientComboBox.add(nutrientList); actionComboBox.add(actionList);
-        intensityArbiComboBox.add(intensityArbiList); preciseField.add(preciseText);
+        rowPanel.add(topLine);
+        rowPanel.add(bottomLine);
+        nutrientComboBox.add(nutrientList);
+        actionComboBox.add(actionList);
+        intensityArbiComboBox.add(intensityArbiList);
+        preciseField.add(preciseText);
         unitCombo.add(unitList);
 
         return rowPanel;
     }
 
-    /** Adds a new goal definition row to the panel. */
+    /**
+     * Adds a new goal definition row to the panel, up to the maximum limit.
+     */
     private void addGoalRow() {
         if(nutrientComboBox.size() < MAX_OPTIONS) {
             JPanel newRow = createNewGoal();
@@ -189,13 +233,17 @@ public class GoalPanel extends JPanel {
         }
     }
 
-    /** Removes the last goal definition row from the panel. */
+    /**
+     * Removes the last goal definition row from the panel, down to the minimum limit.
+     */
     private void removeGoalRow() {
     	if(nutrientComboBox.size() > MIN_OPTIONS) {
     		int lastIndex = nutrientComboBox.size() - 1;
     		goalContainerPanel.remove(goalRowPanel.remove(lastIndex));
-    		nutrientComboBox.remove(lastIndex); actionComboBox.remove(lastIndex);
-    		intensityArbiComboBox.remove(lastIndex); unitCombo.remove(lastIndex);
+    		nutrientComboBox.remove(lastIndex);
+    		actionComboBox.remove(lastIndex);
+    		intensityArbiComboBox.remove(lastIndex);
+    		unitCombo.remove(lastIndex);
     		preciseField.remove(lastIndex);
     		updateButtonState();
     		goalContainerPanel.revalidate();
@@ -205,9 +253,11 @@ public class GoalPanel extends JPanel {
 
     /**
      * Populates the nutrient combo boxes with a list of available nutrients.
+     * The list is sorted alphabetically before being displayed.
      * @param nutrientList An array of nutrient names.
      */
     public void setNutrientList(String[] nutrientList) {
+    	Arrays.sort(nutrientList);
     	this.nutrientList = nutrientList;
     	for (JComboBox<String> list : nutrientComboBox) {
     		list.setModel(new DefaultComboBoxModel<>(nutrientList));
@@ -221,8 +271,10 @@ public class GoalPanel extends JPanel {
     public void setIngredientList(List<FoodItem> list) {
     	this.ingredientList = list;
         ingredientComboBox.removeAllItems();
-        for (FoodItem item : this.ingredientList) {
-            ingredientComboBox.addItem(item.getName());
+        if (this.ingredientList != null) {
+            for (FoodItem item : this.ingredientList) {
+                ingredientComboBox.addItem(item.getName());
+            }
         }
     	revalidate();
     }
@@ -237,7 +289,11 @@ public class GoalPanel extends JPanel {
             JComboBox<String> unitBox = unitCombo.get(rowIndex);
             String currentSelection = (String) unitBox.getSelectedItem();
             unitBox.removeAllItems();
-            for (String unit : units) { unitBox.addItem(unit); }
+            if (units != null) {
+                for (String unit : units) {
+                    unitBox.addItem(unit);
+                }
+            }
             unitBox.setSelectedItem(currentSelection);
         }
     }
@@ -262,12 +318,14 @@ public class GoalPanel extends JPanel {
         for (ActionListener al : nutrientBox.getActionListeners()) {
             nutrientBox.removeActionListener(al);
         }
-        nutrientBox.addActionListener(e -> {
-            String selectedNutrient = (String) nutrientBox.getSelectedItem();
-            if (selectedNutrient != null && !selectedNutrient.equals("<pick one>") && nutrientSelectionAction != null) {
-                nutrientSelectionAction.accept(rowIndex, selectedNutrient);
-            }
-        });
+        if (nutrientSelectionAction != null) {
+            nutrientBox.addActionListener(e -> {
+                String selectedNutrient = (String) nutrientBox.getSelectedItem();
+                if (selectedNutrient != null && !selectedNutrient.equals("<pick one>")) {
+                    nutrientSelectionAction.accept(rowIndex, selectedNutrient);
+                }
+            });
+        }
     }
 
     /**
@@ -276,7 +334,9 @@ public class GoalPanel extends JPanel {
      */
     public List<String> getSelectedNutrient() {
     	List<String> nutrient = new ArrayList<>();
-    	for(JComboBox<String> list : nutrientComboBox) nutrient.add((String) list.getSelectedItem());
+    	for(JComboBox<String> list : nutrientComboBox) {
+    	    nutrient.add((String) list.getSelectedItem());
+    	}
     	return nutrient;
     }
 
@@ -286,7 +346,9 @@ public class GoalPanel extends JPanel {
      */
     public List<String> getSelectedAction() {
     	List<String> action = new ArrayList<>();
-    	for(JComboBox<String> list : actionComboBox) action.add((String) list.getSelectedItem());
+    	for(JComboBox<String> list : actionComboBox) {
+    	    action.add((String) list.getSelectedItem());
+    	}
     	return action;
     }
     
@@ -305,7 +367,9 @@ public class GoalPanel extends JPanel {
      */
     public List<String> getSelectedIntensityPrecise() {
     	List<String> intensity = new ArrayList<>();
-    	for(JTextField list : preciseField) intensity.add((String) list.getText());
+    	for(JTextField list : preciseField) {
+    	    intensity.add(list.getText());
+    	}
     	return intensity;
     }
 
@@ -315,7 +379,9 @@ public class GoalPanel extends JPanel {
      */
     public List<String> getSelectedUnit() {
     	List<String> unit = new ArrayList<>();
-    	for(JComboBox<String> list : unitCombo) unit.add((String) list.getSelectedItem());
+    	for(JComboBox<String> list : unitCombo) {
+    	    unit.add((String) list.getSelectedItem());
+    	}
     	return unit;
     }
 
@@ -323,33 +389,45 @@ public class GoalPanel extends JPanel {
      * Gets the meal history panel associated with this goal panel.
      * @return The MealHistoryPanel instance.
      */
-    public MealHistoryPanel getMealHistorySelection() { return this.forMealSelection; }
+    public MealHistoryPanel getMealHistorySelection() {
+        return this.forMealSelection;
+    }
     
     /**
      * Gets the name of the ingredient selected for swapping.
      * @return The selected ingredient name as a String.
      */
-    public String getSelectedIngredient() { return (String) ingredientComboBox.getSelectedItem(); }
+    public String getSelectedIngredient() {
+        return (String) ingredientComboBox.getSelectedItem();
+    }
     
     /**
      * Adds an ActionListener to the 'Cancel' button.
      * @param listener The ActionListener to add.
      */
-    public void cancelButtonListener(ActionListener listener) { cancelButton.addActionListener(listener); }
+    public void cancelButtonListener(ActionListener listener) {
+        cancelButton.addActionListener(listener);
+    }
     
     /**
      * Adds an ActionListener to the 'Get Replaceable Food' button.
      * @param listener The ActionListener to add.
      */
-    public void getReplaceButtonListener(ActionListener listener) { getReplaceButton.addActionListener(listener); }
+    public void getReplaceButtonListener(ActionListener listener) {
+        getReplaceButton.addActionListener(listener);
+    }
     
-    /** Sets up listeners for the add/remove goal buttons. */
+    /**
+     * Sets up listeners for the add/remove goal buttons.
+     */
     private void setupGoalButton() {
     	addGoalButton.addActionListener(e -> addGoalRow());
     	removeGoalButton.addActionListener(e -> removeGoalRow());
     }
 
-    /** Updates the enabled state of the add/remove goal buttons based on the current row count. */
+    /**
+     * Updates the enabled state of the add/remove goal buttons based on the current row count.
+     */
     private void updateButtonState() {
     	addGoalButton.setEnabled(nutrientComboBox.size() < MAX_OPTIONS);
     	removeGoalButton.setEnabled(nutrientComboBox.size() > MIN_OPTIONS);

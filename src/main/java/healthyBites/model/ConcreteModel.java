@@ -88,6 +88,15 @@ public class ConcreteModel implements Model, MealSubject {
         }
     }
     
+     /**
+     * Loads data from CNF files into the database.
+     * 
+     * @param path path to the CNF directory
+     */
+    public void loadDataFromCSV(String path) {
+        CSVLoader.loadDataFromCSV(conn, path);
+    }
+    
     @Override
     /**
      * Sets the user profile in the database.

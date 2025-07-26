@@ -14,6 +14,7 @@ import java.util.function.BiConsumer;
  * nutritional goals for the replacement (e.g., "decrease fat by a little bit").
  * @author HealthyBites Team
  */
+@SuppressWarnings("serial")
 public class GoalPanel extends JPanel {
 
     /** Buttons for navigation and actions like canceling or getting recommendations. */
@@ -63,7 +64,9 @@ public class GoalPanel extends JPanel {
             @Override
             public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
                 JComponent component = (JComponent) super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-                if (value != null) { component.setToolTipText(value.toString()); }
+                if (value != null) {
+                    component.setToolTipText(value.toString());
+                }
                 return component;
             }
         });
@@ -111,7 +114,9 @@ public class GoalPanel extends JPanel {
         JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
         cancelButton = new JButton("Cancel");
         cancelButton.addActionListener(e -> {
-            if (forMealSelection != null) { forMealSelection.clearSelection(); }
+            if (forMealSelection != null) {
+                forMealSelection.clearSelection();
+            }
         });
         bottomPanel.add(cancelButton);
         getReplaceButton = new JButton("Get Replaceable Food");
@@ -151,10 +156,13 @@ public class GoalPanel extends JPanel {
         unitList.setPreferredSize(new Dimension(60, 25));
         JTextField preciseText = new JTextField(5);
         preciseText.setText(intensityPreciseList[0]);
-        intensityArbiList.addActionListener(e -> {
-    		int selected =  intensityArbiList.getSelectedIndex();
-    		preciseText.setText(intensityPreciseList[selected].toString());
-    		unitList.setSelectedIndex(0);
+        intensityArbiList.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                int selected = intensityArbiList.getSelectedIndex();
+                preciseText.setText(intensityPreciseList[selected].toString());
+                unitList.setSelectedIndex(0);
+            }
         });
         bottomLine.add(new JLabel("Intensity (Arbi):")); bottomLine.add(intensityArbiList);
         bottomLine.add(new JLabel(" OR ")); bottomLine.add(new JLabel("Intensity (Precise):"));
@@ -262,36 +270,77 @@ public class GoalPanel extends JPanel {
         });
     }
 
+    /**
+     * Gets the list of selected nutrients from all goal rows.
+     * @return A List of selected nutrient names.
+     */
     public List<String> getSelectedNutrient() {
     	List<String> nutrient = new ArrayList<>();
     	for(JComboBox<String> list : nutrientComboBox) nutrient.add((String) list.getSelectedItem());
     	return nutrient;
     }
+
+    /**
+     * Gets the list of selected actions from all goal rows.
+     * @return A List of selected actions (e.g., "increase", "decrease").
+     */
     public List<String> getSelectedAction() {
     	List<String> action = new ArrayList<>();
     	for(JComboBox<String> list : actionComboBox) action.add((String) list.getSelectedItem());
     	return action;
     }
     
+    /**
+     * Resets the text in all precise intensity fields to the default value.
+     */
     public void setIntensityPreciseToDefault() {
     	for(JTextField list : preciseField) {
     		list.setText("5");
     	}
     }
     
+    /**
+     * Gets the list of precise intensity values from all goal rows.
+     * @return A List of the text values from the precise intensity fields.
+     */
     public List<String> getSelectedIntensityPrecise() {
     	List<String> intensity = new ArrayList<>();
     	for(JTextField list : preciseField) intensity.add((String) list.getText());
     	return intensity;
     }
+
+    /**
+     * Gets the list of selected units from all goal rows.
+     * @return A List of selected unit names.
+     */
     public List<String> getSelectedUnit() {
     	List<String> unit = new ArrayList<>();
     	for(JComboBox<String> list : unitCombo) unit.add((String) list.getSelectedItem());
     	return unit;
     }
+
+    /**
+     * Gets the meal history panel associated with this goal panel.
+     * @return The MealHistoryPanel instance.
+     */
     public MealHistoryPanel getMealHistorySelection() { return this.forMealSelection; }
+    
+    /**
+     * Gets the name of the ingredient selected for swapping.
+     * @return The selected ingredient name as a String.
+     */
     public String getSelectedIngredient() { return (String) ingredientComboBox.getSelectedItem(); }
+    
+    /**
+     * Adds an ActionListener to the 'Cancel' button.
+     * @param listener The ActionListener to add.
+     */
     public void cancelButtonListener(ActionListener listener) { cancelButton.addActionListener(listener); }
+    
+    /**
+     * Adds an ActionListener to the 'Get Replaceable Food' button.
+     * @param listener The ActionListener to add.
+     */
     public void getReplaceButtonListener(ActionListener listener) { getReplaceButton.addActionListener(listener); }
     
     /** Sets up listeners for the add/remove goal buttons. */

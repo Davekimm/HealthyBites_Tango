@@ -12,6 +12,7 @@ import healthyBites.model.FoodItem;
  * Users can select one item from the list and confirm their choice to apply the swap.
  * @author HealthyBites Team
  */
+@SuppressWarnings("serial")
 public class SwapSelectionPanel extends JPanel {
 
     /** The JList component to display the swap options. */

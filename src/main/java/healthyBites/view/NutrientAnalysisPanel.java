@@ -4,13 +4,11 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.*;
-import java.util.List;
 import java.text.DecimalFormat;
 import org.jfree.chart.*;
 import org.jfree.chart.labels.StandardPieSectionLabelGenerator;
 import org.jfree.chart.plot.*;
 import org.jfree.data.general.DefaultPieDataset;
-import org.jfree.data.general.PieDataset;
 
 /**
  * A JPanel that allows users to select a date range and view an analysis of their average
@@ -19,6 +17,7 @@ import org.jfree.data.general.PieDataset;
  * with color-coded feedback.
  * @author HealthyBites Team
  */
+@SuppressWarnings("serial")
 public class NutrientAnalysisPanel extends JPanel {
     
     /** Spinner for selecting the start date of the analysis period. */
@@ -125,7 +124,7 @@ public class NutrientAnalysisPanel extends JPanel {
     
     /**
      * Creates and configures the date selection panel containing start/end date spinners and the analyze button.
-     * * @return A JPanel containing the date selection controls.
+     * @return A JPanel containing the date selection controls.
      */
     private JPanel createDateSelectionPanel() {
         JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 10));
@@ -157,7 +156,7 @@ public class NutrientAnalysisPanel extends JPanel {
     /**
      * Converts a nutrient value from its given unit (mg, µg) to grams.
      * This is used to standardize all nutrient masses for the pie chart display.
-     * * @param value The numeric value to convert.
+     * @param value The numeric value to convert.
      * @param unit The unit of measurement (e.g., "g", "mg", "µg").
      * @return The value converted to grams, or 0 if the unit is not a recognized mass unit.
      */
@@ -179,11 +178,12 @@ public class NutrientAnalysisPanel extends JPanel {
 
     /**
      * Displays the nutrient analysis results, populating the pie chart and summary panel.
-     * * @param averageDailyNutrients A map of nutrient names to their average daily intake values.
+     * @param averageDailyNutrients A map of nutrient names to their average daily intake values.
      * @param numberOfDays The number of days included in the analysis.
      * @param nutrientUnits A map of nutrient names to their units of measurement.
      */
-    public void displayNutrientAnalysis(Map<String, Double> averageDailyNutrients, int numberOfDays, Map<String, String> nutrientUnits) {
+    @SuppressWarnings({ "unchecked", "rawtypes" })
+	public void displayNutrientAnalysis(Map<String, Double> averageDailyNutrients, int numberOfDays, Map<String, String> nutrientUnits) {
         chartPanel.removeAll();
         summaryPanel.removeAll();
         
@@ -242,7 +242,7 @@ public class NutrientAnalysisPanel extends JPanel {
     
     /**
      * Converts technical nutrient names from the database to more user-friendly display names.
-     * * @param nutrient The technical nutrient name.
+     * @param nutrient The technical nutrient name.
      * @return The user-friendly display name.
      */
     private String getDisplayName(String nutrient) {
@@ -264,7 +264,7 @@ public class NutrientAnalysisPanel extends JPanel {
      * Adds a single nutrient summary item to the summary panel.
      * The item is color-coded based on how the actual intake compares to the recommended daily value (RDV).
      * Green: 80-120% of RDV. Orange: <80% of RDV. Red: >120% of RDV.
-     * * @param nutrient The display name of the nutrient.
+     * @param nutrient The display name of the nutrient.
      * @param actual The user's average daily intake of the nutrient.
      * @param recommended The recommended daily value for the nutrient.
      */

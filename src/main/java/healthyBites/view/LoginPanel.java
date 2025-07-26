@@ -10,6 +10,7 @@ import java.awt.event.*;
  * and buttons for logging in or navigating to the registration panel.
  * @author HealthyBites Team
  */
+@SuppressWarnings("serial")
 public class LoginPanel extends JPanel {
    
     /** Text field for the user's email address. */

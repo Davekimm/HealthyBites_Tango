@@ -14,6 +14,7 @@ import java.util.function.BiConsumer;
  * can add or remove ingredient rows. It also displays a meal history panel at the top.
  * @author HealthyBites Team
  */
+@SuppressWarnings("serial")
 public class MealPanel extends JPanel {
 
     /** Spinner for selecting the meal's date. */
@@ -47,7 +48,7 @@ public class MealPanel extends JPanel {
     /** The maximum number of characters to display in the ingredient combo box before truncating with "...". */
     private final int MAX_INGREDIENT_DISPLAY_LENGTH = 20;
 
-    /** MealHistoryPanel object in Log Meal page */
+    /** MealHistoryPanel object in Log Meal page. */
     private MealHistoryPanel forMealSelection;
     
     /** A callback function to execute when an ingredient is selected from a combo box. */
@@ -58,6 +59,15 @@ public class MealPanel extends JPanel {
      * and shows the full name in a tooltip.
      */
     private class IngredientComboBoxRenderer extends DefaultListCellRenderer {
+        /**
+         * Configures the renderer for each item in the list.
+         * @param list The JList we're painting.
+         * @param value The value to be rendered.
+         * @param index The item's index.
+         * @param isSelected True if the specified cell was selected.
+         * @param cellHasFocus True if the specified cell has the focus.
+         * @return A component whose paint() method will render the specified value.
+         */
         @Override
         public Component getListCellRendererComponent(JList<?> list, Object value, 
                 int index, boolean isSelected, boolean cellHasFocus) {
@@ -494,9 +504,8 @@ public class MealPanel extends JPanel {
     }
     
     /**
-     *  Returns the MealHistoryPanel object in the Log Meal page.
-     *  
-     *  @return MealHistoryPanel object
+     * Returns the MealHistoryPanel object in the Log Meal page.
+     * * @return MealHistoryPanel object
      */
     public MealHistoryPanel getMealHistorySelection() {
     	return this.forMealSelection;
@@ -504,8 +513,7 @@ public class MealPanel extends JPanel {
     
     /**
      * Returns the total number of ingredient rows that user created.
-     * 
-     * @return the number of ingredient rows.
+     * * @return the number of ingredient rows.
      */
     public int getNumberOfIngredientRows() {
         return ingredientCombos.size();

@@ -11,6 +11,7 @@ import java.util.Date;
  * height, weight, and email. It also supports both metric and imperial units.
  * @author HealthyBites Team
  */
+@SuppressWarnings("serial")
 public class RegisterPanel extends JPanel {
     /** Text field for user's name. */
     private JTextField name, email;
@@ -18,13 +19,13 @@ public class RegisterPanel extends JPanel {
     private JSpinner height;
     /** Spinner for user's weight input. */
 	private JSpinner weight;
-    /** Label to display the unit for height (cm or ft). */
+    /** Label to display the unit for height (cm or ft) and weight (Kg or lb). */
     private JLabel hUnit, wUnit;
     /** Spinner for user's date of birth. */
     private JSpinner dobField;
     /** ComboBox for selecting user's sex. */
     private JComboBox<String> sexComboBox;
-    /** Radio button for selecting metric units. */
+    /** Radio button for selecting metric or imperial units. */
     private JRadioButton metricRadio, imperialRadio;
     /** Buttons for registering or canceling the operation. */
     private JButton registerButton, cancelButton;
@@ -35,11 +36,11 @@ public class RegisterPanel extends JPanel {
      */
     public RegisterPanel() {
         // main panel with vertical layout - # rows, columns, horizontal and vertical gap
-        setLayout(new GridLayout(10, 2, 5, 5));
+        setLayout(new GridLayout(8, 2, 5, 5));
         
         // a border around the perimeter so labels and fields are not stuck to the edges of the panel
         setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-
+        
         // user information labels
         add(new JLabel("Name:"));
         name = new JTextField();
@@ -102,10 +103,6 @@ public class RegisterPanel extends JPanel {
         unitsPanel.add(imperialRadio);
         add(unitsPanel);
        
-        // empty labels to properly align buttons
-        add(new JLabel(""));
-        add(new JLabel(""));
-
         // Buttons
         cancelButton = new JButton("Cancel");
         add(cancelButton);

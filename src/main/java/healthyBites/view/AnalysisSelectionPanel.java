@@ -13,6 +13,7 @@ import java.util.Date;
  * analyze their entire meal history.
  * @author HealthyBites Team
  */
+@SuppressWarnings("serial")
 public class AnalysisSelectionPanel extends JPanel {
 
     /**
@@ -128,11 +129,14 @@ public class AnalysisSelectionPanel extends JPanel {
      * @return The selected {@link AnalysisType}.
      */
     public AnalysisType getSelectedAnalysisType() {
-        return switch (analysisTypeComboBox.getSelectedIndex()) {
-            case 1 -> AnalysisType.CUMULATIVE_IMPACT;
-            case 2 -> AnalysisType.PER_MEAL_IMPACT;
-            default -> AnalysisType.AVERAGE_IMPACT;
-        };
+        switch (analysisTypeComboBox.getSelectedIndex()) {
+            case 1:
+                return AnalysisType.CUMULATIVE_IMPACT;
+            case 2:
+                return AnalysisType.PER_MEAL_IMPACT;
+            default:
+                return AnalysisType.AVERAGE_IMPACT;
+        }
     }
 
     /**

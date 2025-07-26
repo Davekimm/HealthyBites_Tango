@@ -11,6 +11,7 @@ import java.awt.event.*;
  * getting food swap recommendations, and viewing nutritional analysis.
  * @author HealthyBites Team
  */
+@SuppressWarnings("serial")
 public class HomePanel extends JPanel {
    
     /** Buttons for navigating to different features of the application. */
@@ -21,7 +22,7 @@ public class HomePanel extends JPanel {
     
     /**
      * Constructs the HomePanel.
-     * * @param mealHistoryPanel A pre-configured MealHistoryPanel instance to be displayed
+     * @param mealHistoryPanel A pre-configured MealHistoryPanel instance to be displayed
      * at the top of this panel, showing the user's recent meals.
      */
     public HomePanel(MealHistoryPanel mealHistoryPanel) {
@@ -107,8 +108,7 @@ public class HomePanel extends JPanel {
 	
 	/**
      * Returns the MealHistory Panel object of the Home Page.
-     * 
-     * @return MealHistoryPanel object.
+     * * @return MealHistoryPanel object.
      */
 	public MealHistoryPanel getMealHistorySelection() {
     	return this.forMealSelection;

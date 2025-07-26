@@ -21,6 +21,7 @@ import java.awt.event.MouseEvent;
  * This panel can be configured to lay out meal cards either vertically or horizontally.
  * @author HealthyBites Team
  */
+@SuppressWarnings("serial")
 public class MealHistoryPanel extends JPanel {
 
     /** The container that holds the individual meal card JPanels. */
@@ -135,10 +136,11 @@ public class MealHistoryPanel extends JPanel {
             JPanel mealCard = createMealCard(entry.getKey(), entry.getValue());
             mealCardsContainer.add(mealCard);
             if (iterator.hasNext()) {
-                if(this.layoutAxis == BoxLayout.Y_AXIS)
+                if(this.layoutAxis == BoxLayout.Y_AXIS) {
                     mealCardsContainer.add(Box.createVerticalStrut(10));
-                else if(this.layoutAxis == BoxLayout.X_AXIS)
+                } else if(this.layoutAxis == BoxLayout.X_AXIS) {
                     mealCardsContainer.add(Box.createHorizontalStrut(10));
+                }
             }
         }
         mealCardsContainer.revalidate();

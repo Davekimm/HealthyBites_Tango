@@ -15,6 +15,7 @@ import healthyBites.model.FoodItem;
  * showing the changes in nutrient values.
  * @author HealthyBites Team
  */
+@SuppressWarnings("serial")
 public class GoalPanel2 extends JPanel {
     
     /** Panel to display the list of food items in the original meal. */
@@ -163,9 +164,15 @@ public class GoalPanel2 extends JPanel {
         panel.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY));
         
         switch (state) {
-            case ADDED -> panel.setBackground(ADDED_ITEM_COLOR);
-            case REMOVED -> panel.setBackground(REMOVED_ITEM_COLOR);
-            default -> panel.setBackground(Color.WHITE);
+            case ADDED:
+                panel.setBackground(ADDED_ITEM_COLOR);
+                break;
+            case REMOVED:
+                panel.setBackground(REMOVED_ITEM_COLOR);
+                break;
+            default:
+                panel.setBackground(Color.WHITE);
+                break;
         }
         
         panel.add(new JLabel(String.format("%.1f %s %s", item.getQuantity(), item.getUnit(), item.getName())));
@@ -202,14 +209,31 @@ public class GoalPanel2 extends JPanel {
      * Increases are colored green, and decreases are colored red.
      */
     private class NutrientTableCellRenderer extends DefaultTableCellRenderer {
+        /**
+         * Configures the renderer for each cell.
+         *
+         * @param table      The JTable.
+         * @param value      The value to assign to the cell.
+         * @param isSelected True if the cell is selected.
+         * @param hasFocus   True if the cell has focus.
+         * @param row        The row of the cell to render.
+         * @param column     The column of the cell to render.
+         * @return The component used for drawing the cell.
+         */
         @Override
         public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
             Component cell = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
             if (column >= 3) { // Target "Change" and "% Change" columns
                 String textValue = value.toString();
-                if (textValue.startsWith("+")) cell.setForeground(INCREASE_COLOR);
-                else if (textValue.startsWith("-")) cell.setForeground(DECREASE_COLOR);
-                else cell.setForeground(Color.BLACK);
+                if (textValue.startsWith("+")) {
+                    cell.setForeground(INCREASE_COLOR);
+                }
+                else if (textValue.startsWith("-")) {
+                    cell.setForeground(DECREASE_COLOR);
+                }
+                else {
+                    cell.setForeground(Color.BLACK);
+                }
             } else {
                 cell.setForeground(Color.BLACK);
             }

@@ -8,7 +8,6 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.ActionListener;
-import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Map;
@@ -20,6 +19,7 @@ import java.util.TreeMap;
  * shows a detailed table of nutrient changes for that specific meal.
  * @author HealthyBites Team
  */
+@SuppressWarnings("serial")
 public class PerMealAnalysisPanel extends JPanel {
 
     /** The list component to display the meals that were affected by the swap. */
@@ -32,6 +32,8 @@ public class PerMealAnalysisPanel extends JPanel {
     private DefaultTableModel tableModel;
     /** A button to navigate back to the previous analysis options screen. */
     private JButton backButton;
+    /** A button to visualize the meal data as time series charts. */
+    private JButton visualizeButton;
     
     /** A list of meals that have been changed by the food swap. */
     private List<Meal> changedMeals;
@@ -39,6 +41,8 @@ public class PerMealAnalysisPanel extends JPanel {
     private Map<Meal, Nutrition> originalNutritions;
     /** A map storing the modified nutritional information for each meal after the swap. */
     private Map<Meal, Nutrition> modifiedNutritions;
+    /** A map of nutrient names to their measurement units. */
+    private Map<String, String> nutrientUnits;
     
   
     /** Color constant for representing an increase in a nutrient's value. */
@@ -68,7 +72,7 @@ public class PerMealAnalysisPanel extends JPanel {
         listScrollPane.setPreferredSize(new Dimension(250, 0));
 
         // --- Detail table for selected meal (right side) ---
-        String[] columnHeaders = {"Nutrient", "Original Value", "New Value", "Change"};
+        String[] columnHeaders = {"Nutrient", "Original", "New", "Change", "% Change"};
         tableModel = new DefaultTableModel(columnHeaders, 0){
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -86,12 +90,14 @@ public class PerMealAnalysisPanel extends JPanel {
 
         // --- Split pane to hold both components ---
         JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, listScrollPane, tableScrollPane);
-        splitPane.setDividerLocation(250);
+        splitPane.setDividerLocation(180);
         add(splitPane, BorderLayout.CENTER);
 
         JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
         backButton = new JButton("Back to Analysis Options");
+        visualizeButton = new JButton("Visualize Data");
         bottomPanel.add(backButton);
+        bottomPanel.add(visualizeButton);
         add(bottomPanel, BorderLayout.SOUTH);
 
         // --- Add listener to update detail view when a meal is selected ---
@@ -112,17 +118,21 @@ public class PerMealAnalysisPanel extends JPanel {
      * @param changedMeals A list of meals modified by the swap.
      * @param originalNutritions A map of original nutrition data, keyed by Meal.
      * @param modifiedNutritions A map of new nutrition data, keyed by Meal.
+     * @param nutrientUnits A map of nutrient names to their units.
      */
-    public void displayAnalysis(List<Meal> changedMeals, Map<Meal, Nutrition> originalNutritions, Map<Meal, Nutrition> modifiedNutritions) {
+    public void displayAnalysis(List<Meal> changedMeals, Map<Meal, Nutrition> originalNutritions, Map<Meal, Nutrition> modifiedNutritions, Map<String, String> nutrientUnits) {
         this.changedMeals = changedMeals;
         this.originalNutritions = originalNutritions;
         this.modifiedNutritions = modifiedNutritions;
+        this.nutrientUnits = nutrientUnits;
 
         listModel.clear();
-        listModel.addAll(changedMeals);
+        if (changedMeals != null) {
+            listModel.addAll(changedMeals);
+        }
 
         // Select the first meal by default and show its details
-        if (!changedMeals.isEmpty()) {
+        if (changedMeals != null && !changedMeals.isEmpty()) {
             mealList.setSelectedIndex(0);
         } else {
             tableModel.setRowCount(0); // Clear table if no meals
@@ -139,18 +149,30 @@ public class PerMealAnalysisPanel extends JPanel {
         tableModel.setRowCount(0);
         Nutrition original = originalNutritions.get(meal);
         Nutrition modified = modifiedNutritions.get(meal);
-        DecimalFormat df = new DecimalFormat("#.##");
+
+        if (original == null || modified == null || nutrientUnits == null) return;
 
         for (String nutrient : new TreeMap<>(original.getNutrients()).keySet()) {
             double originalValue = original.getNutrientValue(nutrient);
             double modifiedValue = modified.getNutrientValue(nutrient);
-            // Only show nutrients that have changed
+            
             if (Math.abs(originalValue - modifiedValue) > 0.01) {
+                String percentChangeString;
+                if (originalValue != 0) {
+                    double percentChange = ((modifiedValue - originalValue) / originalValue) * 100;
+                    percentChangeString = String.format("%+.1f%%", percentChange);
+                } else {
+                    percentChangeString = "N/A";
+                }
+                
+                String unit = nutrientUnits.getOrDefault(nutrient, "");
+
                  tableModel.addRow(new Object[]{
                     nutrient,
-                    df.format(originalValue),
-                    df.format(modifiedValue),
-                    String.format("%+.2f", (modifiedValue - originalValue))
+                    String.format("%.2f %s", originalValue, unit),
+                    String.format("%.2f %s", modifiedValue, unit),
+                    String.format("%+.2f %s", (modifiedValue - originalValue), unit),
+                    percentChangeString
                 });
             }
         }
@@ -164,6 +186,39 @@ public class PerMealAnalysisPanel extends JPanel {
     public void addBackButtonListener(ActionListener listener) {
         backButton.addActionListener(listener);
     }
+    
+    /**
+     * Adds an ActionListener to the 'Visualize Data' button.
+     *
+     * @param listener The ActionListener to be added.
+     */
+    public void addVisualizeButtonListener(ActionListener listener) {
+        visualizeButton.addActionListener(listener);
+    }
+    
+    /**
+     * Gets the list of changed meals for visualization purposes.
+     * @return The list of meals affected by the swap.
+     */
+    public List<Meal> getChangedMeals() {
+        return changedMeals;
+    }
+    
+    /**
+     * Gets the original nutrition data for visualization purposes.
+     * @return Map of meals to their original nutrition values.
+     */
+    public Map<Meal, Nutrition> getOriginalNutritions() {
+        return originalNutritions;
+    }
+    
+    /**
+     * Gets the modified nutrition data for visualization purposes.
+     * @return Map of meals to their modified nutrition values.
+     */
+    public Map<Meal, Nutrition> getModifiedNutritions() {
+        return modifiedNutritions;
+    }
 
     /**
      * A custom cell renderer for displaying Meal objects within the JList.
@@ -171,6 +226,15 @@ public class PerMealAnalysisPanel extends JPanel {
      */
     private static class MealListCellRenderer extends DefaultListCellRenderer {
         private final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        /**
+         * Configures the renderer for each item in the list.
+         * @param list The JList we're painting.
+         * @param value The value to be rendered.
+         * @param index The item's index.
+         * @param isSelected True if the specified cell was selected.
+         * @param cellHasFocus True if the specified cell has the focus.
+         * @return A component whose paint() method will render the specified value.
+         */
         @Override
         public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
             Component c = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
@@ -182,19 +246,30 @@ public class PerMealAnalysisPanel extends JPanel {
     }
     
     /**
-     * A custom cell renderer for the nutrient details table.
+     * A custom table cell renderer for the nutrient details table.
      * It color-codes the "Change" column to visually indicate increases (green) or decreases (red) in nutrient values.
      * It also handles text alignment for better readability.
      */
     private class NutrientTableCellRenderer extends DefaultTableCellRenderer {
+        /**
+         * Configures the renderer for each cell.
+         *
+         * @param table      The JTable.
+         * @param value      The value to assign to the cell.
+         * @param isSelected True if the cell is selected.
+         * @param hasFocus   True if the cell has focus.
+         * @param row        The row of the cell to render.
+         * @param column     The column of the cell to render.
+         * @return The component used for drawing the cell.
+         */
         @Override
         public Component getTableCellRendererComponent(JTable table, Object value,
                                                      boolean isSelected, boolean hasFocus,
                                                      int row, int column) {
             Component cell = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
             
-            // Target the "Change" column, which is the last column (index 3)
-            if (column == 3) {
+            // Target the "Change" and "% Change" columns (indices 3 and 4)
+            if (column == 3 || column == 4) {
                 String textValue = value.toString();
                 if (textValue.startsWith("+")) {
                     cell.setForeground(INCREASE_COLOR);

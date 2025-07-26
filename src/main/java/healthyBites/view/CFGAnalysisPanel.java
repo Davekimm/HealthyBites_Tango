@@ -17,6 +17,7 @@ import healthyBites.model.CFGFoodGroup;
  * and a detailed summary panel that gives color-coded feedback on the intake of each food group.
  * @author HealthyBites Team
  */
+@SuppressWarnings("serial")
 public class CFGAnalysisPanel extends JPanel {
     
     /** Spinner for selecting the analysis start date. */
@@ -234,11 +235,41 @@ public class CFGAnalysisPanel extends JPanel {
         startDateSpinner.setValue(cal.getTime());
     }
     
+    /**
+     * Gets the selected start date from the date spinner.
+     * @return The selected start date.
+     */
     public Date getStartDate() { return (Date) startDateSpinner.getValue(); }
+    
+    /**
+     * Gets the selected end date from the date spinner.
+     * @return The selected end date.
+     */
     public Date getEndDate() { return (Date) endDateSpinner.getValue(); }
+    
+    /**
+     * Adds an ActionListener to the 'Analyze' button.
+     * @param listener The ActionListener to add.
+     */
     public void addAnalyzeButtonListener(ActionListener listener) { analyzeButton.addActionListener(listener); }
+    
+    /**
+     * Adds an ActionListener to the 'Back' button.
+     * @param listener The ActionListener to add.
+     */
     public void addBackButtonListener(ActionListener listener) { backButton.addActionListener(listener); }
+    
+    /**
+     * Adds an ActionListener to the 'View Nutrient Analysis' button.
+     * @param listener The ActionListener to add.
+     */
     public void addViewNutrientsButtonListener(ActionListener listener) { viewNutrientsButton.addActionListener(listener); }
+    
+    /**
+     * Sets the date range for the start and end date spinners programmatically.
+     * @param startDate The start date to set.
+     * @param endDate The end date to set.
+     */
     public void setDateRange(Date startDate, Date endDate) {
         if (startDate != null) startDateSpinner.setValue(startDate);
         if (endDate != null) endDateSpinner.setValue(endDate);

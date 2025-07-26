@@ -11,6 +11,7 @@ import java.util.Date;
  * The user's email is displayed but cannot be changed.
  * @author HealthyBites Team
  */
+@SuppressWarnings("serial")
 public class EditPanel extends JPanel {
     /** Text field for the user's name. */
     private JTextField name;
@@ -34,7 +35,7 @@ public class EditPanel extends JPanel {
      * It uses a GridLayout to arrange the form fields.
      */
     public EditPanel() {
-        setLayout(new GridLayout(10, 2, 5, 5));
+        setLayout(new GridLayout(9, 2, 5, 5));
         setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
         // Display user's email (non-editable)
@@ -71,13 +72,19 @@ public class EditPanel extends JPanel {
         metricRadio = new JRadioButton("Metric", true);
         imperialRadio = new JRadioButton("Imperial");
         ButtonGroup unitsGroup = new ButtonGroup();
-        metricRadio.addActionListener(e -> {
-        		hUnit.setText("Height (cm)");
-        		wUnit.setText("Weight (Kg)");
+        metricRadio.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                hUnit.setText("Height (cm)");
+                wUnit.setText("Weight (Kg)");
+            }
         });
-        imperialRadio.addActionListener(e -> {
-        		hUnit.setText("Height (ft)");
-        		wUnit.setText("Weight (lb)");
+        imperialRadio.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                hUnit.setText("Height (ft)");
+                wUnit.setText("Weight (lb)");
+            }
         });
         unitsGroup.add(metricRadio);
         unitsGroup.add(imperialRadio);
@@ -96,28 +103,112 @@ public class EditPanel extends JPanel {
         add(cancelButton);
     }
 
-    // --- Getter methods for facade ---
+    /**
+     * Retrieves the user's name from the input field.
+     * @return The user's name.
+     */
     public String getName() { return name.getText(); }
+    
+    /**
+     * Retrieves the selected sex from the combo box.
+     * @return The user's selected sex ("Male" or "Female").
+     */
     public String getSex() { return (String) sexComboBox.getSelectedItem(); }
+    
+    /**
+     * Retrieves the selected unit system.
+     * @return The selected unit system as a string ("metric" or "imperial").
+     */
     public String getUnit() { return metricRadio.isSelected() ? "metric" : "imperial"; }
+    
+    /**
+     * Retrieves the user's weight from the spinner.
+     * @return The user's weight.
+     */
     public double getUserWeight() { return (double) weight.getValue(); }
+    
+    /**
+     * Retrieves the user's height from the spinner.
+     * @return The user's height.
+     */
     public double getUserHeight() { return (double) height.getValue(); }
+    
+    /**
+     * Retrieves the user's date of birth from the spinner.
+     * @return The user's date of birth.
+     */
     public Date getDOB() { return (Date) dobField.getValue(); }
+    
+    /**
+     * Retrieves the user's email from the label.
+     * @return The user's email.
+     */
     public String getEmail() { return email.getText(); }
 
-    // --- Listener attachment methods ---
+    /**
+     * Adds an ActionListener to the 'Save' button.
+     * @param listener The ActionListener to add.
+     */
     public void saveButtonListener(ActionListener listener) { saveButton.addActionListener(listener); }
+    
+    /**
+     * Adds an ActionListener to the 'Cancel' button.
+     * @param listener The ActionListener to add.
+     */
     public void cancelButtonListener(ActionListener listener) { cancelButton.addActionListener(listener); }
+    
+    /**
+     * Adds an ActionListener to the 'Delete Profile' button.
+     * @param listener The ActionListener to add.
+     */
     public void deleteButtonListener(ActionListener listener) { deleteButton.addActionListener(listener); }
+    
+    /**
+     * Adds an ActionListener to the 'Metric' radio button.
+     * @param listener The ActionListener to add.
+     */
     public void metricActionListener(ActionListener listener) { metricRadio.addActionListener(listener); }
+    
+    /**
+     * Adds an ActionListener to the 'Imperial' radio button.
+     * @param listener The ActionListener to add.
+     */
     public void imperialActionListener(ActionListener listener) { imperialRadio.addActionListener(listener); }
         
-    // --- Setter methods for populating the form ---
+    /**
+     * Populates the name field.
+     * @param nameText The text to set as the user's name.
+     */
     public void setName(String nameText) { name.setText(nameText); }
+    
+    /**
+     * Sets the selected item in the sex combo box.
+     * @param sex The sex to select.
+     */
     public void setSex(String sex) { sexComboBox.setSelectedItem(sex); }
+    
+    /**
+     * Populates the weight spinner with a value.
+     * @param weightText The weight to set.
+     */
     public void setUserWeight(double weightText) { weight.setValue(weightText); }
+    
+    /**
+     * Populates the height spinner with a value.
+     * @param heightText The height to set.
+     */
     public void setUserHeight(double heightText) { height.setValue(heightText); }
+    
+    /**
+     * Populates the date of birth spinner with a date.
+     * @param dob The date of birth to set.
+     */
     public void setDOB(Date dob) { dobField.setValue(dob); }
+    
+    /**
+     * Populates the email label with text.
+     * @param emailText The email to display.
+     */
     public void setEmail(String emailText) { email.setText(emailText); }
 
     /**

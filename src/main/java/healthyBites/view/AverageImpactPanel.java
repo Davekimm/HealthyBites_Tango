@@ -5,7 +5,6 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.ActionListener;
-import java.text.DecimalFormat;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -15,6 +14,7 @@ import java.util.TreeMap;
  * the new average, and the resulting changes for each nutrient.
  * @author HealthyBites Team
  */
+@SuppressWarnings("serial")
 public class AverageImpactPanel extends JPanel {
 
     /** The table used to display the analysis data. */
@@ -73,12 +73,11 @@ public class AverageImpactPanel extends JPanel {
      * @param originalAverages A map of nutrient names to their original average daily values.
      * @param modifiedAverages A map of nutrient names to their new average daily values after the swap.
      * @param numberOfDays The number of days the analysis covers.
+     * @param nutrientUnits A map of nutrient names to their units.
      */
-    public void displayAnalysis(Map<String, Double> originalAverages, Map<String, Double> modifiedAverages, int numberOfDays) {
+    public void displayAnalysis(Map<String, Double> originalAverages, Map<String, Double> modifiedAverages, int numberOfDays, Map<String, String> nutrientUnits) {
         tableModel.setRowCount(0);
         titleLabel.setText("Average Daily Impact of Swap (Over " + numberOfDays + " Logged Days)");
-
-        DecimalFormat df = new DecimalFormat("#.##");
 
         // Use a TreeMap to ensure nutrients are displayed in alphabetical order
         for (String nutrientName : new TreeMap<>(originalAverages).keySet()) {
@@ -90,11 +89,13 @@ public class AverageImpactPanel extends JPanel {
             double change = modifiedValue - originalValue;
             double percentChange = (originalValue != 0) ? (change / originalValue) * 100 : (modifiedValue > 0 ? 100.0 : 0.0);
 
+            String unit = nutrientUnits.getOrDefault(nutrientName, "");
+
             Object[] rowData = {
                 nutrientName,
-                df.format(originalValue),
-                df.format(modifiedValue),
-                String.format("%+.2f", change),
+                String.format("%.2f %s", originalValue, unit),
+                String.format("%.2f %s", modifiedValue, unit),
+                String.format("%+.2f %s", change, unit),
                 String.format("%+.1f%%", percentChange)
             };
             tableModel.addRow(rowData);
@@ -122,6 +123,17 @@ public class AverageImpactPanel extends JPanel {
      * Increases are colored green, and decreases are colored red for quick visual feedback.
      */
     private class NutrientTableCellRenderer extends DefaultTableCellRenderer {
+        /**
+         * Configures the renderer for each cell.
+         *
+         * @param table      The JTable.
+         * @param value      The value to assign to the cell.
+         * @param isSelected True if the cell is selected.
+         * @param hasFocus   True if the cell has focus.
+         * @param row        The row of the cell to render.
+         * @param column     The column of the cell to render.
+         * @return The component used for drawing the cell.
+         */
         @Override
         public Component getTableCellRendererComponent(JTable table, Object value,
                                                      boolean isSelected, boolean hasFocus,

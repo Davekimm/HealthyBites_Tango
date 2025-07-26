@@ -13,9 +13,24 @@ import java.util.function.Consumer;
  * A JPanel that allows users to select and view different visualizations of food swap analysis data.
  * It uses the Strategy design pattern to switch between different chart types (e.g., Bar Chart, Line Chart, CFG View).
  * The panel includes controls for selecting the chart type, nutrients to display, and other display options.
+ * It is context-aware and shows different visualization options based on the type of data being displayed.
  * @author HealthyBites Team
  */
+@SuppressWarnings("serial")
 public class SwapVisualizationPanel extends JPanel {
+    
+    /**
+     * Enum representing different visualization contexts. The context determines
+     * which visualization strategies (chart types) are available.
+     */
+    public enum VisualizationContext {
+        /** For analyzing average daily nutrient changes. */
+        AVERAGE_ANALYSIS,
+        /** For analyzing total nutrient changes over a period. */
+        CUMULATIVE_ANALYSIS,
+        /** For analyzing nutrient changes over time on a per-meal basis. */
+        TIME_SERIES_ANALYSIS
+    }
     
     /** ComboBox for selecting the visualization strategy (chart type). */
     private JComboBox<String> strategyComboBox;
@@ -31,6 +46,11 @@ public class SwapVisualizationPanel extends JPanel {
     private JButton backButton;
     /** Button to refresh or update the current visualization. */
     private JButton refreshButton;
+    /** The main title label for the panel. */
+    private JLabel titleLabel;
+    
+    /** The current visualization context. */
+    private VisualizationContext currentContext = VisualizationContext.AVERAGE_ANALYSIS;
     
     /** Map holding the original data before the swap. */
     private Map<String, Double> originalData;
@@ -62,14 +82,71 @@ public class SwapVisualizationPanel extends JPanel {
     }
     
     /**
-     * Initializes the map of available visualization strategies.
+     * Initializes the map of available visualization strategies based on the current context.
      * Uses a LinkedHashMap to maintain the order of items in the combo box.
      */
     private void initializeStrategies() {
         strategies = new LinkedHashMap<>();
-        strategies.put("Bar Chart", new BarChartVisualizationStrategy());
-        strategies.put("Line Chart", new LineChartVisualizationStrategy());
-        strategies.put("Canada Food Guide View", new CFGVisualizationStrategy());
+        
+        if (currentContext == null) return;
+
+        switch (currentContext) {
+            case AVERAGE_ANALYSIS:
+                strategies.put("Bar Chart", new BarChartVisualizationStrategy());
+                strategies.put("Canada Food Guide View", new CFGVisualizationStrategy());
+                break;
+            case CUMULATIVE_ANALYSIS:
+                strategies.put("Bar Chart", new BarChartVisualizationStrategy());
+                break;
+            case TIME_SERIES_ANALYSIS:
+                strategies.put("Time Series Chart", new TimeSeriesVisualizationStrategy());
+                break;
+        }
+    }
+    
+    /**
+     * Sets the visualization context and updates available strategies.
+     * @param context The visualization context to set.
+     */
+    public void setVisualizationContext(VisualizationContext context) {
+        if (this.currentContext != context) {
+            this.currentContext = context;
+            initializeStrategies();
+            
+            if (titleLabel != null) {
+                switch (context) {
+                    case AVERAGE_ANALYSIS:
+                        titleLabel.setText("Average Daily Impact Visualization");
+                        break;
+                    case CUMULATIVE_ANALYSIS:
+                        titleLabel.setText("Cumulative Impact Visualization");
+                        break;
+                    case TIME_SERIES_ANALYSIS:
+                        titleLabel.setText("Per-Meal Trend Visualization");
+                        break;
+                }
+            }
+
+            // Update combo box if it exists
+            if (strategyComboBox != null) {
+                strategyComboBox.removeAllItems();
+                for (String strategyName : strategies.keySet()) {
+                    strategyComboBox.addItem(strategyName);
+                }
+                
+                // Update current strategy
+                String selected = (String) strategyComboBox.getSelectedItem();
+                currentStrategy = strategies.get(selected);
+            }
+        }
+    }
+    
+    /**
+     * Gets the current visualization context.
+     * @return The current VisualizationContext.
+     */
+    public VisualizationContext getCurrentContext() {
+        return currentContext;
     }
     
     /**
@@ -79,7 +156,7 @@ public class SwapVisualizationPanel extends JPanel {
         setLayout(new BorderLayout(10, 10));
         setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         
-        JLabel titleLabel = new JLabel("Swap Impact Visualization", SwingConstants.CENTER);
+        titleLabel = new JLabel("Swap Impact Visualization", SwingConstants.CENTER);
         titleLabel.setFont(new Font("Arial", Font.BOLD, 16));
         add(titleLabel, BorderLayout.NORTH);
         
@@ -96,9 +173,13 @@ public class SwapVisualizationPanel extends JPanel {
         refreshButton = new JButton("Update Visualization");
 
         refreshButton.addActionListener(e -> {
-            if (onChartTypeChange != null) {
-                String selectedStrategyName = (String) strategyComboBox.getSelectedItem();
-                onChartTypeChange.accept(selectedStrategyName);
+            if (currentContext == VisualizationContext.TIME_SERIES_ANALYSIS) {
+                updateVisualization();
+            } else {
+                if (onChartTypeChange != null) {
+                    String selectedStrategyName = (String) strategyComboBox.getSelectedItem();
+                    onChartTypeChange.accept(selectedStrategyName);
+                }
             }
         });
 
@@ -215,11 +296,27 @@ public class SwapVisualizationPanel extends JPanel {
         nutrientSelectionPanel.removeAll();
         nutrientCheckBoxes = new ArrayList<>();
         
-        List<String> sortedNutrients = new ArrayList<>(originalData.keySet());
+        Set<String> nutrients = new HashSet<>();
+        
+        // Extract nutrient names based on context
+        if (currentContext == VisualizationContext.TIME_SERIES_ANALYSIS) {
+            // For time series, parse compound keys "DATE|MEALTYPE|NUTRIENT"
+            for (String key : originalData.keySet()) {
+                String[] parts = key.split("\\|");
+                if (parts.length >= 3) {
+                    nutrients.add(parts[2]);
+                }
+            }
+        } else {
+            // For aggregate analysis, keys are nutrient names directly
+            nutrients.addAll(originalData.keySet());
+        }
+        
+        List<String> sortedNutrients = new ArrayList<>(nutrients);
         Collections.sort(sortedNutrients);
         
         for (String nutrient : sortedNutrients) {
-            JCheckBox checkBox = new JCheckBox(nutrient);
+            JCheckBox checkBox = new JCheckBox( nutrient);
             if (isImportantNutrient(nutrient)) {
                 checkBox.setSelected(true);
             }

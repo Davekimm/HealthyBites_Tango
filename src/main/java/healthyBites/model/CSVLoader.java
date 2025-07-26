@@ -8,13 +8,21 @@ import java.sql.PreparedStatement;
  * The class that helps the Model load the csv files into the database.
  */
 public class CSVLoader {
-
     /**
-     * Loads all nutritional data from the specified CSV file into the database using the provided connection.
+     * Loads all Canada Nutrient File data from the specified CSV file into the database using the provided connection.
      *
      * @param conn the active to the database where data will be inserted.
      * @param path the path to the folder containing the CNF data.
      */
+    public static void loadDataFromCSV(Connection conn, String path) {
+        loadFoodSourcesFromCSV(conn, path);
+        loadFoodGroupsFromCSV(conn, path);
+        loadFoodNamesFromCSV(conn, path);
+        loadNutrientNamesFromCSV(conn, path);
+        loadNutrientAmountsFromCSV(conn, path);
+        loadMeasureNamesFromCSV(conn, path);
+        loadConversionFactorsFromCSV(conn, path);
+    }
 
     private static void loadFoodSourcesFromCSV(Connection conn, String path) {
         // FoodSourceID, FoodSourceCode, FoodSourceDescription, FoodSourceDescriptionF
@@ -159,7 +167,4 @@ public class CSVLoader {
             e.printStackTrace();
         }
     }
-} {
-    
-import java.io.Reader;
 }

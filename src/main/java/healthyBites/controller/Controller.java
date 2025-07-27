@@ -128,11 +128,17 @@ public class Controller {
     /** Ratio for proportional quantity adjustment in food swaps */
     private double swapRatio;
     
-    /** Cache for original CFG servings data before swap analysis */
+    /** Cache for original CFG servings data before swap analysis (cumulative) */
     private Map<String, Double> cachedOriginalCFGServings;
     
-    /** Cache for modified CFG servings data after swap analysis */
+    /** Cache for modified CFG servings data after swap analysis (cumulative) */
     private Map<String, Double> cachedModifiedCFGServings;
+    
+    /** Cache for original CFG servings data (daily averages) */
+    private Map<String, Double> cachedOriginalCFGServingsAverage;
+    
+    /** Cache for modified CFG servings data (daily averages) */
+    private Map<String, Double> cachedModifiedCFGServingsAverage;
 
     /** Cache for original total nutrient values in what-if analysis */
     private Map<String, Double> cachedOriginalTotals;
@@ -1164,7 +1170,7 @@ public class Controller {
      * <ul>
      *   <li>Nutritional totals and averages (original and modified)</li>
      *   <li>Lists of affected meals and their nutritional data</li>
-     *   <li>CFG servings data</li>
+     *   <li>CFG servings data (both cumulative and average)</li>
      *   <li>Analysis parameters (items, dates, day counts)</li>
      * </ul>
      * This ensures that subsequent analyses start with a clean state and don't
@@ -1186,6 +1192,8 @@ public class Controller {
         this.cachedAnalysisEndDate = null;
         this.cachedOriginalCFGServings = null;
         this.cachedModifiedCFGServings = null;
+        this.cachedOriginalCFGServingsAverage = null;
+        this.cachedModifiedCFGServingsAverage = null;
     }
 
     /**
@@ -1273,10 +1281,11 @@ public class Controller {
      *         <li>Checking if the meal contains the item to be swapped</li>
      *         <li>Creating modified meal with proportional replacement quantities</li>
      *         <li>Calculating nutritional values for both original and modified versions</li>
-     *         <li>Aggregating CFG servings data</li>
+     *         <li>Aggregating CFG servings data (cumulative)</li>
      *       </ul>
      *   </li>
      *   <li>Computing totals and daily averages for all nutrients</li>
+     *   <li>Computing daily average CFG servings for average impact visualization</li>
      *   <li>Caching all results for efficient view switching</li>
      * </ol>
      * The method handles edge cases like no meals found or no applicable swaps.
@@ -1366,10 +1375,20 @@ public class Controller {
         }
         
         cachedAnalysisNumberOfDays = uniqueDays.size();
+        
+        // Calculate nutrient averages per day
         cachedOriginalAverages = new HashMap<>();
         cachedOriginalTotals.forEach((k, v) -> cachedOriginalAverages.put(k, v / cachedAnalysisNumberOfDays));
         cachedModifiedAverages = new HashMap<>();
         cachedModifiedTotals.forEach((k, v) -> cachedModifiedAverages.put(k, v / cachedAnalysisNumberOfDays));
+
+        // Calculate CFG servings averages per day for average impact visualization
+        cachedOriginalCFGServingsAverage = new HashMap<>();
+        cachedModifiedCFGServingsAverage = new HashMap<>();
+        cachedOriginalCFGServings.forEach((k, v) -> 
+            cachedOriginalCFGServingsAverage.put(k, v / cachedAnalysisNumberOfDays));
+        cachedModifiedCFGServings.forEach((k, v) -> 
+            cachedModifiedCFGServingsAverage.put(k, v / cachedAnalysisNumberOfDays));
 
         this.cachedItemToSwap = this.itemToSwap;
         this.cachedReplacementItem = this.selectedReplacementItem;
@@ -1424,16 +1443,23 @@ public class Controller {
     }
     
     /**
-     * Prepares and displays swap analysis data in the visualization panel.
+     * Prepares and displays swap analysis data in the visualization panel with proper context.
      * <p>
      * This method handles visualization requests from analysis panels by:
      * <ol>
      *   <li>Selecting the appropriate dataset (cumulative or average) based on analysis type</li>
      *   <li>Validating that analysis data exists</li>
      *   <li>Determining the visualization context for proper back navigation</li>
+     *   <li>Setting available chart options based on context</li>
      *   <li>Fetching CFG recommendations for the current user</li>
      *   <li>Passing all data to the visualization panel for chart rendering</li>
      * </ol>
+     * The method ensures that:
+     * <ul>
+     *   <li>Average impact shows both "Nutrient Impact" and "Canada Food Guide View" options</li>
+     *   <li>Cumulative impact shows only "Nutrient Impact" option</li>
+     *   <li>Time series handles its own chart types</li>
+     * </ul>
      * </p>
      *
      * @param analysisType A string indicating which data to visualize ("CUMULATIVE_IMPACT" or "AVERAGE_IMPACT")
@@ -1447,21 +1473,36 @@ public class Controller {
             return;
         }
 
-        // Determine the context based on the analysis type
+        // Determine the context and available chart options based on the analysis type
         SwapVisualizationPanel.VisualizationContext context;
+        String initialTitle;
+        List<String> availableChartTypes = new ArrayList<>();
+        
         if ("CUMULATIVE_IMPACT".equals(analysisType)) {
             context = SwapVisualizationPanel.VisualizationContext.CUMULATIVE_ANALYSIS;
-        } else { // It must be AVERAGE_IMPACT
+            initialTitle = "Cumulative Nutrient Impact";
+            // Cumulative impact: only bar chart
+            availableChartTypes.add("Nutrient Impact");
+        } else if ("AVERAGE_IMPACT".equals(analysisType)) { 
             context = SwapVisualizationPanel.VisualizationContext.AVERAGE_ANALYSIS;
+            initialTitle = "Average Daily Nutrient Impact";
+            // Average impact: both bar chart and CFG view
+            availableChartTypes.add("Nutrient Impact");
+            availableChartTypes.add("Canada Food Guide View");
+        } else {
+            context = SwapVisualizationPanel.VisualizationContext.TIME_SERIES_ANALYSIS;
+            initialTitle = "Per-Meal Nutrient Trends";
+            // Time series handles its own chart types
         }
 
         CFGFoodGroup recommended = model.getDailyRecommendedServingsFromCFG(currentUser);
         
+        // Note: The view should be updated to accept availableChartTypes parameter
         view.displaySwapVisualizationWithContext(
             originalData, 
             modifiedData, 
             cachedNutrientUnits, 
-            "Nutrient Impact", 
+            initialTitle, 
             recommended,
             context
         );
@@ -1529,13 +1570,23 @@ public class Controller {
     }
 
     /**
-     * Updates visualization data based on the selected chart type.
+     * Updates visualization data based on the selected chart type and current context.
      * <p>
      * This method responds to chart type toggle requests from the visualization
-     * panel. It switches between:
+     * panel. It intelligently switches between different data views based on:
      * <ul>
-     *   <li>Canada Food Guide View: Shows CFG food group servings impact</li>
-     *   <li>Nutrient Impact: Shows individual nutrient changes</li>
+     *   <li>The selected chart type ("Canada Food Guide View" or "Nutrient Impact")</li>
+     *   <li>The current visualization context (average or cumulative analysis)</li>
+     * </ul>
+     * For Canada Food Guide View, it uses the appropriate CFG servings data:
+     * <ul>
+     *   <li>Average context: uses daily average CFG servings</li>
+     *   <li>Cumulative context: uses total CFG servings</li>
+     * </ul>
+     * For Nutrient Impact, it uses:
+     * <ul>
+     *   <li>Average context: uses daily average nutrient values</li>
+     *   <li>Cumulative context: uses total nutrient values</li>
      * </ul>
      * The method validates cache availability and updates only the data portion
      * of the already-visible visualization panel.
@@ -1548,14 +1599,36 @@ public class Controller {
         Map<String, Double> modifiedData;
         String title;
 
+        // Get the current visualization context
+        SwapVisualizationPanel.VisualizationContext context = view.getSwapVisualizationContext();
+        
         if ("Canada Food Guide View".equals(chartType)) {
-            originalData = cachedOriginalCFGServings;
-            modifiedData = cachedModifiedCFGServings;
-            title = "CFG Servings Impact";
+            // Use appropriate CFG data based on context
+            if (context == SwapVisualizationPanel.VisualizationContext.AVERAGE_ANALYSIS) {
+                originalData = cachedOriginalCFGServingsAverage;
+                modifiedData = cachedModifiedCFGServingsAverage;
+                title = "Average Daily CFG Servings Impact";
+            } else {
+                // This shouldn't happen as CFG view is only for average impact
+                originalData = cachedOriginalCFGServings;
+                modifiedData = cachedModifiedCFGServings;
+                title = "Cumulative CFG Servings Impact";
+            }
         } else {
-            originalData = cachedOriginalTotals;
-            modifiedData = cachedModifiedTotals;
-            title = "Nutrient Impact";
+            // Nutrient data - use correct data based on context
+            if (context == SwapVisualizationPanel.VisualizationContext.AVERAGE_ANALYSIS) {
+                originalData = cachedOriginalAverages;
+                modifiedData = cachedModifiedAverages;
+                title = "Average Daily Nutrient Impact";
+            } else if (context == SwapVisualizationPanel.VisualizationContext.CUMULATIVE_ANALYSIS) {
+                originalData = cachedOriginalTotals;
+                modifiedData = cachedModifiedTotals;
+                title = "Cumulative Nutrient Impact";
+            } else {
+                // Time series context - this shouldn't happen as time series handles its own updates
+                JOptionPane.showMessageDialog(null, "Invalid context for chart type change.", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
         }
 
         if (originalData == null || modifiedData == null) {

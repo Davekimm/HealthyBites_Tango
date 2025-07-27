@@ -1608,13 +1608,12 @@ public class Controller {
                 originalData = cachedOriginalCFGServingsAverage;
                 modifiedData = cachedModifiedCFGServingsAverage;
                 title = "Average Daily CFG Servings Impact";
-            } else {
-                // This shouldn't happen as CFG view is only for average impact
-                originalData = cachedOriginalCFGServings;
-                modifiedData = cachedModifiedCFGServings;
-                title = "Cumulative CFG Servings Impact";
-            }
-        } else {
+         } else {
+            // CFG view should only be available for average impact
+            JOptionPane.showMessageDialog(null, "Canada Food Guide View is only available for Average Impact analysis.", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+                
+}        } else {
             // Nutrient data - use correct data based on context
             if (context == SwapVisualizationPanel.VisualizationContext.AVERAGE_ANALYSIS) {
                 originalData = cachedOriginalAverages;

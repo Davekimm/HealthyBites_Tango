@@ -404,9 +404,12 @@ public class Controller {
             if (view.getSwapVisualizationContext() == SwapVisualizationPanel.VisualizationContext.TIME_SERIES_ANALYSIS) {
                 view.showPerMealAnalysisPanel();
                 this.currentPage = "PerMealAnalysisPage";
+            } else if (view.getSwapVisualizationContext() == SwapVisualizationPanel.VisualizationContext.AVERAGE_ANALYSIS) {
+                view.showAverageImpactPanel(); 
+                this.currentPage = "AverageImpactPage";
             } else {
-                view.showAnalysisSelectionPanel(); 
-                this.currentPage = "AnalysisSelectionPanel";
+            	view.showCumulativeAnalysisPanel();
+            	this.currentPage = "CumulativeAnalysisPage";
             }
         });
         

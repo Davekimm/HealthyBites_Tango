@@ -354,15 +354,22 @@ public class MealPanel extends JPanel {
     
     /**
      * Sets the list of available ingredients for all ingredient combo boxes.
-     * @param ingredients An array of ingredient names.
+     * The ingredients will be sorted alphabetically (case-insensitive) while keeping 
+     * "<pick one>" as the first option.
+     * @param ingredients An array of ingredient names to be sorted and displayed.
      */
     public void setAvailableIngredients(String[] ingredients) {
+        // Sort the ingredients alphabetically (case-insensitive)
+        Arrays.sort(ingredients, String.CASE_INSENSITIVE_ORDER);
+        
+        // Create full list with "<pick one>" as first element
         String[] fullIngredientList = new String[ingredients.length + 1];
         fullIngredientList[0] = "<pick one>";
         System.arraycopy(ingredients, 0, fullIngredientList, 1, ingredients.length);
 
         this.availableIngredients = fullIngredientList;
 
+        // Update all existing combo boxes with the sorted list
         for (JComboBox<String> combo : ingredientCombos) {
             String currentSelection = (String) combo.getSelectedItem();
             combo.removeAllItems();
@@ -402,7 +409,7 @@ public class MealPanel extends JPanel {
 
     /**
      * Gets the selected meal type.
-     * @return The meal type as a String.
+     * @return The meal type as a String (Breakfast, Lunch, Dinner, or Snack).
      */
     public String getMealType() {
         return (String) mealTypeCombo.getSelectedItem();
@@ -410,6 +417,8 @@ public class MealPanel extends JPanel {
 
     /**
      * Gets a list of all validly entered ingredients.
+     * An ingredient is considered valid if it has been selected (not "<pick one>"),
+     * has a non-empty quantity, and has a selected unit.
      * @return A List of ingredient name strings.
      */
     public List<String> getIngredients() {
@@ -430,6 +439,7 @@ public class MealPanel extends JPanel {
 
     /**
      * Gets a list of all validly entered quantities.
+     * A quantity is included only if its corresponding ingredient and unit are also valid.
      * @return A List of quantity strings.
      */
     public List<String> getQuantities() {
@@ -450,6 +460,7 @@ public class MealPanel extends JPanel {
 
     /**
      * Gets a list of all validly entered units.
+     * A unit is included only if its corresponding ingredient and quantity are also valid.
      * @return A List of unit strings.
      */
     public List<String> getUnits() {
@@ -486,15 +497,19 @@ public class MealPanel extends JPanel {
 
     /**
      * Clears all fields in the form, resetting it to its initial state.
+     * This includes resetting the date to today, meal type to the first option,
+     * and removing all ingredient rows except the minimum required.
      */
     public void clearFields() {
         todaysDate.setValue(new Date());
         mealTypeCombo.setSelectedIndex(0);
 
+        // Remove all ingredient rows except the minimum
         while (ingredientCombos.size() > MIN_INGREDIENTS) {
             removeIngredientRow();
         }
 
+        // Clear the remaining row
         if (!ingredientCombos.isEmpty()) {
             ingredientCombos.get(0).setSelectedIndex(0);
             quantityFields.get(0).setText("");
@@ -505,7 +520,7 @@ public class MealPanel extends JPanel {
     
     /**
      * Returns the MealHistoryPanel object in the Log Meal page.
-     * * @return MealHistoryPanel object
+     * @return MealHistoryPanel object associated with this MealPanel.
      */
     public MealHistoryPanel getMealHistorySelection() {
     	return this.forMealSelection;
@@ -513,7 +528,7 @@ public class MealPanel extends JPanel {
     
     /**
      * Returns the total number of ingredient rows that user created.
-     * * @return the number of ingredient rows.
+     * @return The number of ingredient rows currently displayed in the form.
      */
     public int getNumberOfIngredientRows() {
         return ingredientCombos.size();

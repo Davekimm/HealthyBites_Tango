@@ -1,19 +1,5 @@
 package healthyBites.controller;
 
-import javax.swing.JOptionPane;
-import healthyBites.view.ViewFacade;
-import healthyBites.view.AnalysisSelectionPanel;
-import healthyBites.view.SwapVisualizationPanel;
-import healthyBites.model.ConcreteModelProxy;
-import healthyBites.model.FoodItem;
-import healthyBites.model.Goal;
-import healthyBites.model.Meal;
-import healthyBites.model.Model;
-import healthyBites.model.Nutrition;
-import healthyBites.model.UserProfile;
-import healthyBites.model.CFGFoodGroup;
-import healthyBites.observers.InitialLoadObserver;
-
 import java.awt.event.ActionListener;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -30,15 +16,29 @@ import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.swing.JOptionPane;
+
+import healthyBites.model.CFGFoodGroup;
+import healthyBites.model.ConcreteModelProxy;
+import healthyBites.model.FoodItem;
+import healthyBites.model.Goal;
+import healthyBites.model.Meal;
+import healthyBites.model.Model;
+import healthyBites.model.Nutrition;
+import healthyBites.model.UserProfile;
+import healthyBites.observers.InitialLoadObserver;
+import healthyBites.view.AnalysisSelectionPanel;
+import healthyBites.view.SwapVisualizationPanel;
+import healthyBites.view.ViewFacade;
+
 /**
  * The main controller class for the HealthyBites application.
- * <p>
+ * 
  * This class implements the MVC Controller pattern and handles all user interactions,
  * business logic, and coordination between the View (ViewFacade) and Model components.
  * It manages user authentication, meal logging, nutritional analysis, food swap
  * recommendations, and Canada Food Guide (CFG) alignment tracking.
- * </p>
- * <p>
+ *
  * Key responsibilities include:
  * <ul>
  *   <li>User profile management (login, registration, editing, deletion)</li>
@@ -48,7 +48,7 @@ import java.util.regex.Pattern;
  *   <li>CFG servings alignment analysis</li>
  *   <li>Data visualization support for analysis results</li>
  * </ul>
- * </p>
+ *
  * 
  * @author HealthyBites Team
  */

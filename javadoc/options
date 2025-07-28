@@ -1,0 +1,24 @@
+-classpath
+'/Users/hoanguyen/.m2/repository/org/jfree/jfreechart/1.5.4/jfreechart-1.5.4.jar:/Users/hoanguyen/.m2/repository/com/mysql/mysql-connector-j/8.0.33/mysql-connector-j-8.0.33.jar:/Users/hoanguyen/.m2/repository/com/google/protobuf/protobuf-java/3.21.9/protobuf-java-3.21.9.jar:/Users/hoanguyen/.m2/repository/io/github/cdimascio/dotenv-java/3.0.0/dotenv-java-3.0.0.jar:/Users/hoanguyen/.m2/repository/com/opencsv/opencsv/5.11.1/opencsv-5.11.1.jar:/Users/hoanguyen/.m2/repository/org/apache/commons/commons-lang3/3.17.0/commons-lang3-3.17.0.jar:/Users/hoanguyen/.m2/repository/org/apache/commons/commons-text/1.13.1/commons-text-1.13.1.jar:/Users/hoanguyen/.m2/repository/commons-beanutils/commons-beanutils/1.11.0/commons-beanutils-1.11.0.jar:/Users/hoanguyen/.m2/repository/commons-logging/commons-logging/1.3.5/commons-logging-1.3.5.jar:/Users/hoanguyen/.m2/repository/commons-collections/commons-collections/3.2.2/commons-collections-3.2.2.jar:/Users/hoanguyen/.m2/repository/org/apache/commons/commons-collections4/4.5.0/commons-collections4-4.5.0.jar:/Users/hoanguyen/.m2/repository/org/junit/vintage/junit-vintage-engine/5.11.4/junit-vintage-engine-5.11.4.jar:/Users/hoanguyen/.m2/repository/org/junit/platform/junit-platform-engine/1.11.4/junit-platform-engine-1.11.4.jar:/Users/hoanguyen/.m2/repository/junit/junit/4.13.2/junit-4.13.2.jar:/Users/hoanguyen/.m2/repository/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar:/Users/hoanguyen/.m2/repository/org/opentest4j/opentest4j/1.3.0/opentest4j-1.3.0.jar:/Users/hoanguyen/.m2/repository/org/junit/platform/junit-platform-commons/1.10.2/junit-platform-commons-1.10.2.jar:/Users/hoanguyen/.m2/repository/org/apiguardian/apiguardian-api/1.1.2/apiguardian-api-1.1.2.jar'
+-encoding
+'UTF-8'
+-protected
+-source
+'21'
+-sourcepath
+'/Users/hoanguyen/Developer/HealthyBites_Tango/src/main/java'
+-author
+-bottom
+'Copyright &#169; 2025. All rights reserved.'
+-charset
+'UTF-8'
+-d
+'/Users/hoanguyen/Developer/HealthyBites_Tango/target/reports/apidocs'
+-docencoding
+'UTF-8'
+-doctitle
+'healthyBites 0.0.1-SNAPSHOT API'
+-use
+-version
+-windowtitle
+'healthyBites 0.0.1-SNAPSHOT API'

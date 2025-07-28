@@ -1,0 +1,1 @@
+"/Users/hoanguyen/Library/Application Support/Code/User/globalStorage/pleiades.java-extension-pack-jdk/java/latest/bin/javadoc" -J-Duser.language= -J-Duser.country= @options @packages

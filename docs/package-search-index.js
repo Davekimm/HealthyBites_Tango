@@ -1,1 +1,1 @@
-packageSearchIndex = [{"l":"All Packages","u":"allpackages-index.html"},{"l":"healthyBites.model"}];updateSearchResults();
+packageSearchIndex = [{"l":"All Packages","u":"allpackages-index.html"},{"l":"healthyBites.controller"},{"l":"healthyBites.model"},{"l":"healthyBites.observers"},{"l":"healthyBites.view"}];updateSearchResults();
